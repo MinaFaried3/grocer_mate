@@ -1,0 +1,27 @@
+name: grocer_mate
+description: A grocery storefront with an offline checkout outbox.
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.14.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  connectivity_plus: ^7.3.1
+  flutter_bloc: ^9.1.1
+  material_ui: ^1.11.0
+  shared_preferences: ^2.5.5
+  uuid: ^4.6.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/catalog.json
+    - assets/photos/
