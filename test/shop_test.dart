@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:grocer_mate/core/network/connection.dart';
 import 'package:grocer_mate/features/shopping/domain/shopping.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
+import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_event.dart';
 
 import 'fixtures.dart';
 
@@ -113,6 +114,9 @@ void main() {
       );
       restored.add(const CheckoutAccepted({'milk': 1}));
       final finalState = await receipt;
+      expect(finalState.review, isNull);
+      expect(finalState.notice, isNull);
+      expect(finalState.busy, isFalse);
       expect(
         finalState.data!.lastOrder!.total,
         OrderTotals.forLines(preview).total,

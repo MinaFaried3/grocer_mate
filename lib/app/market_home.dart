@@ -4,11 +4,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'package:grocer_mate/core/network/app_connection.dart';
+import 'package:grocer_mate/core/network/app_network_state.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
-import 'package:grocer_mate/features/catalog/presentation/screens/catalog_screen.dart';
+import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_event.dart';
+import 'package:grocer_mate/features/catalog/presentation/ui/screens/catalog_screen.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
-import 'package:grocer_mate/features/shopping/presentation/screens/shopping_screen.dart';
-import 'package:grocer_mate/features/shopping/presentation/ui/checkout_sheet.dart';
+import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_state.dart';
+import 'package:grocer_mate/features/shopping/presentation/ui/screens/shopping_screen.dart';
+import 'package:grocer_mate/features/shopping/presentation/ui/widgets/checkout_sheet.dart';
 
 import 'demo_settings_sheet.dart';
 import 'mock_market.dart';

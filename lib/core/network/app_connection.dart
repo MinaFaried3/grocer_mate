@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'app_network_state.dart';
 import 'connection.dart';
 
-typedef AppNetworkState = ({bool online, bool simulated});
-
 class AppConnection extends Cubit<AppNetworkState> implements Connection {
-  AppConnection(this._connectivity) : super((online: true, simulated: false));
+  AppConnection(this._connectivity)
+    : super(const AppNetworkState(online: true, simulated: false));
 
   final Connectivity _connectivity;
   StreamSubscription<List<ConnectivityResult>>? _subscription;
@@ -38,8 +38,9 @@ class AppConnection extends Cubit<AppNetworkState> implements Connection {
 
   void simulateOffline(bool value) => _publish(value);
 
-  void _publish(bool simulated) =>
-      emit((online: _hasTransport && !simulated, simulated: simulated));
+  void _publish(bool simulated) => emit(
+    state.copyWith(online: _hasTransport && !simulated, simulated: simulated),
+  );
 
   @override
   Future<void> close() async {

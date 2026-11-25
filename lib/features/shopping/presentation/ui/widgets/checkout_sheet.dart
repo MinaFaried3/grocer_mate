@@ -3,9 +3,10 @@ import 'package:material_ui/material_ui.dart';
 
 import 'package:grocer_mate/core/money.dart';
 
-import '../../domain/shopping.dart';
-import '../controllers/shopping_bloc.dart';
-import '../widgets/checkout_change_panel.dart';
+import '../../../domain/shopping.dart';
+import '../../controllers/shopping_bloc.dart';
+import '../../controllers/shopping_event.dart';
+import 'checkout_change_panel.dart';
 
 Future<void> showCheckoutReview(
   BuildContext context,

@@ -5,8 +5,9 @@ import 'package:grocer_mate/core/money.dart';
 import 'package:grocer_mate/core/widgets/market_panel.dart';
 import 'package:grocer_mate/core/widgets/product_photo.dart';
 
-import '../../domain/shopping.dart';
-import '../controllers/shopping_bloc.dart';
+import '../../../domain/shopping.dart';
+import '../../controllers/shopping_bloc.dart';
+import '../../controllers/shopping_event.dart';
 
 class const ShoppingLineTile({
   super.key,

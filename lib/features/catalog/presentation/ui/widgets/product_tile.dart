@@ -5,8 +5,9 @@ import 'package:grocer_mate/core/money.dart';
 import 'package:grocer_mate/core/theme/market_theme.dart';
 import 'package:grocer_mate/core/widgets/product_photo.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
+import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_event.dart';
 
-import '../../domain/catalog.dart';
+import '../../../domain/catalog.dart';
 import '../screens/product_screen.dart';
 
 class const ProductTile({super.key, required final Product product})

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:grocer_mate/features/catalog/domain/catalog.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
+import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_event.dart';
 
 import 'fixtures.dart';
 
@@ -48,10 +49,9 @@ void main() {
       (state) => state.page == 2 && !state.loading,
     );
     bloc.add(const NextPageRequested());
-    expect((await finished).products.map((product) => product.id), [
-      'milk',
-      'bread',
-    ]);
+    final retried = await finished;
+    expect(retried.error, isNull);
+    expect(retried.products.map((product) => product.id), ['milk', 'bread']);
     expect(source.requests.map((request) => request.$2), [1, 2, 2]);
     expect(source.requests.map((request) => request.$3), [true, false, false]);
   });

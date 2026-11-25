@@ -3,8 +3,10 @@ import 'package:material_ui/material_ui.dart';
 
 import 'package:grocer_mate/core/theme/market_theme.dart';
 
-import '../controllers/catalog_bloc.dart';
-import '../widgets/market_hero.dart';
+import '../../controllers/catalog_bloc.dart';
+import '../../controllers/catalog_event.dart';
+import '../../controllers/catalog_state.dart';
+import 'market_hero.dart';
 
 class const CatalogHeader({
   super.key,

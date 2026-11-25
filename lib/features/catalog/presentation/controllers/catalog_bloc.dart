@@ -5,84 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grocer_mate/core/network/connection.dart';
 
 import '../../domain/catalog.dart';
-
-const CatalogQuery _defaultQuery = (
-  search: '',
-  category: null,
-  brand: null,
-  deals: false,
-);
-
-sealed class CatalogEvent {
-  const CatalogEvent();
-}
-
-class SearchTyped extends CatalogEvent {
-  const SearchTyped(this.input);
-  final String input;
-}
-
-class CategorySelected extends CatalogEvent {
-  const CategorySelected(this.id);
-  final String? id;
-}
-
-class BrandSelected extends CatalogEvent {
-  const BrandSelected(this.name);
-  final String? name;
-}
-
-class DealsSelected extends CatalogEvent {
-  const DealsSelected();
-}
-
-class CatalogRefreshed extends CatalogEvent {
-  const CatalogRefreshed();
-}
-
-class NextPageRequested extends CatalogEvent {
-  const NextPageRequested();
-}
-
-class _SearchSettled extends CatalogEvent {
-  const _SearchSettled(this.input);
-  final String input;
-}
-
-class CatalogState {
-  const CatalogState({
-    this.query = _defaultQuery,
-    this.categories = const [],
-    this.brands = const [],
-    this.products = const [],
-    this.page = 0,
-    this.total = 0,
-    this.loading = true,
-    this.error,
-  });
-
-  final CatalogQuery query;
-  final List<Category> categories;
-  final List<String> brands;
-  final List<Product> products;
-  final int page;
-  final int total;
-  final bool loading;
-  final String? error;
-
-  bool get hasMore => products.length < total;
-
-  CatalogState _failed(String message) => CatalogState(
-    query: query,
-    categories: categories,
-    brands: brands,
-    products: products,
-    page: page,
-    total: total,
-    loading: false,
-    error: message,
-  );
-}
+import 'catalog_event.dart';
+import 'catalog_state.dart';
 
 class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
   CatalogBloc(this._repository) : super(const CatalogState()) {
@@ -104,10 +28,10 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
         if (_input != query.search) {
           _searchTimer = Timer(
             const Duration(milliseconds: 400),
-            () => add(_SearchSettled(_input)),
+            () => add(SearchSettled(_input)),
           );
         }
-      case _SearchSettled(:final input):
+      case SearchSettled(:final input):
         if (input != _input || input == query.search) return;
         await _load((
           search: input,
@@ -152,13 +76,14 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
   }) async {
     final generation = ++_generation;
     final firstPage = page == 1;
-    final loading = CatalogState(
+    final loading = state.copyWith(
       query: query,
-      categories: state.categories,
       brands: query.category == state.query.category ? state.brands : const [],
       products: firstPage ? const [] : state.products,
       page: firstPage ? 0 : state.page,
       total: firstPage ? 0 : state.total,
+      loading: true,
+      clearError: true,
     );
     emit(loading);
 
@@ -171,8 +96,7 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
       );
       if (generation != _generation) return;
       emit(
-        CatalogState(
-          query: query,
+        loading.copyWith(
           categories: result.categories,
           brands: result.brands,
           products: firstPage
@@ -190,7 +114,7 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
           : error is OfflineException
           ? 'Connect once to download the catalog.'
           : 'We couldn’t load groceries.';
-      emit(loading._failed(message));
+      emit(loading.copyWith(loading: false, error: message));
     }
   }
 

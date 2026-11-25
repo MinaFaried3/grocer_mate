@@ -3,8 +3,10 @@ import 'package:material_ui/material_ui.dart';
 
 import 'package:grocer_mate/core/widgets/status_panel.dart';
 
-import '../../domain/shopping.dart';
-import '../controllers/shopping_bloc.dart';
+import '../../../domain/shopping.dart';
+import '../../controllers/shopping_bloc.dart';
+import '../../controllers/shopping_event.dart';
+import '../../controllers/shopping_state.dart';
 import '../widgets/cart_summary.dart';
 import '../widgets/order_receipt_panel.dart';
 import '../widgets/pending_purchase_panel.dart';

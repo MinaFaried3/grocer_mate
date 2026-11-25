@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'package:grocer_mate/core/network/app_connection.dart';
+import 'package:grocer_mate/core/network/app_network_state.dart';
 
 import 'mock_market.dart';
 

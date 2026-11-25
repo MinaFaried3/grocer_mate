@@ -4,8 +4,10 @@ import 'package:material_ui/material_ui.dart';
 import 'package:grocer_mate/core/money.dart';
 import 'package:grocer_mate/core/widgets/product_photo.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
+import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_event.dart';
+import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_state.dart';
 
-import '../../domain/catalog.dart';
+import '../../../domain/catalog.dart';
 
 class const ProductDetails(final Product product, {super.key})
     extends StatelessWidget {

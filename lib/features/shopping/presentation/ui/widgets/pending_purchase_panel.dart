@@ -4,8 +4,10 @@ import 'package:material_ui/material_ui.dart';
 import 'package:grocer_mate/core/network/app_connection.dart';
 import 'package:grocer_mate/core/widgets/market_panel.dart';
 
-import '../controllers/shopping_bloc.dart';
-import '../ui/checkout_sheet.dart';
+import '../../controllers/shopping_bloc.dart';
+import '../../controllers/shopping_event.dart';
+import '../../controllers/shopping_state.dart';
+import 'checkout_sheet.dart';
 
 class const PendingPurchasePanel(final ShopState state, {super.key})
     extends StatelessWidget {

@@ -5,8 +5,9 @@ import 'package:grocer_mate/core/money.dart';
 import 'package:grocer_mate/core/network/app_connection.dart';
 import 'package:grocer_mate/core/widgets/market_panel.dart';
 
-import '../../domain/shopping.dart';
-import '../controllers/shopping_bloc.dart';
+import '../../../domain/shopping.dart';
+import '../../controllers/shopping_bloc.dart';
+import '../../controllers/shopping_event.dart';
 import 'order_amount_row.dart';
 
 class const CartSummary(final ShoppingData data, {super.key})

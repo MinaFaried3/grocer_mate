@@ -3,8 +3,10 @@ import 'package:material_ui/material_ui.dart';
 
 import 'package:grocer_mate/core/widgets/status_panel.dart';
 
-import '../controllers/catalog_bloc.dart';
-import '../ui/catalog_header.dart';
+import '../../controllers/catalog_bloc.dart';
+import '../../controllers/catalog_event.dart';
+import '../../controllers/catalog_state.dart';
+import '../widgets/catalog_header.dart';
 import '../widgets/product_tile.dart';
 
 class const CatalogScreen({super.key, required final VoidCallback onSettings})

@@ -8,70 +8,8 @@ import 'package:grocer_mate/core/network/connection.dart';
 import 'package:grocer_mate/features/catalog/domain/catalog.dart';
 
 import '../../domain/shopping.dart';
-
-sealed class ShopEvent {
-  const ShopEvent();
-}
-
-class ShopStarted extends ShopEvent {
-  const ShopStarted();
-}
-
-class ItemAdded extends ShopEvent {
-  const ItemAdded(this.product);
-  final Product product;
-}
-
-class QuantityAdjusted extends ShopEvent {
-  const QuantityAdjusted(this.id, this.delta);
-  final String id;
-  final int delta;
-}
-
-class ItemsMoved extends ShopEvent {
-  const ItemsMoved(this.ids, {required this.fromSaved});
-  final Set<String> ids;
-  final bool fromSaved;
-}
-
-class ItemsRemoved extends ShopEvent {
-  const ItemsRemoved(this.ids, {required this.fromSaved});
-  final Set<String> ids;
-  final bool fromSaved;
-}
-
-class CheckoutRequested extends ShopEvent {
-  const CheckoutRequested();
-}
-
-class PendingRetried extends ShopEvent {
-  const PendingRetried();
-}
-
-class PendingCanceled extends ShopEvent {
-  const PendingCanceled();
-}
-
-class CheckoutAccepted extends ShopEvent {
-  const CheckoutAccepted(this.quantities);
-  final Map<String, int> quantities;
-}
-
-class ShopState {
-  const ShopState({
-    this.data,
-    this.busy = false,
-    this.loadError = false,
-    this.review,
-    this.notice,
-  });
-
-  final ShoppingData? data;
-  final bool busy;
-  final bool loadError;
-  final PurchaseReview? review;
-  final String? notice;
-}
+import 'shopping_event.dart';
+import 'shopping_state.dart';
 
 class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
   ShoppingBloc(this._storage, this._checkout, this._connection)
@@ -96,7 +34,7 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
       emit(const ShopState());
       try {
         final data = await _storage.read();
-        emit(ShopState(data: data));
+        emit(state.copyWith(data: data));
         if (data.pending != null) await _submit(data, emit);
       } catch (_) {
         emit(const ShopState(loadError: true));
@@ -127,7 +65,7 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
                       .where((line) => !ids.contains(line.product.id))
                       .toList(),
                 );
-          await _save(updated, emit, review: state.review);
+          await _save(updated, emit);
         case CheckoutRequested():
           if (data.pending != null || data.cart.isEmpty) return;
           final request = PendingPurchase(const Uuid().v4(), data.cart);
@@ -162,6 +100,7 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
               lastOrder: data.lastOrder,
             ),
             emit,
+            clearReview: true,
             notice: 'Purchase returned to your cart.',
           );
         case CheckoutAccepted(:final quantities):
@@ -169,9 +108,7 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
       }
     } catch (_) {
       emit(
-        ShopState(
-          data: state.data,
-          review: state.review,
+        state.copyWith(
           notice: 'We couldn’t save that change. Please try again.',
         ),
       );
@@ -187,19 +124,12 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
         .where((line) => line.product.id == product.id)
         .firstOrNull;
     if ((current?.quantity ?? 0) >= product.stock) {
-      emit(
-        ShopState(
-          data: data,
-          review: state.review,
-          notice: 'You’ve reached the available quantity.',
-        ),
-      );
+      emit(state.copyWith(notice: 'You’ve reached the available quantity.'));
       return;
     }
     await _save(
       data.withLists(cart: _merge(data.cart, CartLine(product, 1))),
       emit,
-      review: state.review,
       notice: 'Added to cart.',
     );
   }
@@ -222,7 +152,7 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
             ),
           ),
     ];
-    await _save(data.withLists(cart: lines), emit, review: state.review);
+    await _save(data.withLists(cart: lines), emit);
   }
 
   Future<void> _move(
@@ -261,7 +191,6 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
     await _save(
       updated,
       emit,
-      review: state.review,
       notice: limited
           ? 'Unavailable quantities are still saved.'
           : fromSaved
@@ -299,6 +228,7 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
     await _save(
       updated,
       emit,
+      clearReview: true,
       notice: lines.isEmpty
           ? 'The purchase was canceled because no items remain.'
           : null,
@@ -310,7 +240,7 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
     final pending = data.pending;
     if (pending == null || !_connection.online) return;
     var submittedData = data;
-    emit(ShopState(data: data, busy: true));
+    emit(state.copyWith(busy: true, clearReview: true, clearNotice: true));
     try {
       if (!pending.attempted) {
         // Record the attempt before sending it so an interrupted purchase can retry safely.
@@ -326,7 +256,9 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
       final result = await _checkout.purchase(submittedData.pending!);
       switch (result) {
         case PurchaseReview():
-          emit(ShopState(data: submittedData, review: result));
+          emit(
+            state.copyWith(data: submittedData, busy: false, review: result),
+          );
         case OrderReceipt():
           await _save(
             ShoppingData(cart: data.cart, saved: data.saved, lastOrder: result),
@@ -335,15 +267,17 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
       }
     } on OfflineException {
       emit(
-        ShopState(
+        state.copyWith(
           data: submittedData,
+          busy: false,
           notice: 'Purchase queued for when you’re online.',
         ),
       );
     } catch (_) {
       emit(
-        ShopState(
+        state.copyWith(
           data: submittedData,
+          busy: false,
           notice: 'Checkout couldn’t finish. Your purchase is saved for retry.',
         ),
       );
@@ -353,11 +287,19 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
   Future<void> _save(
     ShoppingData data,
     Emitter<ShopState> emit, {
-    PurchaseReview? review,
+    bool clearReview = false,
     String? notice,
   }) async {
     await _storage.write(data);
-    emit(ShopState(data: data, review: review, notice: notice));
+    emit(
+      state.copyWith(
+        data: data,
+        busy: false,
+        clearReview: clearReview,
+        notice: notice,
+        clearNotice: notice == null,
+      ),
+    );
   }
 
   @override
