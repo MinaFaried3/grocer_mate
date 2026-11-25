@@ -1,16 +1,11 @@
 import 'package:material_ui/material_ui.dart';
 
-class ProductPhoto extends StatelessWidget {
-  const ProductPhoto(
-    this.path, {
-    super.key,
-    this.cacheWidth,
-    this.fit = BoxFit.cover,
-  });
-  final String path;
-  final int? cacheWidth;
-  final BoxFit fit;
-
+class const ProductPhoto(
+  final String path, {
+  super.key,
+  final int? cacheWidth,
+  final BoxFit fit = BoxFit.cover,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Image.asset(
     path,

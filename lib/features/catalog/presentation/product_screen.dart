@@ -3,17 +3,17 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:grocer_mate/core/money.dart';
 import 'package:grocer_mate/core/network/connection.dart';
-import 'package:grocer_mate/core/widgets/market_panels.dart';
+import 'package:grocer_mate/core/widgets/status_panel.dart';
 import 'package:grocer_mate/core/widgets/product_photo.dart';
 import 'package:grocer_mate/features/shopping/presentation/shopping_bloc.dart';
 
 import '../domain/catalog.dart';
 
-class ProductScreen extends StatefulWidget {
-  const ProductScreen({super.key, required this.id, required this.title});
-  final String id;
-  final String title;
-
+class const ProductScreen({
+  super.key,
+  required final String id,
+  required final String title,
+}) extends StatefulWidget {
   @override
   State<ProductScreen> createState() => _ProductScreenState();
 }

@@ -1,24 +1,21 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:grocer_mate/core/widgets/market_panels.dart';
+import 'package:grocer_mate/core/widgets/status_panel.dart';
 
 import '../domain/shopping.dart';
-import 'checkout_panels.dart';
+import 'cart_summary.dart';
+import 'order_receipt_panel.dart';
+import 'pending_purchase_panel.dart';
 import 'shopping_bloc.dart';
 import 'shopping_line_tile.dart';
 
-class ShoppingScreen extends StatefulWidget {
-  const ShoppingScreen({
-    super.key,
-    required this.saved,
-    required this.onBrowse,
-    required this.onSettings,
-  });
-  final bool saved;
-  final VoidCallback onBrowse;
-  final VoidCallback onSettings;
-
+class const ShoppingScreen({
+  super.key,
+  required final bool saved,
+  required final VoidCallback onBrowse,
+  required final VoidCallback onSettings,
+}) extends StatefulWidget {
   @override
   State<ShoppingScreen> createState() => _ShoppingScreenState();
 }

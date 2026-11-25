@@ -5,10 +5,8 @@ import 'package:grocer_mate/core/network/app_connection.dart';
 
 import 'mock_market.dart';
 
-class DemoSettingsSheet extends StatefulWidget {
-  const DemoSettingsSheet({super.key, required this.market});
-
-  final MockMarket market;
+class const DemoSettingsSheet({super.key, required final MockMarket market})
+    extends StatefulWidget {
   @override
   State<DemoSettingsSheet> createState() => _DemoSettingsState();
 }

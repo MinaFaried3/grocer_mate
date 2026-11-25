@@ -13,11 +13,8 @@ import 'package:grocer_mate/features/shopping/presentation/shopping_screen.dart'
 import 'demo_settings_sheet.dart';
 import 'mock_market.dart';
 
-class MarketHome extends StatefulWidget {
-  const MarketHome({super.key, required this.market});
-
-  final MockMarket market;
-
+class const MarketHome({super.key, required final MockMarket market})
+    extends StatefulWidget {
   @override
   State<MarketHome> createState() => _MarketHomeState();
 }

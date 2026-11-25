@@ -2,9 +2,9 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:grocer_mate/core/money.dart';
-import 'package:grocer_mate/core/widgets/market_panels.dart';
 
 import '../domain/shopping.dart';
+import 'checkout_change_panel.dart';
 import 'shopping_bloc.dart';
 
 Future<void> showCheckoutReview(
@@ -29,16 +29,11 @@ Future<void> showCheckoutReview(
   );
 }
 
-class _CheckoutSheet extends StatefulWidget {
-  const _CheckoutSheet({
-    required this.pending,
-    required this.review,
-    required this.onSubmit,
-  });
-  final PendingPurchase pending;
-  final PurchaseReview review;
-  final ValueChanged<Map<String, int>> onSubmit;
-
+class const _CheckoutSheet({
+  required final PendingPurchase pending,
+  required final PurchaseReview review,
+  required final ValueChanged<Map<String, int>> onSubmit,
+}) extends StatefulWidget {
   @override
   State<_CheckoutSheet> createState() => _CheckoutSheetState();
 }
@@ -85,7 +80,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
                   ),
                   for (final (line, change) in reviewed) ...[
                     const SizedBox(height: 12),
-                    _ChangePanel(
+                    CheckoutChangePanel(
                       line: line,
                       change: change,
                       selected: change.quantityFor(
@@ -115,75 +110,6 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _ChangePanel extends StatelessWidget {
-  const _ChangePanel({
-    required this.line,
-    required this.change,
-    required this.selected,
-    required this.onChanged,
-  });
-  final CartLine line;
-  final CheckoutChange change;
-  final int selected;
-  final ValueChanged<int> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final maxQuantity = change.quantityFor(line);
-    return MarketPanel(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(line.product.title, style: theme.textTheme.titleMedium),
-          if (change.priceChanged(line))
-            Text(
-              '${money(line.product.price)} → ${money(change.currentPrice)} each',
-            ),
-          if (change.stockChanged(line))
-            Text(
-              change.available == 0
-                  ? 'Out of stock · will be removed'
-                  : 'Only ${change.available} available · you requested ${line.quantity}',
-              style: TextStyle(color: theme.colorScheme.error),
-            ),
-          if (maxQuantity > 0)
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    selected == 0 ? 'Will be removed' : 'Keep $selected',
-                  ),
-                ),
-                if (change.stockChanged(line)) ...[
-                  IconButton(
-                    tooltip: 'Reduce ${line.product.title} quantity',
-                    onPressed: selected > 1
-                        ? () => onChanged(selected - 1)
-                        : null,
-                    icon: const Icon(Icons.remove_circle_outline),
-                  ),
-                  IconButton(
-                    tooltip: 'Increase ${line.product.title} quantity',
-                    onPressed: selected > 0 && selected < maxQuantity
-                        ? () => onChanged(selected + 1)
-                        : null,
-                    icon: const Icon(Icons.add_circle_outline),
-                  ),
-                ],
-                TextButton(
-                  onPressed: () => onChanged(selected == 0 ? maxQuantity : 0),
-                  child: Text(selected == 0 ? 'Keep item' : 'Remove item'),
-                ),
-              ],
-            ),
-        ],
       ),
     );
   }

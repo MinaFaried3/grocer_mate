@@ -1,44 +1,13 @@
 import 'package:material_ui/material_ui.dart';
 
-class MarketPanel extends StatelessWidget {
-  const MarketPanel({
-    super.key,
-    required this.child,
-    this.padding = const EdgeInsets.all(16),
-  });
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.surface,
-        border: Border.all(color: colors.outlineVariant),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(padding: padding, child: child),
-    );
-  }
-}
-
-class StatusPanel extends StatelessWidget {
-  const StatusPanel({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.message,
-    this.action,
-    this.onAction,
-  });
-
-  final IconData icon;
-  final String title;
-  final String message;
-  final String? action;
-  final VoidCallback? onAction;
-
+class const StatusPanel({
+  super.key,
+  required final IconData icon,
+  required final String title,
+  required final String message,
+  final String? action,
+  final VoidCallback? onAction,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

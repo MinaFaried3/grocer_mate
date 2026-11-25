@@ -9,10 +9,8 @@ import 'package:grocer_mate/features/shopping/presentation/shopping_bloc.dart';
 import '../domain/catalog.dart';
 import 'product_screen.dart';
 
-class ProductTile extends StatelessWidget {
-  const ProductTile({super.key, required this.product});
-  final Product product;
-
+class const ProductTile({super.key, required final Product product})
+    extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
