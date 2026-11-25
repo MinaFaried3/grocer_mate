@@ -1,4 +1,4 @@
-import 'package:grocer_mate/domain/catalog.dart';
+import 'package:grocer_mate/features/catalog/domain/catalog.dart';
 
 const milk = Product(
   id: 'milk',

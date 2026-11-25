@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../domain/connection.dart';
+import 'connection.dart';
 
 typedef AppNetworkState = ({bool online, bool simulated});
 

@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'catalog.dart';
+import 'package:grocer_mate/features/catalog/domain/catalog.dart';
 
 class CartLine {
   const CartLine(this.product, this.quantity);
@@ -63,6 +63,11 @@ class CheckoutChange {
   final int available;
   bool priceChanged(CartLine line) => line.product.price != currentPrice;
   bool stockChanged(CartLine line) => available < line.quantity;
+
+  int quantityFor(CartLine line, [int? requested]) {
+    final maxQuantity = math.min(line.quantity, available);
+    return (requested ?? maxQuantity).clamp(0, maxQuantity);
+  }
 }
 
 sealed class PurchaseResult {
@@ -72,6 +77,33 @@ sealed class PurchaseResult {
 class PurchaseReview extends PurchaseResult {
   const PurchaseReview(this.changes);
   final List<CheckoutChange> changes;
+
+  List<CartLine> applyTo(List<CartLine> lines, Map<String, int> quantities) {
+    final changesById = {
+      for (final change in changes) change.productId: change,
+    };
+    final adjusted = <CartLine>[];
+    for (final line in lines) {
+      final id = line.product.id;
+      final change = changesById[id];
+      if (change == null) {
+        adjusted.add(line);
+        continue;
+      }
+      final quantity = change.quantityFor(line, quantities[id]);
+      if (quantity == 0) continue;
+      adjusted.add(
+        CartLine(
+          line.product.withAvailability(
+            price: change.currentPrice,
+            stock: change.available,
+          ),
+          quantity,
+        ),
+      );
+    }
+    return adjusted;
+  }
 }
 
 class OrderReceipt extends PurchaseResult {
@@ -94,13 +126,13 @@ class PendingPurchase {
   factory PendingPurchase.fromJson(Map<String, dynamic> json) =>
       PendingPurchase(
         json['id'],
-        decodeLines(json['lines']),
+        _decodeLines(json['lines']),
         attempted: json['attempted'] == true,
       );
 
   Map<String, Object> toJson() => {
     'id': id,
-    'lines': encodeLines(lines),
+    'lines': _encodeLines(lines),
     'attempted': attempted,
   };
 }
@@ -127,8 +159,8 @@ class ShoppingData {
       );
 
   factory ShoppingData.fromJson(Map<String, dynamic> json) => ShoppingData(
-    cart: decodeLines(json['cart']),
-    saved: decodeLines(json['saved']),
+    cart: _decodeLines(json['cart']),
+    saved: _decodeLines(json['saved']),
     pending: json['pending'] == null
         ? null
         : PendingPurchase.fromJson(json['pending']),
@@ -138,17 +170,17 @@ class ShoppingData {
   );
 
   Map<String, Object?> toJson() => {
-    'cart': encodeLines(cart),
-    'saved': encodeLines(saved),
+    'cart': _encodeLines(cart),
+    'saved': _encodeLines(saved),
     'pending': pending?.toJson(),
     'lastOrder': lastOrder?.toJson(),
   };
 }
 
-List<CartLine> decodeLines(List<dynamic> json) =>
+List<CartLine> _decodeLines(List<dynamic> json) =>
     List<CartLine>.unmodifiable(json.map((item) => CartLine.fromJson(item)));
 
-List<Map<String, Object>> encodeLines(List<CartLine> lines) =>
+List<Map<String, Object>> _encodeLines(List<CartLine> lines) =>
     lines.map((item) => item.toJson()).toList();
 
 abstract interface class ShoppingRepository {
@@ -158,8 +190,4 @@ abstract interface class ShoppingRepository {
 
 abstract interface class CheckoutRepository {
   Future<PurchaseResult> purchase(PendingPurchase purchase);
-}
-
-class OfflineException implements Exception {
-  const OfflineException();
 }

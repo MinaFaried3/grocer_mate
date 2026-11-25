@@ -4,9 +4,10 @@ import 'dart:math' as math;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 
-import '../../domain/catalog.dart';
-import '../../domain/connection.dart';
-import '../../domain/shopping.dart';
+import 'package:grocer_mate/core/network/connection.dart';
+import 'package:grocer_mate/features/catalog/domain/catalog.dart';
+
+import '../domain/shopping.dart';
 
 sealed class ShopEvent {
   const ShopEvent();
@@ -288,30 +289,7 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
     final pending = data.pending;
     final review = state.review;
     if (pending == null || review == null) return;
-    final changes = {
-      for (final change in review.changes) change.productId: change,
-    };
-    final lines = <CartLine>[];
-    for (final line in pending.lines) {
-      final id = line.product.id;
-      final change = changes[id];
-      if (change == null) {
-        lines.add(line);
-      } else {
-        final limit = math.min(line.quantity, change.available);
-        final quantity = (quantities[id] ?? limit).clamp(0, limit);
-        if (quantity == 0) continue;
-        lines.add(
-          CartLine(
-            line.product.withAvailability(
-              price: change.currentPrice,
-              stock: change.available,
-            ),
-            quantity,
-          ),
-        );
-      }
-    }
+    final lines = review.applyTo(pending.lines, quantities);
     final updated = ShoppingData(
       cart: data.cart,
       saved: data.saved,
@@ -334,22 +312,18 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
     var submittedData = data;
     emit(ShopState(data: data, busy: true));
     try {
-      final attempt = PendingPurchase(
-        pending.id,
-        pending.lines,
-        attempted: true,
-      );
       if (!pending.attempted) {
+        // Record the attempt before sending it so an interrupted purchase can retry safely.
         final marked = ShoppingData(
           cart: data.cart,
           saved: data.saved,
-          pending: attempt,
+          pending: PendingPurchase(pending.id, pending.lines, attempted: true),
           lastOrder: data.lastOrder,
         );
         await _storage.write(marked);
         submittedData = marked;
       }
-      final result = await _checkout.purchase(attempt);
+      final result = await _checkout.purchase(submittedData.pending!);
       switch (result) {
         case PurchaseReview():
           emit(ShopState(data: submittedData, review: result));

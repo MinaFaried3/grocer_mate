@@ -29,8 +29,9 @@ The mock scenario applies to the next purchase and persists its catalog changes.
 
 ## Implementation
 
-- `lib/domain` defines the catalog, shopping, and checkout contracts and calculates totals in integer cents. The subtotal uses list prices, discounts are deducted before 5% tax, and the $1 delivery fee is waived at $25.
-- `lib/data` implements the local mock market, the last successful catalog snapshot (including details), and device storage for the cart, saved list, and pending purchase.
-- `lib/presentation` uses BLoCs for debounced search (400 ms), category and brand filters, independent page retries, and persisted cart and checkout events.
+- `lib/main.dart` initializes Flutter and launches the app. `lib/app` wires dependencies, navigation, theming, and the local mock market.
+- `lib/core` contains shared connectivity, storage, formatting, and UI components.
+- `lib/features/catalog` handles browsing, product details, category and brand filters, 400 ms debounced search, and page retries. It uses the latest cached snapshot for filtering and pagination and refreshes on reconnect, a checkout update, or pull to refresh.
+- `lib/features/shopping` handles cart, saved items, and checkout. Totals use integer cents. Discounts are applied before 5% tax, and the $1 delivery fee is waived at $25.
 - The outbox stores one pending purchase, retries it on reconnect or relaunch, and reuses its idempotency key. The mock market records the order and inventory together so a repeated request returns the original receipt.
 - `assets/photos` contains optimized WebP artwork created with built-in ImageGen from two prompts, a 20-product grocery atlas on pastel studio backdrops and an overhead produce tote on forest green. All product images ship with the mobile app.

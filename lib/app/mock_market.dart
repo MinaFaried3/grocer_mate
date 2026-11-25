@@ -3,10 +3,10 @@ import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
 
-import '../domain/catalog.dart';
-import '../domain/connection.dart';
-import '../domain/shopping.dart';
-import 'local_store.dart';
+import '../core/network/connection.dart';
+import '../core/storage/json_store.dart';
+import '../features/catalog/domain/catalog.dart';
+import '../features/shopping/domain/shopping.dart';
 
 enum CheckoutScenario {
   normal('Normal checkout'),
@@ -24,7 +24,7 @@ class MockMarket implements CheckoutRepository {
   static const catalogAsset = 'assets/catalog.json';
   static const _serverKey = 'mock_market_v1';
 
-  final LocalStore store;
+  final JsonStore store;
   final Connection connection;
   final AssetBundle bundle;
   Future<Map<String, dynamic>>? _seed;
@@ -90,35 +90,32 @@ class MockMarket implements CheckoutRepository {
         changes.add(change);
       }
     }
-    if (changes.isNotEmpty) {
-      if (armed != CheckoutScenario.normal) {
-        await store.write(_serverKey, {
-          'availability': availability,
-          'receipts': receipts,
-        });
-        if (scenario == armed) scenario = CheckoutScenario.normal;
+    final PurchaseResult result;
+    if (changes.isEmpty) {
+      for (final line in purchase.lines) {
+        final id = line.product.id;
+        availability[id] = {
+          'price': priceFor(id, line.product.price),
+          'stock': stockFor(id) - line.quantity,
+        };
       }
-      return PurchaseReview(List.unmodifiable(changes));
+      final receipt = OrderReceipt(
+        id: 'GM-${1001 + receipts.length}',
+        total: OrderTotals.forLines(purchase.lines).total,
+      );
+      receipts[purchase.id] = receipt.toJson();
+      result = receipt;
+    } else {
+      result = PurchaseReview(List.unmodifiable(changes));
+      if (armed == CheckoutScenario.normal) return result;
     }
 
-    for (final line in purchase.lines) {
-      final id = line.product.id;
-      availability[id] = {
-        'price': priceFor(id, line.product.price),
-        'stock': stockFor(id) - line.quantity,
-      };
-    }
-    final receipt = OrderReceipt(
-      id: 'GM-${(1001 + receipts.length).toString()}',
-      total: OrderTotals.forLines(purchase.lines).total,
-    );
-    receipts[purchase.id] = receipt.toJson();
     await store.write(_serverKey, {
       'availability': availability,
       'receipts': receipts,
     });
     if (scenario == armed) scenario = CheckoutScenario.normal;
-    return receipt;
+    return result;
   }
 
   Future<void> _delay(Duration duration) async {

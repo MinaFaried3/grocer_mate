@@ -1,10 +1,13 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../domain/catalog.dart';
-import '../../domain/shopping.dart';
-import '../shopping/shopping_bloc.dart';
-import '../widgets/style.dart';
+import 'package:grocer_mate/core/money.dart';
+import 'package:grocer_mate/core/network/connection.dart';
+import 'package:grocer_mate/core/widgets/market_panels.dart';
+import 'package:grocer_mate/core/widgets/product_photo.dart';
+import 'package:grocer_mate/features/shopping/presentation/shopping_bloc.dart';
+
+import '../domain/catalog.dart';
 
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key, required this.id, required this.title});

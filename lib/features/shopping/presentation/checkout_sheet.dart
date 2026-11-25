@@ -1,10 +1,10 @@
-import 'dart:math' as math;
-
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../domain/shopping.dart';
-import '../widgets/style.dart';
+import 'package:grocer_mate/core/money.dart';
+import 'package:grocer_mate/core/widgets/market_panels.dart';
+
+import '../domain/shopping.dart';
 import 'shopping_bloc.dart';
 
 Future<void> showCheckoutReview(
@@ -52,29 +52,13 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
     final changes = {
       for (final change in widget.review.changes) change.productId: change,
     };
-    final reviewed = widget.pending.lines.where(
-      (line) => changes.containsKey(line.product.id),
-    );
-    int quantity(CartLine line) =>
-        _quantities[line.product.id] ??
-        math.min(
-          changes[line.product.id]?.available ?? line.quantity,
-          line.quantity,
-        );
-
-    final totals = OrderTotals.forLines([
+    final reviewed = [
       for (final line in widget.pending.lines)
-        if (quantity(line) > 0)
-          CartLine(
-            line.product.withAvailability(
-              price:
-                  changes[line.product.id]?.currentPrice ?? line.product.price,
-              stock: changes[line.product.id]?.available ?? line.product.stock,
-            ),
-            quantity(line),
-          ),
-    ]);
-    final hasItems = widget.pending.lines.any((line) => quantity(line) > 0);
+        if (changes[line.product.id] case final CheckoutChange change)
+          (line, change),
+    ];
+    final adjusted = widget.review.applyTo(widget.pending.lines, _quantities);
+    final totals = OrderTotals.forLines(adjusted);
 
     return SafeArea(
       top: false,
@@ -99,12 +83,15 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
                     'Prices or stock changed. Review the updates before placing your order.',
                     style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                   ),
-                  for (final line in reviewed) ...[
+                  for (final (line, change) in reviewed) ...[
                     const SizedBox(height: 12),
                     _ChangePanel(
                       line: line,
-                      change: changes[line.product.id]!,
-                      selected: quantity(line),
+                      change: change,
+                      selected: change.quantityFor(
+                        line,
+                        _quantities[line.product.id],
+                      ),
                       onChanged: (value) =>
                           setState(() => _quantities[line.product.id] = value),
                     ),
@@ -119,7 +106,7 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
                 child: FilledButton(
                   onPressed: () => widget.onSubmit(Map.of(_quantities)),
                   child: Text(
-                    hasItems
+                    adjusted.isNotEmpty
                         ? 'Accept and place order · ${money(totals.total)}'
                         : 'Remove items and cancel',
                   ),
@@ -148,7 +135,7 @@ class _ChangePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final maxQuantity = math.min(line.quantity, change.available);
+    final maxQuantity = change.quantityFor(line);
     return MarketPanel(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
       child: Column(

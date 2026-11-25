@@ -98,15 +98,19 @@ typedef CatalogQuery = ({
   String? brand,
   bool deals,
 });
-typedef CatalogPage = ({List<Product> products, int total});
-typedef CatalogFilters = ({List<Category> categories, List<String> brands});
+typedef CatalogPage = ({
+  List<Product> products,
+  int total,
+  List<Category> categories,
+  List<String> brands,
+});
 
 abstract interface class CatalogRepository {
   Future<CatalogPage> browse(
     CatalogQuery query, {
     required int page,
     required int pageSize,
+    bool refresh = false,
   });
-  Future<CatalogFilters> filters(String? category);
   Future<Product> detail(String id);
 }

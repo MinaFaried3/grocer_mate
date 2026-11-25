@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:grocer_mate/domain/catalog.dart';
-import 'package:grocer_mate/presentation/catalog/catalog_bloc.dart';
+import 'package:grocer_mate/features/catalog/domain/catalog.dart';
+import 'package:grocer_mate/features/catalog/presentation/catalog_bloc.dart';
 
 import 'fixtures.dart';
 
@@ -28,6 +28,7 @@ void main() {
       'milk',
     ]);
     expect(bloc.state.products.single.id, 'bread');
+    expect(bloc.state.brands, ['BakeHouse']);
   });
 
   test('preserves page one when page two fails, then safely retries', () async {
@@ -52,11 +53,12 @@ void main() {
       'bread',
     ]);
     expect(source.requests.map((request) => request.$2), [1, 2, 2]);
+    expect(source.requests.map((request) => request.$3), [true, false, false]);
   });
 }
 
 class _Source implements CatalogRepository {
-  final requests = <(CatalogQuery, int)>[];
+  final requests = <(CatalogQuery, int, bool)>[];
   bool failNextPage = false;
 
   @override
@@ -64,25 +66,24 @@ class _Source implements CatalogRepository {
     CatalogQuery query, {
     required int page,
     required int pageSize,
+    bool refresh = false,
   }) async {
-    requests.add((query, page));
+    requests.add((query, page, refresh));
     if (query.search == 'milk' && query.category == null) {
       await Future<void>.delayed(const Duration(milliseconds: 100));
     }
-    if (query.category == 'bakery') return (products: [bread], total: 1);
-    if (page == 2) {
-      if (failNextPage) {
-        failNextPage = false;
-        throw StateError('Temporary failure');
-      }
-      return (products: [bread], total: 2);
+    if (page == 2 && failNextPage) {
+      failNextPage = false;
+      throw StateError('Temporary failure');
     }
-    return (products: [milk], total: 2);
+    final bakery = query.category == 'bakery';
+    return (
+      products: [if (bakery || page == 2) bread else milk],
+      total: bakery ? 1 : 2,
+      categories: const <Category>[],
+      brands: [if (bakery) 'BakeHouse' else 'DairyPure'],
+    );
   }
-
-  @override
-  Future<CatalogFilters> filters(String? category) async =>
-      (categories: <Category>[], brands: <String>[]);
 
   @override
   Future<Product> detail(String id) async => milk;

@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:grocer_mate/domain/connection.dart';
-import 'package:grocer_mate/domain/shopping.dart';
-import 'package:grocer_mate/presentation/shopping/shopping_bloc.dart';
+import 'package:grocer_mate/core/network/connection.dart';
+import 'package:grocer_mate/features/shopping/domain/shopping.dart';
+import 'package:grocer_mate/features/shopping/presentation/shopping_bloc.dart';
 
 import 'fixtures.dart';
 
@@ -101,13 +101,22 @@ void main() {
         (state) => state.review != null,
       );
       connection.setOnline(true);
-      expect((await review).review!.changes, hasLength(2));
+      final reviewState = await review;
+      final changes = reviewState.review!;
+      expect(changes.changes, hasLength(2));
+      final preview = changes.applyTo(reviewState.data!.pending!.lines, {
+        'milk': 1,
+      });
 
       final receipt = restored.stream.firstWhere(
         (state) => state.data?.lastOrder != null,
       );
       restored.add(const CheckoutAccepted({'milk': 1}));
-      await receipt;
+      final finalState = await receipt;
+      expect(
+        finalState.data!.lastOrder!.total,
+        OrderTotals.forLines(preview).total,
+      );
       expect(checkout.requests.map((request) => request.id), [id, id]);
       expect(checkout.requests.last.lines, hasLength(1));
       expect(checkout.requests.last.lines.single.quantity, 1);
