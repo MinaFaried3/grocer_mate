@@ -4,6 +4,7 @@ import 'package:grocer_mate/core/network/connection.dart';
 import 'package:grocer_mate/core/storage/json_store.dart';
 
 import '../domain/catalog.dart';
+import 'catalog_json.dart';
 
 class CachedCatalog implements CatalogRepository {
   CachedCatalog(this._store, this._connection, this._fetchCatalog);
@@ -93,10 +94,10 @@ class _CatalogSnapshot {
   factory _CatalogSnapshot.fromJson(Map<String, dynamic> data) =>
       _CatalogSnapshot(
         List.unmodifiable(
-          (data['categories'] as List).map((json) => Category.fromJson(json)),
+          (data['categories'] as List).map((json) => decodeCategory(json)),
         ),
         List.unmodifiable(
-          (data['products'] as List).map((json) => Product.fromJson(json)),
+          (data['products'] as List).map((json) => decodeProduct(json)),
         ),
       );
 }

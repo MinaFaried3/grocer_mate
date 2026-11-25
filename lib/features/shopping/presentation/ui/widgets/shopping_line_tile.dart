@@ -41,7 +41,7 @@ class const ShoppingLineTile({
                 height: 55,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(11),
-                  child: ProductPhoto(product.images.first, cacheWidth: 112),
+                  child: ProductPhoto(product.image, cacheWidth: 112),
                 ),
               ),
               const SizedBox(width: 10),

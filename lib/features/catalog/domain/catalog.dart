@@ -3,9 +3,6 @@ class Category {
   final String id;
   final String name;
   final String icon;
-
-  factory Category.fromJson(Map<String, dynamic> json) =>
-      Category(id: json['id'], name: json['name'], icon: json['icon']);
 }
 
 class Product {
@@ -23,7 +20,10 @@ class Product {
     required this.badges,
     required this.nutrition,
     required this.allergens,
-  });
+  }) : assert(price >= 0),
+       assert(originalPrice >= 0),
+       assert(stock >= 0),
+       assert(rating >= 0 && rating <= 5);
 
   final String id;
   final String title;
@@ -42,54 +42,6 @@ class Product {
   int get discountPercent => originalPrice > price
       ? ((originalPrice - price) * 100 / originalPrice).round()
       : 0;
-
-  Product withAvailability({required int price, required int stock}) => Product(
-    id: id,
-    title: title,
-    brand: brand,
-    categoryId: categoryId,
-    price: price,
-    originalPrice: originalPrice,
-    stock: stock,
-    rating: rating,
-    description: description,
-    images: images,
-    badges: badges,
-    nutrition: nutrition,
-    allergens: allergens,
-  );
-
-  factory Product.fromJson(Map<String, dynamic> json) => Product(
-    id: json['id'],
-    title: json['title'],
-    brand: json['brand'],
-    categoryId: json['categoryId'],
-    price: json['price'],
-    originalPrice: json['originalPrice'],
-    stock: json['stock'],
-    rating: (json['rating'] as num).toDouble(),
-    description: json['description'],
-    images: List<String>.unmodifiable(json['images']),
-    badges: List<String>.unmodifiable(json['badges']),
-    nutrition: Map<String, num>.unmodifiable(json['nutrition'] ?? {}),
-    allergens: List<String>.unmodifiable(json['allergens'] ?? []),
-  );
-
-  Map<String, Object> toJson() => {
-    'id': id,
-    'title': title,
-    'brand': brand,
-    'categoryId': categoryId,
-    'price': price,
-    'originalPrice': originalPrice,
-    'stock': stock,
-    'rating': rating,
-    'description': description,
-    'images': images,
-    'badges': badges,
-    'nutrition': nutrition,
-    'allergens': allergens,
-  };
 }
 
 typedef CatalogQuery = ({

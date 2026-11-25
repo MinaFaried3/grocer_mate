@@ -1,13 +1,13 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:grocer_mate/core/network/connection.dart';
-import 'package:grocer_mate/features/catalog/domain/catalog.dart';
 
 import '../../domain/shopping.dart';
+import '../../domain/use_cases/cart_operations.dart';
+import '../../domain/use_cases/submit_pending_purchase.dart';
 import 'shopping_event.dart';
 import 'shopping_state.dart';
 
@@ -48,24 +48,29 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
         case ShopStarted():
           break;
         case ItemAdded(:final product):
-          await _addItem(data, product, emit);
+          final updated = data.addProduct(product);
+          if (updated == null) {
+            emit(
+              state.copyWith(notice: 'You’ve reached the available quantity.'),
+            );
+          } else {
+            await _save(updated, emit, notice: 'Added to cart.');
+          }
         case QuantityAdjusted(:final id, :final delta):
-          await _adjustQuantity(data, id, delta, emit);
+          await _save(data.adjustQuantity(id, delta), emit);
         case ItemsMoved(:final ids, :final fromSaved):
-          await _move(data, ids, fromSaved: fromSaved, emit: emit);
+          final moved = data.moveItems(ids, fromSaved: fromSaved);
+          await _save(
+            moved.data,
+            emit,
+            notice: moved.limited
+                ? 'Unavailable quantities are still saved.'
+                : fromSaved
+                ? 'Moved to cart.'
+                : 'Saved for later.',
+          );
         case ItemsRemoved(:final ids, :final fromSaved):
-          final updated = fromSaved
-              ? data.withLists(
-                  saved: data.saved
-                      .where((line) => !ids.contains(line.product.id))
-                      .toList(),
-                )
-              : data.withLists(
-                  cart: data.cart
-                      .where((line) => !ids.contains(line.product.id))
-                      .toList(),
-                );
-          await _save(updated, emit);
+          await _save(data.removeItems(ids, fromSaved: fromSaved), emit);
         case CheckoutRequested():
           if (data.pending != null || data.cart.isEmpty) return;
           final request = PendingPurchase(const Uuid().v4(), data.cart);
@@ -85,20 +90,12 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
         case PendingRetried():
           if (state.review == null) await _submit(data, emit);
         case PendingCanceled():
-          final pending = data.pending;
-          if (pending == null || (pending.attempted && state.review == null)) {
-            return;
-          }
-          var cart = data.cart;
-          for (final line in pending.lines) {
-            cart = _merge(cart, line);
-          }
+          final restored = data.cancelPending(
+            underReview: state.review != null,
+          );
+          if (restored == null) return;
           await _save(
-            ShoppingData(
-              cart: cart,
-              saved: data.saved,
-              lastOrder: data.lastOrder,
-            ),
+            restored,
             emit,
             clearReview: true,
             notice: 'Purchase returned to your cart.',
@@ -113,101 +110,6 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
         ),
       );
     }
-  }
-
-  Future<void> _addItem(
-    ShoppingData data,
-    Product product,
-    Emitter<ShopState> emit,
-  ) async {
-    final current = data.cart
-        .where((line) => line.product.id == product.id)
-        .firstOrNull;
-    if ((current?.quantity ?? 0) >= product.stock) {
-      emit(state.copyWith(notice: 'You’ve reached the available quantity.'));
-      return;
-    }
-    await _save(
-      data.withLists(cart: _merge(data.cart, CartLine(product, 1))),
-      emit,
-      notice: 'Added to cart.',
-    );
-  }
-
-  Future<void> _adjustQuantity(
-    ShoppingData data,
-    String id,
-    int delta,
-    Emitter<ShopState> emit,
-  ) async {
-    final lines = [
-      for (final line in data.cart)
-        if (line.product.id != id)
-          line
-        else
-          line.withQuantity(
-            (line.quantity + delta).clamp(
-              1,
-              math.max(line.quantity, line.product.stock),
-            ),
-          ),
-    ];
-    await _save(data.withLists(cart: lines), emit);
-  }
-
-  Future<void> _move(
-    ShoppingData data,
-    Set<String> ids, {
-    required bool fromSaved,
-    required Emitter<ShopState> emit,
-  }) async {
-    final source = fromSaved ? data.saved : data.cart;
-    var target = fromSaved ? data.cart : data.saved;
-    final remaining = <CartLine>[];
-    var limited = false;
-    for (final line in source) {
-      final product = line.product;
-      if (!ids.contains(product.id)) {
-        remaining.add(line);
-        continue;
-      }
-      final existing = target
-          .where((other) => other.product.id == product.id)
-          .firstOrNull;
-      final space = math.max(
-        (existing?.product.stock ?? product.stock) - (existing?.quantity ?? 0),
-        0,
-      );
-      final moved = fromSaved ? math.min(space, line.quantity) : line.quantity;
-      if (moved > 0) target = _merge(target, line.withQuantity(moved));
-      if (moved < line.quantity) {
-        remaining.add(line.withQuantity(line.quantity - moved));
-        limited = true;
-      }
-    }
-    final updated = fromSaved
-        ? data.withLists(cart: target, saved: remaining)
-        : data.withLists(cart: remaining, saved: target);
-    await _save(
-      updated,
-      emit,
-      notice: limited
-          ? 'Unavailable quantities are still saved.'
-          : fromSaved
-          ? 'Moved to cart.'
-          : 'Saved for later.',
-    );
-  }
-
-  List<CartLine> _merge(List<CartLine> lines, CartLine added) {
-    final index = lines.indexWhere(
-      (line) => line.product.id == added.product.id,
-    );
-    if (index < 0) return [...lines, added];
-    return [...lines]
-      ..[index] = lines[index].withQuantity(
-        lines[index].quantity + added.quantity,
-      );
   }
 
   Future<void> _accept(
@@ -239,49 +141,22 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
   Future<void> _submit(ShoppingData data, Emitter<ShopState> emit) async {
     final pending = data.pending;
     if (pending == null || !_connection.online) return;
-    var submittedData = data;
     emit(state.copyWith(busy: true, clearReview: true, clearNotice: true));
-    try {
-      if (!pending.attempted) {
-        // Record the attempt before sending it so an interrupted purchase can retry safely.
-        final marked = ShoppingData(
-          cart: data.cart,
-          saved: data.saved,
-          pending: PendingPurchase(pending.id, pending.lines, attempted: true),
-          lastOrder: data.lastOrder,
-        );
-        await _storage.write(marked);
-        submittedData = marked;
-      }
-      final result = await _checkout.purchase(submittedData.pending!);
-      switch (result) {
-        case PurchaseReview():
-          emit(
-            state.copyWith(data: submittedData, busy: false, review: result),
-          );
-        case OrderReceipt():
-          await _save(
-            ShoppingData(cart: data.cart, saved: data.saved, lastOrder: result),
-            emit,
-          );
-      }
-    } on OfflineException {
-      emit(
-        state.copyWith(
-          data: submittedData,
-          busy: false,
-          notice: 'Purchase queued for when you’re online.',
-        ),
-      );
-    } catch (_) {
-      emit(
-        state.copyWith(
-          data: submittedData,
-          busy: false,
-          notice: 'Checkout couldn’t finish. Your purchase is saved for retry.',
-        ),
-      );
-    }
+    final result = await submitPendingPurchase(data, _storage, _checkout);
+    final notice = switch (result.failure) {
+      SubmissionFailure.offline => 'Purchase queued for when you’re online.',
+      SubmissionFailure.retry =>
+        'Checkout couldn’t finish. Your purchase is saved for retry.',
+      null => null,
+    };
+    emit(
+      state.copyWith(
+        data: result.data,
+        busy: false,
+        review: result.review,
+        notice: notice,
+      ),
+    );
   }
 
   Future<void> _save(

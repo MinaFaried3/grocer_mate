@@ -5,7 +5,8 @@ import 'package:flutter/services.dart';
 
 import '../core/network/connection.dart';
 import '../core/storage/json_store.dart';
-import '../features/catalog/domain/catalog.dart';
+import '../core/storage/json_fields.dart';
+import '../features/shopping/data/shopping_json.dart';
 import '../features/shopping/domain/shopping.dart';
 
 enum CheckoutScenario {
@@ -61,12 +62,15 @@ class MockMarket implements CheckoutRepository {
     final market = await _readServer();
     final receipts = Map<String, dynamic>.from(market['receipts']);
     final previousReceipt = receipts[purchase.id];
-    if (previousReceipt != null) return OrderReceipt.fromJson(previousReceipt);
+    if (previousReceipt != null) return decodeReceipt(previousReceipt);
 
     final seed = await (_seed ??= _loadSeed());
     final products = {
       for (final json in seed['products'])
-        json['id'] as String: Product.fromJson(json),
+        readText(json, 'id'): (
+          price: readInt(json, 'price'),
+          stock: readInt(json, 'stock'),
+        ),
     };
     final availability = _availability(market);
     int priceFor(String id, int fallback) =>
@@ -103,7 +107,7 @@ class MockMarket implements CheckoutRepository {
         id: 'GM-${1001 + receipts.length}',
         total: OrderTotals.forLines(purchase.lines).total,
       );
-      receipts[purchase.id] = receipt.toJson();
+      receipts[purchase.id] = encodeReceipt(receipt);
       result = receipt;
     } else {
       result = PurchaseReview(List.unmodifiable(changes));
@@ -129,7 +133,11 @@ class MockMarket implements CheckoutRepository {
 
   Map<String, Map<String, int>> _availability(Map<String, dynamic> market) => {
     for (final entry in (market['availability'] as Map).entries)
-      entry.key: Map<String, int>.from(entry.value),
+      entry.key: {
+        for (final field in ['price', 'stock'])
+          if (entry.value.containsKey(field))
+            field: readInt(entry.value, field),
+      },
   };
 
   void _applyScenario(
@@ -148,7 +156,7 @@ class MockMarket implements CheckoutRepository {
       var price = priceFor(id, line.product.price);
       var stock = stockFor(id);
       if (priceEdit && (index == 0 || !stockEdit)) {
-        price += index == 0 ? 10 : -5;
+        price = index == 0 ? price + 10 : math.max(0, price - 5);
       }
       if (stockEdit && (index == 1 || !priceEdit || lines.length == 1)) {
         stock = index == 1 ? 0 : math.min(stock, line.quantity - 1);

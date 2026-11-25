@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:grocer_mate/core/network/connection.dart';
+import 'package:grocer_mate/features/shopping/data/shopping_json.dart';
+import 'package:grocer_mate/features/shopping/domain/cart_product.dart';
 import 'package:grocer_mate/features/shopping/domain/shopping.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_event.dart';
@@ -12,9 +14,9 @@ void main() {
   test(
     'calculates the discount, rounded tax and free-delivery threshold in cents',
     () {
-      final totals = OrderTotals.forLines(const [
-        CartLine(milk, 2),
-        CartLine(bread, 1),
+      final totals = OrderTotals.forLines([
+        CartLine(CartProduct.fromProduct(milk), 2),
+        CartLine(CartProduct.fromProduct(bread), 1),
       ]);
       expect(
         (
@@ -26,7 +28,11 @@ void main() {
         ),
         (597, 60, 27, 100, 664),
       );
-      expect(OrderTotals.forLines(const [CartLine(bread, 9)]).delivery, 0);
+      expect(
+        OrderTotals.forLines([CartLine(CartProduct.fromProduct(bread), 9)])
+            .delivery,
+        0,
+      );
       expect(OrderTotals.forLines([]).total, 0);
     },
   );
@@ -66,76 +72,77 @@ void main() {
     },
   );
 
-  test(
-    'replays a persisted outbox, reviews mixed changes and preserves later cart edits',
-    () async {
-      final connection = _Connection(false);
-      final storage = _Storage(
-        ShoppingData(cart: const [CartLine(milk, 3), CartLine(bread, 1)]),
-      );
-      final checkout = _Checkout();
-      final first = ShoppingBloc(storage, checkout, connection);
-      addTearDown(connection.close);
+  test('replays a persisted outbox, reviews mixed changes and preserves later cart edits', () async {
+    final connection = _Connection(false);
+    final storage = _Storage(
+      ShoppingData(
+        cart: [
+          CartLine(CartProduct.fromProduct(milk), 3),
+          CartLine(CartProduct.fromProduct(bread), 1),
+        ],
+      ),
+    );
+    final checkout = _Checkout();
+    final first = ShoppingBloc(storage, checkout, connection);
+    addTearDown(connection.close);
 
-      final queued = first.stream.firstWhere(
-        (state) => state.data?.pending != null,
-      );
-      first
-        ..add(const ShopStarted())
-        ..add(const CheckoutRequested());
-      final queuedState = await queued;
-      final id = queuedState.data!.pending!.id;
-      expect(checkout.requests, isEmpty);
-      await first.close();
+    final queued = first.stream.firstWhere(
+      (state) => state.data?.pending != null,
+    );
+    first
+      ..add(const ShopStarted())
+      ..add(const CheckoutRequested());
+    final queuedState = await queued;
+    final id = queuedState.data!.pending!.id;
+    expect(checkout.requests, isEmpty);
+    await first.close();
 
-      final restored = ShoppingBloc(storage, checkout, connection);
-      addTearDown(restored.close);
-      final added = restored.stream.firstWhere(
-        (state) => state.data?.cart.isNotEmpty == true,
-      );
-      restored
-        ..add(const ShopStarted())
-        ..add(const ItemAdded(bread));
-      await added;
+    final restored = ShoppingBloc(storage, checkout, connection);
+    addTearDown(restored.close);
+    final added = restored.stream.firstWhere(
+      (state) => state.data?.cart.isNotEmpty == true,
+    );
+    restored
+      ..add(const ShopStarted())
+      ..add(const ItemAdded(bread));
+    await added;
 
-      final review = restored.stream.firstWhere(
-        (state) => state.review != null,
-      );
-      connection.setOnline(true);
-      final reviewState = await review;
-      final changes = reviewState.review!;
-      expect(changes.changes, hasLength(2));
-      final preview = changes.applyTo(reviewState.data!.pending!.lines, {
-        'milk': 1,
-      });
+    final review = restored.stream.firstWhere((state) => state.review != null);
+    connection.setOnline(true);
+    final reviewState = await review;
+    final changes = reviewState.review!;
+    expect(changes.changes, hasLength(2));
+    final preview = changes.applyTo(reviewState.data!.pending!.lines, {
+      'milk': 1,
+    });
 
-      final receipt = restored.stream.firstWhere(
-        (state) => state.data?.lastOrder != null,
-      );
-      restored.add(const CheckoutAccepted({'milk': 1}));
-      final finalState = await receipt;
-      expect(finalState.review, isNull);
-      expect(finalState.notice, isNull);
-      expect(finalState.busy, isFalse);
-      expect(
-        finalState.data!.lastOrder!.total,
-        OrderTotals.forLines(preview).total,
-      );
-      expect(checkout.requests.map((request) => request.id), [id, id]);
-      expect(checkout.requests.last.lines, hasLength(1));
-      expect(checkout.requests.last.lines.single.quantity, 1);
-      expect(checkout.requests.last.lines.single.product.price, 139);
-      expect(storage.data.pending, isNull);
-      expect(storage.data.cart.single.product.id, 'bread');
-    },
-  );
+    final receipt = restored.stream.firstWhere(
+      (state) => state.data?.lastOrder != null,
+    );
+    restored.add(const CheckoutAccepted({'milk': 1}));
+    final finalState = await receipt;
+    expect(finalState.review, isNull);
+    expect(finalState.notice, isNull);
+    expect(finalState.busy, isFalse);
+    expect(
+      finalState.data!.lastOrder!.total,
+      OrderTotals.forLines(preview).total,
+    );
+    expect(checkout.requests.map((request) => request.id), [id, id]);
+    expect(checkout.requests.last.lines, hasLength(1));
+    expect(checkout.requests.last.lines.single.quantity, 1);
+    expect(checkout.requests.last.lines.single.product.price, 139);
+    expect(storage.data.pending, isNull);
+    expect(storage.data.cart.single.product.id, 'bread');
+  });
 
   test(
     'retries an ambiguous checkout with the original idempotency key',
     () async {
       final connection = _Connection(true);
-      final storage = _Storage(const ShoppingData(cart: [CartLine(milk, 1)]))
-        ..failReceiptWrite = true;
+      final storage = _Storage(
+        ShoppingData(cart: [CartLine(CartProduct.fromProduct(milk), 1)]),
+      )..failReceiptWrite = true;
       final checkout = _Checkout(review: false);
       final bloc = ShoppingBloc(storage, checkout, connection);
       addTearDown(connection.close);
@@ -171,7 +178,7 @@ class _Storage implements ShoppingRepository {
   bool failReceiptWrite = false;
 
   @override
-  Future<ShoppingData> read() async => ShoppingData.fromJson(data.toJson());
+  Future<ShoppingData> read() async => decodeShopping(encodeShopping(data));
 
   @override
   Future<void> write(ShoppingData value) async {
@@ -179,7 +186,7 @@ class _Storage implements ShoppingRepository {
       failReceiptWrite = false;
       throw StateError('Storage temporarily unavailable');
     }
-    data = ShoppingData.fromJson(value.toJson());
+    data = decodeShopping(encodeShopping(value));
   }
 }
 

@@ -1,21 +1,13 @@
 import 'dart:math' as math;
 
-import 'package:grocer_mate/features/catalog/domain/catalog.dart';
+import 'cart_product.dart';
 
 class CartLine {
-  const CartLine(this.product, this.quantity);
-  final Product product;
+  const CartLine(this.product, this.quantity) : assert(quantity > 0);
+  final CartProduct product;
   final int quantity;
 
   CartLine withQuantity(int next) => CartLine(product, next);
-
-  factory CartLine.fromJson(Map<String, dynamic> json) =>
-      CartLine(Product.fromJson(json['product']), json['quantity']);
-
-  Map<String, Object> toJson() => {
-    'product': product.toJson(),
-    'quantity': quantity,
-  };
 }
 
 class OrderTotals {
@@ -110,11 +102,6 @@ class OrderReceipt extends PurchaseResult {
   const OrderReceipt({required this.id, required this.total});
   final String id;
   final int total;
-
-  factory OrderReceipt.fromJson(Map<String, dynamic> json) =>
-      OrderReceipt(id: json['id'], total: json['total']);
-
-  Map<String, Object> toJson() => {'id': id, 'total': total};
 }
 
 class PendingPurchase {
@@ -122,19 +109,6 @@ class PendingPurchase {
   final String id;
   final List<CartLine> lines;
   final bool attempted;
-
-  factory PendingPurchase.fromJson(Map<String, dynamic> json) =>
-      PendingPurchase(
-        json['id'],
-        _decodeLines(json['lines']),
-        attempted: json['attempted'] == true,
-      );
-
-  Map<String, Object> toJson() => {
-    'id': id,
-    'lines': _encodeLines(lines),
-    'attempted': attempted,
-  };
 }
 
 class ShoppingData {
@@ -157,31 +131,7 @@ class ShoppingData {
         pending: pending,
         lastOrder: lastOrder,
       );
-
-  factory ShoppingData.fromJson(Map<String, dynamic> json) => ShoppingData(
-    cart: _decodeLines(json['cart']),
-    saved: _decodeLines(json['saved']),
-    pending: json['pending'] == null
-        ? null
-        : PendingPurchase.fromJson(json['pending']),
-    lastOrder: json['lastOrder'] == null
-        ? null
-        : OrderReceipt.fromJson(json['lastOrder']),
-  );
-
-  Map<String, Object?> toJson() => {
-    'cart': _encodeLines(cart),
-    'saved': _encodeLines(saved),
-    'pending': pending?.toJson(),
-    'lastOrder': lastOrder?.toJson(),
-  };
 }
-
-List<CartLine> _decodeLines(List<dynamic> json) =>
-    List<CartLine>.unmodifiable(json.map((item) => CartLine.fromJson(item)));
-
-List<Map<String, Object>> _encodeLines(List<CartLine> lines) =>
-    lines.map((item) => item.toJson()).toList();
 
 abstract interface class ShoppingRepository {
   Future<ShoppingData> read();
