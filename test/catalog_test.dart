@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:grocer_mate/features/catalog/domain/catalog.dart';
-import 'package:grocer_mate/features/catalog/presentation/catalog_bloc.dart';
+import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
 
 import 'fixtures.dart';
 

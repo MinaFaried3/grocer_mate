@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:grocer_mate/core/network/connection.dart';
 import 'package:grocer_mate/features/shopping/domain/shopping.dart';
-import 'package:grocer_mate/features/shopping/presentation/shopping_bloc.dart';
+import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
 
 import 'fixtures.dart';
 
