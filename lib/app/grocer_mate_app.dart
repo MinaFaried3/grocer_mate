@@ -7,8 +7,10 @@ import 'app_router.dart';
 import 'checkout_settings.dart';
 import 'offline_banner.dart';
 
-class const GrocerMateApp({super.key, required final CheckoutSettings checkoutSettings})
-    extends StatefulWidget {
+class const GrocerMateApp({
+  super.key,
+  required final CheckoutSettings checkoutSettings,
+}) extends StatefulWidget {
   @override
   State<GrocerMateApp> createState() => _GrocerMateAppState();
 }

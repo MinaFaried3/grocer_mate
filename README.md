@@ -25,7 +25,7 @@ The [25-second walkthrough](walkthrough/grocermate_walkthrough.mp4) shows search
 4. Tap **Queue purchase**. The app keeps the queued order and any new cart edits separate.
 5. Turn off **Offline mode**. The app rechecks the queued order and opens a review sheet. Accept new prices, reduce quantities, or remove items before resubmitting.
 
-The selected checkout update applies to the next purchase and saves the changes to the local catalog. **Price and stock changes** increases the first cart line’s price and makes the second line unavailable. **Stock changes** can reduce the first line’s available quantity. **Offline mode** works independently of the device’s connection. A fresh web load still needs the static app files from its host.
+The selected checkout update applies to the next purchase and saves the changes to the local catalog. Selecting **Price and stock changes** increases the first cart line’s price and makes the second line unavailable. Selecting **Stock changes** can reduce the first line’s available quantity. **Offline mode** works independently of the device’s connection. A fresh web load still needs the static app files from its host.
 
 ## Implementation
 

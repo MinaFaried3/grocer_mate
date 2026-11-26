@@ -32,7 +32,9 @@ Future<void> main() async {
                 dependencies<ShoppingBloc>()..add(const ShopStarted()),
           ),
         ],
-        child: GrocerMateApp(checkoutSettings: dependencies<CheckoutSettings>()),
+        child: GrocerMateApp(
+          checkoutSettings: dependencies<CheckoutSettings>(),
+        ),
       ),
     ),
   );

@@ -12,12 +12,54 @@ import 'package:grocer_mate/features/catalog/domain/repositories/catalog_reposit
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_event.dart';
 import 'package:grocer_mate/features/shopping/data/local_shopping_repository.dart';
+import 'package:grocer_mate/features/shopping/domain/entities/shopping.dart';
 import 'package:grocer_mate/features/shopping/domain/use_cases/submit_pending_purchase.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_event.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'fixtures.dart';
+
 void main() {
+  test(
+    'preserves local inventory and receipts across the storage rename',
+    () async {
+      final connection = AppConnection(_OnlineMonitor());
+      addTearDown(connection.close);
+      final store = _MemoryStorage();
+      await store.write('mock_market_v1', {
+        'availability': {
+          'milk': {'price': 129, 'stock': 3},
+        },
+        'receipts': {
+          'previous': {'id': 'GM-1001', 'total': 235},
+        },
+      });
+      final market = LocalMarket(
+        store,
+        connection,
+        _CatalogBundle(
+          '{"categories":[],"products":[{"id":"milk","price":129,"stock":6}]}',
+        ),
+      );
+
+      final catalog = await market.fetchCatalog();
+      expect((catalog['products'] as List).single['stock'], 3);
+
+      final next = PendingPurchase('next', [CartLine(.fromProduct(milk), 1)]);
+      final receipt = await market.purchase(next) as OrderReceipt;
+      expect(receipt.id, 'GM-1002');
+      final stored = await store.read('local_market_v1');
+      expect(stored?['availability']['milk']['stock'], 2);
+
+      final previous = await market.purchase(
+        PendingPurchase('previous', next.lines),
+      ) as OrderReceipt;
+      expect(previous.id, 'GM-1001');
+      expect(previous.total, 235);
+    },
+  );
+
   testWidgets('opens a product deep link and returns to the Browse tab', (
     tester,
   ) async {
