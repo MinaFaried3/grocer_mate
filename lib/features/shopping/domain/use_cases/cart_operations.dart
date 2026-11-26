@@ -1,21 +1,32 @@
 import 'dart:math' as math;
 
+import 'package:grocer_mate/core/use_case.dart';
 import 'package:grocer_mate/features/catalog/domain/entities/catalog.dart';
 
 import '../entities/shopping.dart';
 
-extension CartOperations on ShoppingData {
-  ShoppingData? addProduct(Product product) {
-    final current = cart
+class const AddProduct()
+    extends UseCase<({ShoppingData data, Product product}), ShoppingData?> {
+  @override
+  ShoppingData? call(({ShoppingData data, Product product}) input) {
+    final (:data, :product) = input;
+    final current = data.cart
         .where((line) => line.product.id == product.id)
         .firstOrNull;
     if ((current?.quantity ?? 0) >= product.stock) return null;
-    return withLists(cart: _merge(cart, CartLine(.fromProduct(product), 1)));
+    return data.withLists(
+      cart: _merge(data.cart, CartLine(.fromProduct(product), 1)),
+    );
   }
+}
 
-  ShoppingData adjustQuantity(String id, int delta) {
+class const AdjustQuantity()
+    extends UseCase<({ShoppingData data, String id, int delta}), ShoppingData> {
+  @override
+  ShoppingData call(({ShoppingData data, String id, int delta}) input) {
+    final (:data, :id, :delta) = input;
     final lines = [
-      for (final line in cart)
+      for (final line in data.cart)
         if (line.product.id != id)
           line
         else
@@ -26,23 +37,33 @@ extension CartOperations on ShoppingData {
             ),
           ),
     ];
-    return withLists(cart: lines);
+    return data.withLists(cart: lines);
   }
+}
 
-  ShoppingData removeItems(Set<String> ids, {required bool fromSaved}) {
-    final source = fromSaved ? saved : cart;
+typedef CartItemsInput = ({ShoppingData data, Set<String> ids, bool fromSaved});
+
+class const RemoveItems() extends UseCase<CartItemsInput, ShoppingData> {
+  @override
+  ShoppingData call(CartItemsInput input) {
+    final (:data, :ids, :fromSaved) = input;
+    final source = fromSaved ? data.saved : data.cart;
     final remaining = source
         .where((line) => !ids.contains(line.product.id))
         .toList();
-    return fromSaved ? withLists(saved: remaining) : withLists(cart: remaining);
+    return fromSaved
+        ? data.withLists(saved: remaining)
+        : data.withLists(cart: remaining);
   }
+}
 
-  ({ShoppingData data, bool limited}) moveItems(
-    Set<String> ids, {
-    required bool fromSaved,
-  }) {
-    final source = fromSaved ? saved : cart;
-    var target = fromSaved ? cart : saved;
+class const MoveItems()
+    extends UseCase<CartItemsInput, ({ShoppingData data, bool limited})> {
+  @override
+  ({ShoppingData data, bool limited}) call(CartItemsInput input) {
+    final (:data, :ids, :fromSaved) = input;
+    final source = fromSaved ? data.saved : data.cart;
+    var target = fromSaved ? data.cart : data.saved;
     final remaining = <CartLine>[];
     var limited = false;
     for (final line in source) {
@@ -66,29 +87,32 @@ extension CartOperations on ShoppingData {
       }
     }
     final updated = fromSaved
-        ? withLists(cart: target, saved: remaining)
-        : withLists(cart: remaining, saved: target);
+        ? data.withLists(cart: target, saved: remaining)
+        : data.withLists(cart: remaining, saved: target);
     return (data: updated, limited: limited);
   }
+}
 
-  ShoppingData? cancelPending({required bool underReview}) {
-    final purchase = pending;
+class const CancelPendingPurchase()
+    extends UseCase<({ShoppingData data, bool underReview}), ShoppingData?> {
+  @override
+  ShoppingData? call(({ShoppingData data, bool underReview}) input) {
+    final (:data, :underReview) = input;
+    final purchase = data.pending;
     if (purchase == null || (purchase.attempted && !underReview)) return null;
-    var restored = cart;
+    var restored = data.cart;
     for (final line in purchase.lines) {
       restored = _merge(restored, line);
     }
-    return .new(cart: restored, saved: saved, lastOrder: lastOrder);
+    return .new(cart: restored, saved: data.saved, lastOrder: data.lastOrder);
   }
+}
 
-  List<CartLine> _merge(List<CartLine> lines, CartLine added) {
-    final index = lines.indexWhere(
-      (line) => line.product.id == added.product.id,
+List<CartLine> _merge(List<CartLine> lines, CartLine added) {
+  final index = lines.indexWhere((line) => line.product.id == added.product.id);
+  if (index < 0) return [...lines, added];
+  return [...lines]
+    ..[index] = lines[index].withQuantity(
+      lines[index].quantity + added.quantity,
     );
-    if (index < 0) return [...lines, added];
-    return [...lines]
-      ..[index] = lines[index].withQuantity(
-        lines[index].quantity + added.quantity,
-      );
-  }
 }

@@ -55,7 +55,8 @@ void main() {
     expect(restored.pending!.attempted, isTrue);
     expect(restored.pending!.lines.single.quantity, 2);
 
-    final moved = restored.moveItems({'milk'}, fromSaved: true);
+    const moveItems = MoveItems();
+    final moved = moveItems((data: restored, ids: {'milk'}, fromSaved: true));
     expect(moved.limited, isTrue);
     expect(moved.data.cart.single.quantity, 2);
     expect(moved.data.saved.single.quantity, 2);

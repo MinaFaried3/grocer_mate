@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:grocer_mate/core/network/connection.dart';
 
 import '../../domain/entities/shopping.dart';
-import '../../domain/repositories/checkout_repository.dart';
 import '../../domain/repositories/shopping_repository.dart';
 import '../../domain/use_cases/cart_operations.dart';
 import '../../domain/use_cases/submit_pending_purchase.dart';
@@ -14,7 +13,7 @@ import 'shopping_state.dart';
 
 class ShoppingBloc(
   final ShoppingRepository _storage,
-  final CheckoutRepository _checkout,
+  final SubmitPendingPurchase _submitPendingPurchase,
   final Connection _connection, {
   required final String Function() createPurchaseId,
 }) extends Bloc<ShopEvent, ShopState> {
@@ -27,6 +26,12 @@ class ShoppingBloc(
       if (online) add(const PendingRetried());
     });
   }
+
+  static const _addProduct = AddProduct();
+  static const _adjustQuantity = AdjustQuantity();
+  static const _moveItems = MoveItems();
+  static const _removeItems = RemoveItems();
+  static const _cancelPendingPurchase = CancelPendingPurchase();
 
   late final StreamSubscription<bool> _subscription;
 
@@ -50,7 +55,7 @@ class ShoppingBloc(
         case ShopStarted():
           break;
         case ItemAdded(:final product):
-          final updated = data.addProduct(product);
+          final updated = _addProduct((data: data, product: product));
           if (updated == null) {
             emit(
               state.copyWith(notice: 'You’ve reached the available quantity.'),
@@ -59,9 +64,16 @@ class ShoppingBloc(
             await _save(updated, emit, notice: 'Added to cart.');
           }
         case QuantityAdjusted(:final id, :final delta):
-          await _save(data.adjustQuantity(id, delta), emit);
+          await _save(
+            _adjustQuantity((data: data, id: id, delta: delta)),
+            emit,
+          );
         case ItemsMoved(:final ids, :final fromSaved):
-          final moved = data.moveItems(ids, fromSaved: fromSaved);
+          final moved = _moveItems((
+            data: data,
+            ids: ids,
+            fromSaved: fromSaved,
+          ));
           await _save(
             moved.data,
             emit,
@@ -72,7 +84,10 @@ class ShoppingBloc(
                 : 'Saved for later.',
           );
         case ItemsRemoved(:final ids, :final fromSaved):
-          await _save(data.removeItems(ids, fromSaved: fromSaved), emit);
+          await _save(
+            _removeItems((data: data, ids: ids, fromSaved: fromSaved)),
+            emit,
+          );
         case CheckoutRequested():
           if (data.pending != null || data.cart.isEmpty) return;
           final request = PendingPurchase(createPurchaseId(), data.cart);
@@ -92,9 +107,10 @@ class ShoppingBloc(
         case PendingRetried():
           if (state.review == null) await _submit(data, emit);
         case PendingCanceled():
-          final restored = data.cancelPending(
+          final restored = _cancelPendingPurchase((
+            data: data,
             underReview: state.review != null,
-          );
+          ));
           if (restored == null) return;
           await _save(
             restored,
@@ -144,7 +160,7 @@ class ShoppingBloc(
     final pending = data.pending;
     if (pending == null || !_connection.online) return;
     emit(state.copyWith(busy: true, clearReview: true, clearNotice: true));
-    final result = await submitPendingPurchase(data, _storage, _checkout);
+    final result = await _submitPendingPurchase(data);
     final notice = switch (result.failure) {
       .offline => 'Purchase queued for when you’re online.',
       .retry => 'Checkout couldn’t finish. Your purchase is saved for retry.',

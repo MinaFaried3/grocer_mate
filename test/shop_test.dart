@@ -6,6 +6,7 @@ import 'package:grocer_mate/features/shopping/data/shopping_json.dart';
 import 'package:grocer_mate/features/shopping/domain/entities/shopping.dart';
 import 'package:grocer_mate/features/shopping/domain/repositories/checkout_repository.dart';
 import 'package:grocer_mate/features/shopping/domain/repositories/shopping_repository.dart';
+import 'package:grocer_mate/features/shopping/domain/use_cases/submit_pending_purchase.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_event.dart';
 
@@ -44,7 +45,7 @@ void main() {
       final storage = _Storage();
       final bloc = ShoppingBloc(
         storage,
-        _Checkout(),
+        SubmitPendingPurchase(storage, _Checkout()),
         connection,
         createPurchaseId: _purchaseId,
       );
@@ -90,7 +91,7 @@ void main() {
     final checkout = _Checkout();
     final first = ShoppingBloc(
       storage,
-      checkout,
+      SubmitPendingPurchase(storage, checkout),
       connection,
       createPurchaseId: _purchaseId,
     );
@@ -109,7 +110,7 @@ void main() {
 
     final restored = ShoppingBloc(
       storage,
-      checkout,
+      SubmitPendingPurchase(storage, checkout),
       connection,
       createPurchaseId: _purchaseId,
     );
@@ -161,7 +162,7 @@ void main() {
       final checkout = _Checkout(review: false);
       final bloc = ShoppingBloc(
         storage,
-        checkout,
+        SubmitPendingPurchase(storage, checkout),
         connection,
         createPurchaseId: _purchaseId,
       );

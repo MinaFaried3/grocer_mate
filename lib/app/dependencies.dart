@@ -13,6 +13,7 @@ import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bl
 import 'package:grocer_mate/features/shopping/data/local_shopping_repository.dart';
 import 'package:grocer_mate/features/shopping/domain/repositories/checkout_repository.dart';
 import 'package:grocer_mate/features/shopping/domain/repositories/shopping_repository.dart';
+import 'package:grocer_mate/features/shopping/domain/use_cases/submit_pending_purchase.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
 
 import 'demo_settings.dart';
@@ -46,14 +47,15 @@ Future<GetIt> configureDependencies() async {
   dependencies.registerFactory<CatalogBloc>(
     () => .new(dependencies<CatalogRepository>()),
   );
-  dependencies.registerFactory<ShoppingBloc>(
-    () => .new(
-      dependencies<ShoppingRepository>(),
-      dependencies<CheckoutRepository>(),
+  dependencies.registerFactory<ShoppingBloc>(() {
+    final storage = dependencies<ShoppingRepository>();
+    return ShoppingBloc(
+      storage,
+      SubmitPendingPurchase(storage, dependencies<CheckoutRepository>()),
       connection,
       createPurchaseId: const Uuid().v4,
-    ),
-  );
+    );
+  });
 
   return dependencies;
 }

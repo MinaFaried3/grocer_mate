@@ -12,6 +12,7 @@ import 'package:grocer_mate/features/catalog/domain/repositories/catalog_reposit
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_event.dart';
 import 'package:grocer_mate/features/shopping/data/local_shopping_repository.dart';
+import 'package:grocer_mate/features/shopping/domain/use_cases/submit_pending_purchase.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_event.dart';
 import 'package:material_ui/material_ui.dart';
@@ -109,6 +110,7 @@ Future<GoRouter> _startApp(WidgetTester tester) async {
   final store = _MemoryStorage();
   final market = MockMarket(store, connection, _CatalogBundle(seed!));
   final catalog = CachedCatalog(store, connection, market);
+  final shopping = LocalShoppingRepository(store);
 
   await tester.pumpWidget(
     RepositoryProvider<CatalogRepository>.value(
@@ -121,8 +123,8 @@ Future<GoRouter> _startApp(WidgetTester tester) async {
           ),
           BlocProvider(
             create: (_) => ShoppingBloc(
-              LocalShoppingRepository(store),
-              market,
+              shopping,
+              SubmitPendingPurchase(shopping, market),
               connection,
               createPurchaseId: () => 'purchase-1',
             )..add(const ShopStarted()),
