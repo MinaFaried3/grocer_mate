@@ -5,11 +5,11 @@ import 'package:grocer_mate/features/catalog/presentation/ui/screens/catalog_scr
 import 'package:grocer_mate/features/catalog/presentation/ui/screens/product_screen.dart';
 import 'package:grocer_mate/features/shopping/presentation/ui/screens/shopping_screen.dart';
 
+import 'demo_settings.dart';
 import 'demo_settings_sheet.dart';
 import 'market_home.dart';
-import 'mock_market.dart';
 
-GoRouter createAppRouter(MockMarket market) {
+GoRouter createAppRouter(DemoSettings demoSettings) {
   final rootNavigatorKey = GlobalKey<NavigatorState>();
 
   void showSettings(BuildContext context) {
@@ -19,7 +19,7 @@ GoRouter createAppRouter(MockMarket market) {
       showDragHandle: true,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) => DemoSettingsSheet(market: market),
+      builder: (_) => DemoSettingsSheet(settings: demoSettings),
     );
   }
 
