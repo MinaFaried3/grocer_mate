@@ -20,7 +20,7 @@ import 'mock_market.dart';
 
 Future<GetIt> configureDependencies() async {
   final dependencies = GetIt.asNewInstance();
-  const LocalStorage store = SecureLocalStorage();
+  final LocalStorage store = SecureLocalStorage();
   final connection = AppConnection(PlatformConnectivityMonitor());
   await connection.start();
   final market = MockMarket(store, connection, rootBundle);
