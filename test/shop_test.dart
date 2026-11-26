@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:grocer_mate/core/network/connection.dart';
 import 'package:grocer_mate/features/shopping/data/shopping_json.dart';
-import 'package:grocer_mate/features/shopping/domain/cart_product.dart';
 import 'package:grocer_mate/features/shopping/domain/shopping.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_event.dart';
@@ -15,8 +14,8 @@ void main() {
     'calculates the discount, rounded tax and free-delivery threshold in cents',
     () {
       final totals = OrderTotals.forLines([
-        CartLine(CartProduct.fromProduct(milk), 2),
-        CartLine(CartProduct.fromProduct(bread), 1),
+        CartLine(.fromProduct(milk), 2),
+        CartLine(.fromProduct(bread), 1),
       ]);
       expect(
         (
@@ -29,8 +28,7 @@ void main() {
         (597, 60, 27, 100, 664),
       );
       expect(
-        OrderTotals.forLines([CartLine(CartProduct.fromProduct(bread), 9)])
-            .delivery,
+        OrderTotals.forLines([CartLine(.fromProduct(bread), 9)]).delivery,
         0,
       );
       expect(OrderTotals.forLines([]).total, 0);
@@ -77,8 +75,8 @@ void main() {
     final storage = _Storage(
       ShoppingData(
         cart: [
-          CartLine(CartProduct.fromProduct(milk), 3),
-          CartLine(CartProduct.fromProduct(bread), 1),
+          CartLine(.fromProduct(milk), 3),
+          CartLine(.fromProduct(bread), 1),
         ],
       ),
     );
@@ -141,7 +139,7 @@ void main() {
     () async {
       final connection = _Connection(true);
       final storage = _Storage(
-        ShoppingData(cart: [CartLine(CartProduct.fromProduct(milk), 1)]),
+        ShoppingData(cart: [CartLine(.fromProduct(milk), 1)]),
       )..failReceiptWrite = true;
       final checkout = _Checkout(review: false);
       final bloc = ShoppingBloc(storage, checkout, connection);

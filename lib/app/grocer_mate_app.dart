@@ -27,8 +27,8 @@ class _GrocerMateAppState() extends State<GrocerMateApp> {
     routerConfig: _router,
     debugShowCheckedModeBanner: false,
     title: 'GrocerMate',
-    theme: marketTheme(.light),
-    darkTheme: marketTheme(.dark),
+    theme: MarketThemeFactory.light.build(),
+    darkTheme: MarketThemeFactory.dark.build(),
     builder: (context, child) => Column(
       children: [
         const OfflineBanner(),
