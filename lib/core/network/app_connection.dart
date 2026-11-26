@@ -36,7 +36,10 @@ class AppConnection(final ConnectivityMonitor _monitor)
   void setOfflineMode(bool value) => _publish(value);
 
   void _publish(bool offlineMode) => emit(
-    state.copyWith(online: _hasTransport && !offlineMode, offlineMode: offlineMode),
+    state.copyWith(
+      online: _hasTransport && !offlineMode,
+      offlineMode: offlineMode,
+    ),
   );
 
   @override
