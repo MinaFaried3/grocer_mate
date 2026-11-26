@@ -105,12 +105,3 @@ class const ShoppingData({
     lastOrder: lastOrder,
   );
 }
-
-abstract interface class ShoppingRepository {
-  Future<ShoppingData> read();
-  Future<void> write(ShoppingData data);
-}
-
-abstract interface class CheckoutRepository {
-  Future<PurchaseResult> purchase(PendingPurchase purchase);
-}

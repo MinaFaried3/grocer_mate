@@ -42,13 +42,3 @@ typedef CatalogPage = ({
   List<Category> categories,
   List<String> brands,
 });
-
-abstract interface class CatalogRepository {
-  Future<CatalogPage> browse(
-    CatalogQuery query, {
-    required int page,
-    required int pageSize,
-    bool refresh = false,
-  });
-  Future<Product> detail(String id);
-}

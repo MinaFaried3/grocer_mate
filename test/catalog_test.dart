@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:grocer_mate/features/catalog/domain/catalog.dart';
+import 'package:grocer_mate/features/catalog/domain/entities/catalog.dart';
+import 'package:grocer_mate/features/catalog/domain/repositories/catalog_repository.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_event.dart';
 

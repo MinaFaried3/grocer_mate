@@ -5,7 +5,9 @@ import 'package:uuid/uuid.dart';
 
 import 'package:grocer_mate/core/network/connection.dart';
 
-import '../../domain/shopping.dart';
+import '../../domain/entities/shopping.dart';
+import '../../domain/repositories/checkout_repository.dart';
+import '../../domain/repositories/shopping_repository.dart';
 import '../../domain/use_cases/cart_operations.dart';
 import '../../domain/use_cases/submit_pending_purchase.dart';
 import 'shopping_event.dart';

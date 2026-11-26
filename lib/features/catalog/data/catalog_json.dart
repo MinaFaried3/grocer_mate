@@ -1,6 +1,6 @@
 import 'package:grocer_mate/core/storage/json_fields.dart';
 
-import '../domain/catalog.dart';
+import '../domain/entities/catalog.dart';
 
 Category decodeCategory(Map<String, dynamic> json) => Category(
   id: readText(json, 'id'),

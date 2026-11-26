@@ -8,7 +8,7 @@ import 'package:grocer_mate/core/widgets/product_photo.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_event.dart';
 
-import '../../../domain/catalog.dart';
+import '../../../domain/entities/catalog.dart';
 
 class const ProductTile({
   super.key,

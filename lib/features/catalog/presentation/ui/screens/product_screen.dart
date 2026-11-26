@@ -4,7 +4,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:grocer_mate/core/network/connection.dart';
 import 'package:grocer_mate/core/widgets/status_panel.dart';
 
-import '../../../domain/catalog.dart';
+import '../../../domain/entities/catalog.dart';
+import '../../../domain/repositories/catalog_repository.dart';
 import '../widgets/product_details.dart';
 
 class const ProductScreen({super.key, required final String id})

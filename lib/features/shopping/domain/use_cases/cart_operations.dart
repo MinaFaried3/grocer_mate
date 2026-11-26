@@ -1,8 +1,8 @@
 import 'dart:math' as math;
 
-import 'package:grocer_mate/features/catalog/domain/catalog.dart';
+import 'package:grocer_mate/features/catalog/domain/entities/catalog.dart';
 
-import '../shopping.dart';
+import '../entities/shopping.dart';
 
 extension CartOperations on ShoppingData {
   ShoppingData? addProduct(Product product) {

@@ -6,7 +6,7 @@ import 'package:grocer_mate/core/theme/theme_context.dart';
 import 'package:grocer_mate/core/widgets/market_panel.dart';
 import 'package:grocer_mate/core/widgets/product_photo.dart';
 
-import '../../../domain/shopping.dart';
+import '../../../domain/entities/shopping.dart';
 import '../../controllers/shopping_bloc.dart';
 import '../../controllers/shopping_event.dart';
 

@@ -3,7 +3,8 @@ import 'dart:math' as math;
 import 'package:grocer_mate/core/network/connection.dart';
 import 'package:grocer_mate/core/storage/json_store.dart';
 
-import '../domain/catalog.dart';
+import '../domain/entities/catalog.dart';
+import '../domain/repositories/catalog_repository.dart';
 import 'catalog_json.dart';
 
 class CachedCatalog(

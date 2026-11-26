@@ -1,4 +1,4 @@
-import '../../domain/catalog.dart';
+import '../../domain/entities/catalog.dart';
 
 const CatalogQuery _defaultQuery = (
   search: '',

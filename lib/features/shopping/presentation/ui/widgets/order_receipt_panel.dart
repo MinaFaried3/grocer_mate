@@ -4,7 +4,7 @@ import 'package:grocer_mate/core/money.dart';
 import 'package:grocer_mate/core/theme/theme_context.dart';
 import 'package:grocer_mate/core/widgets/market_panel.dart';
 
-import '../../../domain/shopping.dart';
+import '../../../domain/entities/shopping.dart';
 
 class const OrderReceiptPanel(final OrderReceipt order, {super.key})
     extends StatelessWidget {

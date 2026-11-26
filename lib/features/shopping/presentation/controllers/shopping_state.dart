@@ -1,4 +1,4 @@
-import '../../domain/shopping.dart';
+import '../../domain/entities/shopping.dart';
 
 class const ShopState({
   final ShoppingData? data,

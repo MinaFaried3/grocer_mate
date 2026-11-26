@@ -8,7 +8,7 @@ import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_event.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_state.dart';
 
-import '../../../domain/catalog.dart';
+import '../../../domain/entities/catalog.dart';
 
 class const ProductDetails(final Product product, {super.key})
     extends StatelessWidget {

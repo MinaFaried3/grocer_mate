@@ -6,10 +6,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:grocer_mate/core/network/app_connection.dart';
 import 'package:grocer_mate/core/storage/json_store.dart';
 import 'package:grocer_mate/features/catalog/data/cached_catalog.dart';
-import 'package:grocer_mate/features/catalog/domain/catalog.dart';
+import 'package:grocer_mate/features/catalog/domain/repositories/catalog_repository.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
 import 'package:grocer_mate/features/shopping/data/local_shopping_repository.dart';
-import 'package:grocer_mate/features/shopping/domain/shopping.dart';
+import 'package:grocer_mate/features/shopping/domain/repositories/shopping_repository.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
 
 import 'mock_market.dart';

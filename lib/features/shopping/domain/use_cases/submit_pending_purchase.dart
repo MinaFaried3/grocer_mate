@@ -1,6 +1,8 @@
 import 'package:grocer_mate/core/network/connection.dart';
 
-import '../shopping.dart';
+import '../entities/shopping.dart';
+import '../repositories/checkout_repository.dart';
+import '../repositories/shopping_repository.dart';
 
 enum SubmissionFailure { offline, retry }
 

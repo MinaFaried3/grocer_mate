@@ -7,7 +7,8 @@ import '../core/network/connection.dart';
 import '../core/storage/json_store.dart';
 import '../core/storage/json_fields.dart';
 import '../features/shopping/data/shopping_json.dart';
-import '../features/shopping/domain/shopping.dart';
+import '../features/shopping/domain/entities/shopping.dart';
+import '../features/shopping/domain/repositories/checkout_repository.dart';
 
 enum CheckoutScenario(final String label) {
   normal('Normal checkout'),

@@ -1,7 +1,7 @@
 import 'package:grocer_mate/core/storage/json_fields.dart';
 
-import '../domain/cart_product.dart';
-import '../domain/shopping.dart';
+import '../domain/entities/cart_product.dart';
+import '../domain/entities/shopping.dart';
 
 ShoppingData decodeShopping(Map<String, dynamic> json) {
   final pending = json['pending'];
