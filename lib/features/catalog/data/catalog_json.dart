@@ -29,9 +29,9 @@ Product decodeProduct(Map<String, dynamic> json) {
     stock: readInt(json, 'stock'),
     rating: rating.toDouble(),
     description: json['description'],
-    images: List<String>.unmodifiable(images),
-    badges: List<String>.unmodifiable(json['badges']),
-    nutrition: Map<String, num>.unmodifiable(json['nutrition'] ?? {}),
-    allergens: List<String>.unmodifiable(json['allergens'] ?? []),
+    images: .unmodifiable(images),
+    badges: .unmodifiable(json['badges']),
+    nutrition: .unmodifiable(json['nutrition'] ?? {}),
+    allergens: .unmodifiable(json['allergens'] ?? []),
   );
 }

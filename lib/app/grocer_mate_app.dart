@@ -1,25 +1,39 @@
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'package:grocer_mate/core/theme/market_theme.dart';
 
-import 'market_home.dart';
+import 'app_router.dart';
 import 'mock_market.dart';
 import 'offline_banner.dart';
 
 class const GrocerMateApp({super.key, required final MockMarket market})
-    extends StatelessWidget {
+    extends StatefulWidget {
   @override
-  Widget build(BuildContext context) => MaterialApp(
+  State<GrocerMateApp> createState() => _GrocerMateAppState();
+}
+
+class _GrocerMateAppState() extends State<GrocerMateApp> {
+  late final GoRouter _router = createAppRouter(widget.market);
+
+  @override
+  void dispose() {
+    _router.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => MaterialApp.router(
+    routerConfig: _router,
     debugShowCheckedModeBanner: false,
     title: 'GrocerMate',
-    theme: marketTheme(Brightness.light),
-    darkTheme: marketTheme(Brightness.dark),
+    theme: marketTheme(.light),
+    darkTheme: marketTheme(.dark),
     builder: (context, child) => Column(
       children: [
         const OfflineBanner(),
         Expanded(child: child!),
       ],
     ),
-    home: MarketHome(market: market),
   );
 }

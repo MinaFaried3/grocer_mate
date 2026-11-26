@@ -25,7 +25,7 @@ Future<SubmissionResult> submitPendingPurchase(
         cart: data.cart,
         saved: data.saved,
         lastOrder: data.lastOrder,
-        pending: PendingPurchase(pending.id, pending.lines, attempted: true),
+        pending: .new(pending.id, pending.lines, attempted: true),
       );
       await storage.write(marked);
       persisted = marked;

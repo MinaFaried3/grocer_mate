@@ -8,10 +8,12 @@ import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_event.dart';
 
 import '../../../domain/catalog.dart';
-import '../screens/product_screen.dart';
 
-class const ProductTile({super.key, required final Product product})
-    extends StatelessWidget {
+class const ProductTile({
+  super.key,
+  required final Product product,
+  required final VoidCallback onOpen,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -27,19 +29,15 @@ class const ProductTile({super.key, required final Product product})
 
     return Material(
       color: theme.colorScheme.surface,
-      clipBehavior: Clip.antiAlias,
+      clipBehavior: .antiAlias,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: .circular(15),
         side: BorderSide(color: theme.colorScheme.outlineVariant),
       ),
       child: InkWell(
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => ProductScreen(id: product.id, title: product.title),
-          ),
-        ),
+        onTap: onOpen,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: .start,
           children: [
             SizedBox(
               height: 119,
@@ -56,17 +54,14 @@ class const ProductTile({super.key, required final Product product})
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           color: discount > 0 ? lime : Colors.white,
-                          borderRadius: BorderRadius.circular(7),
+                          borderRadius: .circular(7),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 7,
-                            vertical: 3,
-                          ),
+                          padding: const .symmetric(horizontal: 7, vertical: 3),
                           child: Text(
                             discount > 0 ? '-$discount%' : product.badges.first,
                             style: const TextStyle(
-                              fontWeight: FontWeight.w800,
+                              fontWeight: .w800,
                               fontSize: 11,
                               color: forest,
                             ),
@@ -79,14 +74,14 @@ class const ProductTile({super.key, required final Product product})
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(10, 8, 7, 5),
+                padding: const .fromLTRB(10, 8, 7, 5),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: .start,
                   children: [
                     Text(
                       product.brand,
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      overflow: .ellipsis,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -94,9 +89,9 @@ class const ProductTile({super.key, required final Product product})
                     Text(
                       product.title,
                       maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      overflow: .ellipsis,
                       style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
+                        fontWeight: .w800,
                         height: 1.13,
                       ),
                     ),
@@ -104,7 +99,7 @@ class const ProductTile({super.key, required final Product product})
                     Text(
                       stock,
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      overflow: .ellipsis,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: product.stock == 0
                             ? theme.colorScheme.error
@@ -116,7 +111,7 @@ class const ProductTile({super.key, required final Product product})
                         Expanded(
                           child: Wrap(
                             spacing: 4,
-                            crossAxisAlignment: WrapCrossAlignment.center,
+                            crossAxisAlignment: .center,
                             children: [
                               Text(
                                 money(product.price),
@@ -126,7 +121,7 @@ class const ProductTile({super.key, required final Product product})
                                 Text(
                                   money(product.originalPrice),
                                   style: theme.textTheme.labelSmall?.copyWith(
-                                    decoration: TextDecoration.lineThrough,
+                                    decoration: .lineThrough,
                                     color: theme.colorScheme.onSurfaceVariant,
                                   ),
                                 ),

@@ -22,7 +22,7 @@ class const ShoppingScreen({
   State<ShoppingScreen> createState() => _ShoppingScreenState();
 }
 
-class _ShoppingScreenState extends State<ShoppingScreen> {
+class _ShoppingScreenState() extends State<ShoppingScreen> {
   final _selection = <String>{};
   bool _selecting = false;
 
@@ -47,7 +47,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
           key: PageStorageKey(saved ? 'saved' : 'cart'),
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
+              padding: const .fromLTRB(20, 16, 20, 10),
               sliver: SliverToBoxAdapter(
                 child: Row(
                   children: [
@@ -78,7 +78,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                       )
                     : const Center(
                         child: Padding(
-                          padding: EdgeInsets.all(36),
+                          padding: .all(36),
                           child: CircularProgressIndicator(),
                         ),
                       ),
@@ -86,14 +86,14 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
             else ...[
               if (!saved && data.pending != null)
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                  padding: const .fromLTRB(20, 0, 20, 12),
                   sliver: SliverToBoxAdapter(
                     child: PendingPurchasePanel(state),
                   ),
                 ),
               if (!saved && data.lastOrder != null && data.pending == null)
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                  padding: const .fromLTRB(20, 0, 20, 12),
                   sliver: SliverToBoxAdapter(
                     child: OrderReceiptPanel(data.lastOrder!),
                   ),
@@ -114,7 +114,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                 ),
               if (lines.isNotEmpty) ...[
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                  padding: const .fromLTRB(20, 0, 20, 8),
                   sliver: SliverToBoxAdapter(
                     child: Row(
                       children: [
@@ -139,7 +139,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                 ),
                 if (_selecting)
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+                    padding: const .fromLTRB(20, 0, 20, 10),
                     sliver: SliverToBoxAdapter(
                       child: Wrap(
                         spacing: 8,
@@ -177,7 +177,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                     ),
                   ),
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const .symmetric(horizontal: 20),
                   sliver: SliverList.separated(
                     itemCount: lines.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 9),
@@ -203,7 +203,7 @@ class _ShoppingScreenState extends State<ShoppingScreen> {
                 ),
                 if (!saved)
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                    padding: const .fromLTRB(20, 16, 20, 24),
                     sliver: SliverToBoxAdapter(child: CartSummary(data)),
                   ),
               ],

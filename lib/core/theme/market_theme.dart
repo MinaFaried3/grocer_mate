@@ -5,7 +5,7 @@ const lime = Color(0xffd9f491);
 const canvas = Color(0xfff8f8f1);
 
 ThemeData marketTheme(Brightness brightness) {
-  final dark = brightness == Brightness.dark;
+  final dark = brightness == .dark;
   final scheme = ColorScheme.fromSeed(seedColor: forest, brightness: brightness)
       .copyWith(
         primary: dark ? const Color(0xffa8da9d) : forest,
@@ -27,7 +27,7 @@ ThemeData marketTheme(Brightness brightness) {
       surfaceTintColor: Colors.transparent,
       scrolledUnderElevation: 0,
       titleTextStyle: base.textTheme.titleLarge?.copyWith(
-        fontWeight: FontWeight.w800,
+        fontWeight: .w800,
         color: scheme.onSurface,
       ),
     ),
@@ -36,45 +36,43 @@ ThemeData marketTheme(Brightness brightness) {
       backgroundColor: scheme.surface,
       indicatorColor: scheme.primaryContainer,
       labelTextStyle: WidgetStatePropertyAll(
-        base.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
+        base.textTheme.labelMedium?.copyWith(fontWeight: .w700),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         minimumSize: const Size(48, 46),
-        textStyle: const TextStyle(fontWeight: FontWeight.w700),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+        textStyle: const TextStyle(fontWeight: .w700),
+        shape: RoundedRectangleBorder(borderRadius: .circular(13)),
       ),
     ),
     inputDecorationTheme: InputDecorationThemeData(
       filled: true,
       fillColor: scheme.surface,
-      contentPadding: const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
+      contentPadding: const .symmetric(vertical: 13, horizontal: 16),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(13),
+        borderRadius: .circular(13),
         borderSide: BorderSide(color: scheme.outlineVariant),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(13),
+        borderRadius: .circular(13),
         borderSide: BorderSide(color: scheme.outlineVariant),
       ),
     ),
     textTheme: base.textTheme.copyWith(
       headlineLarge: base.textTheme.headlineLarge?.copyWith(
-        fontWeight: FontWeight.w800,
+        fontWeight: .w800,
         letterSpacing: -1.3,
       ),
       headlineSmall: base.textTheme.headlineSmall?.copyWith(
-        fontWeight: FontWeight.w800,
+        fontWeight: .w800,
         letterSpacing: -.55,
       ),
       titleLarge: base.textTheme.titleLarge?.copyWith(
-        fontWeight: FontWeight.w800,
+        fontWeight: .w800,
         letterSpacing: -.4,
       ),
-      titleMedium: base.textTheme.titleMedium?.copyWith(
-        fontWeight: FontWeight.w700,
-      ),
+      titleMedium: base.textTheme.titleMedium?.copyWith(fontWeight: .w700),
     ),
   );
 }

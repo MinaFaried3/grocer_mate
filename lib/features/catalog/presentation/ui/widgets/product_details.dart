@@ -18,18 +18,18 @@ class const ProductDetails(final Product product, {super.key})
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 680),
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+          padding: const .fromLTRB(20, 8, 20, 28),
           children: [
             SizedBox(
               height: 280,
               child: ListView.separated(
-                scrollDirection: Axis.horizontal,
+                scrollDirection: .horizontal,
                 itemCount: product.images.length,
                 separatorBuilder: (_, _) => const SizedBox(width: 10),
                 itemBuilder: (context, index) => SizedBox(
                   width: product.images.length == 1 ? 280 : 255,
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(17),
+                    borderRadius: .circular(17),
                     child: ProductPhoto(product.images[index]),
                   ),
                 ),
@@ -44,15 +44,13 @@ class const ProductDetails(final Product product, {super.key})
             const SizedBox(height: 8),
             Wrap(
               spacing: 12,
-              crossAxisAlignment: WrapCrossAlignment.center,
+              crossAxisAlignment: .center,
               children: [
                 Text(money(product.price), style: theme.textTheme.titleLarge),
                 if (product.discountPercent > 0)
                   Text(
                     money(product.originalPrice),
-                    style: const TextStyle(
-                      decoration: TextDecoration.lineThrough,
-                    ),
+                    style: const TextStyle(decoration: .lineThrough),
                   ),
                 Text('★ ${product.rating.toStringAsFixed(1)}'),
               ],

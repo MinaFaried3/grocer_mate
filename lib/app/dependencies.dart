@@ -25,7 +25,7 @@ Future<GetIt> configureDependencies() async {
     dispose: (connection) => connection.close(),
   );
   dependencies.registerLazySingleton<MockMarket>(
-    () => MockMarket(store, dependencies<AppConnection>(), rootBundle),
+    () => .new(store, dependencies<AppConnection>(), rootBundle),
   );
   dependencies.registerLazySingleton<CatalogRepository>(
     () => CachedCatalog(
@@ -39,10 +39,10 @@ Future<GetIt> configureDependencies() async {
     () => LocalShoppingRepository(store),
   );
   dependencies.registerFactory<CatalogBloc>(
-    () => CatalogBloc(dependencies<CatalogRepository>()),
+    () => .new(dependencies<CatalogRepository>()),
   );
   dependencies.registerFactory<ShoppingBloc>(
-    () => ShoppingBloc(
+    () => .new(
       dependencies<ShoppingRepository>(),
       dependencies<MockMarket>(),
       dependencies<AppConnection>(),

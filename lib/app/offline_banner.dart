@@ -18,9 +18,9 @@ class const OfflineBanner({super.key}) extends StatelessWidget {
         child: SafeArea(
           bottom: false,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            padding: const .symmetric(horizontal: 14, vertical: 8),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: .center,
               children: [
                 Icon(
                   Icons.wifi_off_rounded,
@@ -32,7 +32,7 @@ class const OfflineBanner({super.key}) extends StatelessWidget {
                   child: Text(
                     'Offline mode · browsing the cached catalog',
                     style: TextStyle(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: .w700,
                       color: colors.onPrimaryContainer,
                     ),
                   ),

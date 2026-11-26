@@ -1,49 +1,25 @@
 import 'package:grocer_mate/features/catalog/domain/catalog.dart';
 
-sealed class ShopEvent {
-  const ShopEvent();
-}
+sealed class const ShopEvent();
 
-class ShopStarted extends ShopEvent {
-  const ShopStarted();
-}
+class const ShopStarted() extends ShopEvent;
 
-class ItemAdded extends ShopEvent {
-  const ItemAdded(this.product);
-  final Product product;
-}
+class const ItemAdded(final Product product) extends ShopEvent;
 
-class QuantityAdjusted extends ShopEvent {
-  const QuantityAdjusted(this.id, this.delta);
-  final String id;
-  final int delta;
-}
+class const QuantityAdjusted(final String id, final int delta)
+    extends ShopEvent;
 
-class ItemsMoved extends ShopEvent {
-  const ItemsMoved(this.ids, {required this.fromSaved});
-  final Set<String> ids;
-  final bool fromSaved;
-}
+class const ItemsMoved(final Set<String> ids, {required final bool fromSaved})
+    extends ShopEvent;
 
-class ItemsRemoved extends ShopEvent {
-  const ItemsRemoved(this.ids, {required this.fromSaved});
-  final Set<String> ids;
-  final bool fromSaved;
-}
+class const ItemsRemoved(final Set<String> ids, {required final bool fromSaved})
+    extends ShopEvent;
 
-class CheckoutRequested extends ShopEvent {
-  const CheckoutRequested();
-}
+class const CheckoutRequested() extends ShopEvent;
 
-class PendingRetried extends ShopEvent {
-  const PendingRetried();
-}
+class const PendingRetried() extends ShopEvent;
 
-class PendingCanceled extends ShopEvent {
-  const PendingCanceled();
-}
+class const PendingCanceled() extends ShopEvent;
 
-class CheckoutAccepted extends ShopEvent {
-  const CheckoutAccepted(this.quantities);
-  final Map<String, int> quantities;
-}
+class const CheckoutAccepted(final Map<String, int> quantities)
+    extends ShopEvent;

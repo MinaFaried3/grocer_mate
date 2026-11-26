@@ -6,14 +6,13 @@ import 'package:grocer_mate/core/storage/json_store.dart';
 import '../domain/catalog.dart';
 import 'catalog_json.dart';
 
-class CachedCatalog implements CatalogRepository {
-  CachedCatalog(this._store, this._connection, this._fetchCatalog);
-
+class CachedCatalog(
+  final JsonStore _store,
+  final Connection _connection,
+  final Future<Map<String, dynamic>> Function() _fetchCatalog,
+) implements CatalogRepository {
   static const _key = 'catalog_v1';
 
-  final JsonStore _store;
-  final Connection _connection;
-  final Future<Map<String, dynamic>> Function() _fetchCatalog;
   Future<_CatalogSnapshot>? _loading;
   _CatalogSnapshot? _snapshot;
 
@@ -31,7 +30,7 @@ class CachedCatalog implements CatalogRepository {
     if (snapshot != null) return snapshot;
     final data = await _store.read(_key);
     if (data == null) throw const OfflineException();
-    return _snapshot ??= _CatalogSnapshot.fromJson(data);
+    return _snapshot ??= .fromJson(data);
   }
 
   Future<_CatalogSnapshot> _refresh() async {
@@ -86,18 +85,16 @@ class CachedCatalog implements CatalogRepository {
       (await _catalog()).products.firstWhere((product) => product.id == id);
 }
 
-class _CatalogSnapshot {
-  const _CatalogSnapshot(this.categories, this.products);
-  final List<Category> categories;
-  final List<Product> products;
-
-  factory _CatalogSnapshot.fromJson(Map<String, dynamic> data) =>
-      _CatalogSnapshot(
-        List.unmodifiable(
-          (data['categories'] as List).map((json) => decodeCategory(json)),
-        ),
-        List.unmodifiable(
-          (data['products'] as List).map((json) => decodeProduct(json)),
-        ),
-      );
+class const _CatalogSnapshot(
+  final List<Category> categories,
+  final List<Product> products,
+) {
+  factory fromJson(Map<String, dynamic> data) => .new(
+    .unmodifiable(
+      (data['categories'] as List).map((json) => decodeCategory(json)),
+    ),
+    .unmodifiable(
+      (data['products'] as List).map((json) => decodeProduct(json)),
+    ),
+  );
 }

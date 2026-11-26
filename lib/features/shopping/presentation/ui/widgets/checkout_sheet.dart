@@ -16,6 +16,7 @@ Future<void> showCheckoutReview(
   final bloc = context.read<ShoppingBloc>();
   return showModalBottomSheet<void>(
     context: context,
+    useRootNavigator: true,
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
@@ -39,7 +40,7 @@ class const _CheckoutSheet({
   State<_CheckoutSheet> createState() => _CheckoutSheetState();
 }
 
-class _CheckoutSheetState extends State<_CheckoutSheet> {
+class _CheckoutSheetState() extends State<_CheckoutSheet> {
   final _quantities = <String, int>{};
 
   @override
@@ -63,12 +64,12 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
           maxHeight: MediaQuery.sizeOf(context).height * .78,
         ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: .min,
           children: [
             Flexible(
               child: ListView(
                 shrinkWrap: true,
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                padding: const .fromLTRB(20, 0, 20, 12),
                 children: [
                   Text(
                     'Review order changes',
@@ -96,11 +97,11 @@ class _CheckoutSheetState extends State<_CheckoutSheet> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 6, 20, 14),
+              padding: const .fromLTRB(20, 6, 20, 14),
               child: SizedBox(
                 width: double.infinity,
                 child: FilledButton(
-                  onPressed: () => widget.onSubmit(Map.of(_quantities)),
+                  onPressed: () => widget.onSubmit(.of(_quantities)),
                   child: Text(
                     adjusted.isNotEmpty
                         ? 'Accept and place order · ${money(totals.total)}'

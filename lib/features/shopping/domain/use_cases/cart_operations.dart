@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:grocer_mate/features/catalog/domain/catalog.dart';
 
-import '../cart_product.dart';
 import '../shopping.dart';
 
 extension CartOperations on ShoppingData {
@@ -11,9 +10,7 @@ extension CartOperations on ShoppingData {
         .where((line) => line.product.id == product.id)
         .firstOrNull;
     if ((current?.quantity ?? 0) >= product.stock) return null;
-    return withLists(
-      cart: _merge(cart, CartLine(CartProduct.fromProduct(product), 1)),
-    );
+    return withLists(cart: _merge(cart, CartLine(.fromProduct(product), 1)));
   }
 
   ShoppingData adjustQuantity(String id, int delta) {
@@ -81,7 +78,7 @@ extension CartOperations on ShoppingData {
     for (final line in purchase.lines) {
       restored = _merge(restored, line);
     }
-    return ShoppingData(cart: restored, saved: saved, lastOrder: lastOrder);
+    return .new(cart: restored, saved: saved, lastOrder: lastOrder);
   }
 
   List<CartLine> _merge(List<CartLine> lines, CartLine added) {

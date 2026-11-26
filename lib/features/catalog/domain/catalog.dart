@@ -1,43 +1,29 @@
-class Category {
-  const Category({required this.id, required this.name, required this.icon});
-  final String id;
-  final String name;
-  final String icon;
-}
+class const Category({
+  required final String id,
+  required final String name,
+  required final String icon,
+});
 
-class Product {
-  const Product({
-    required this.id,
-    required this.title,
-    required this.brand,
-    required this.categoryId,
-    required this.price,
-    required this.originalPrice,
-    required this.stock,
-    required this.rating,
-    required this.description,
-    required this.images,
-    required this.badges,
-    required this.nutrition,
-    required this.allergens,
-  }) : assert(price >= 0),
-       assert(originalPrice >= 0),
-       assert(stock >= 0),
-       assert(rating >= 0 && rating <= 5);
-
-  final String id;
-  final String title;
-  final String brand;
-  final String categoryId;
-  final int price;
-  final int originalPrice;
-  final int stock;
-  final double rating;
-  final String description;
-  final List<String> images;
-  final List<String> badges;
-  final Map<String, num> nutrition;
-  final List<String> allergens;
+class const Product({
+  required final String id,
+  required final String title,
+  required final String brand,
+  required final String categoryId,
+  required final int price,
+  required final int originalPrice,
+  required final int stock,
+  required final double rating,
+  required final String description,
+  required final List<String> images,
+  required final List<String> badges,
+  required final Map<String, num> nutrition,
+  required final List<String> allergens,
+}) {
+  this
+    : assert(price >= 0),
+      assert(originalPrice >= 0),
+      assert(stock >= 0),
+      assert(rating >= 0 && rating <= 5);
 
   int get discountPercent => originalPrice > price
       ? ((originalPrice - price) * 100 / originalPrice).round()

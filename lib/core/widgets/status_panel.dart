@@ -13,9 +13,9 @@ class const StatusPanel({
     final theme = Theme.of(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+        padding: const .symmetric(horizontal: 24, vertical: 36),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: .min,
           children: [
             CircleAvatar(
               radius: 28,
@@ -24,15 +24,11 @@ class const StatusPanel({
               child: Icon(icon, size: 25),
             ),
             const SizedBox(height: 12),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.titleLarge,
-            ),
+            Text(title, textAlign: .center, style: theme.textTheme.titleLarge),
             const SizedBox(height: 5),
             Text(
               message,
-              textAlign: TextAlign.center,
+              textAlign: .center,
               style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
             ),
             if (action != null && onAction != null) ...[

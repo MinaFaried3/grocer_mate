@@ -1,35 +1,15 @@
-sealed class CatalogEvent {
-  const CatalogEvent();
-}
+sealed class const CatalogEvent();
 
-class SearchTyped extends CatalogEvent {
-  const SearchTyped(this.input);
-  final String input;
-}
+class const SearchTyped(final String input) extends CatalogEvent;
 
-class CategorySelected extends CatalogEvent {
-  const CategorySelected(this.id);
-  final String? id;
-}
+class const CategorySelected(final String? id) extends CatalogEvent;
 
-class BrandSelected extends CatalogEvent {
-  const BrandSelected(this.name);
-  final String? name;
-}
+class const BrandSelected(final String? name) extends CatalogEvent;
 
-class DealsSelected extends CatalogEvent {
-  const DealsSelected();
-}
+class const DealsSelected() extends CatalogEvent;
 
-class CatalogRefreshed extends CatalogEvent {
-  const CatalogRefreshed();
-}
+class const CatalogRefreshed() extends CatalogEvent;
 
-class NextPageRequested extends CatalogEvent {
-  const NextPageRequested();
-}
+class const NextPageRequested() extends CatalogEvent;
 
-class SearchSettled extends CatalogEvent {
-  const SearchSettled(this.input);
-  final String input;
-}
+class const SearchSettled(final String input) extends CatalogEvent;

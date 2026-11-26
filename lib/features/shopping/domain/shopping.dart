@@ -2,30 +2,23 @@ import 'dart:math' as math;
 
 import 'cart_product.dart';
 
-class CartLine {
-  const CartLine(this.product, this.quantity) : assert(quantity > 0);
-  final CartProduct product;
-  final int quantity;
+class const CartLine(final CartProduct product, final int quantity) {
+  this : assert(quantity > 0);
 
-  CartLine withQuantity(int next) => CartLine(product, next);
+  CartLine withQuantity(int next) => .new(product, next);
 }
 
-class OrderTotals {
-  const OrderTotals({
-    required this.subtotal,
-    required this.discount,
-    required this.tax,
-    required this.delivery,
-  });
-
+class const OrderTotals({
+  required final int subtotal,
+  required final int discount,
+  required final int tax,
+  required final int delivery,
+}) {
   static const freeDeliveryThreshold = 2500;
-  final int subtotal;
-  final int discount;
-  final int tax;
-  final int delivery;
+
   int get total => subtotal - discount + tax + delivery;
 
-  factory OrderTotals.forLines(Iterable<CartLine> lines) {
+  factory forLines(Iterable<CartLine> lines) {
     var subtotal = 0;
     var discount = 0;
     for (final line in lines) {
@@ -35,7 +28,7 @@ class OrderTotals {
       discount += (listPrice - product.price) * line.quantity;
     }
     final net = subtotal - discount;
-    return OrderTotals(
+    return .new(
       subtotal: subtotal,
       discount: discount,
       tax: (net * 5 + 50) ~/ 100,
@@ -44,15 +37,11 @@ class OrderTotals {
   }
 }
 
-class CheckoutChange {
-  const CheckoutChange({
-    required this.productId,
-    required this.currentPrice,
-    required this.available,
-  });
-  final String productId;
-  final int currentPrice;
-  final int available;
+class const CheckoutChange({
+  required final String productId,
+  required final int currentPrice,
+  required final int available,
+}) {
   bool priceChanged(CartLine line) => line.product.price != currentPrice;
   bool stockChanged(CartLine line) => available < line.quantity;
 
@@ -62,14 +51,10 @@ class CheckoutChange {
   }
 }
 
-sealed class PurchaseResult {
-  const PurchaseResult();
-}
+sealed class const PurchaseResult();
 
-class PurchaseReview extends PurchaseResult {
-  const PurchaseReview(this.changes);
-  final List<CheckoutChange> changes;
-
+class const PurchaseReview(final List<CheckoutChange> changes)
+    extends PurchaseResult {
   List<CartLine> applyTo(List<CartLine> lines, Map<String, int> quantities) {
     final changesById = {
       for (final change in changes) change.productId: change,
@@ -85,7 +70,7 @@ class PurchaseReview extends PurchaseResult {
       final quantity = change.quantityFor(line, quantities[id]);
       if (quantity == 0) continue;
       adjusted.add(
-        CartLine(
+        .new(
           line.product.withAvailability(
             price: change.currentPrice,
             stock: change.available,
@@ -98,39 +83,27 @@ class PurchaseReview extends PurchaseResult {
   }
 }
 
-class OrderReceipt extends PurchaseResult {
-  const OrderReceipt({required this.id, required this.total});
-  final String id;
-  final int total;
-}
+class const OrderReceipt({required final String id, required final int total})
+    extends PurchaseResult;
 
-class PendingPurchase {
-  const PendingPurchase(this.id, this.lines, {this.attempted = false});
-  final String id;
-  final List<CartLine> lines;
-  final bool attempted;
-}
+class const PendingPurchase(
+  final String id,
+  final List<CartLine> lines, {
+  final bool attempted = false,
+});
 
-class ShoppingData {
-  const ShoppingData({
-    this.cart = const [],
-    this.saved = const [],
-    this.pending,
-    this.lastOrder,
-  });
-
-  final List<CartLine> cart;
-  final List<CartLine> saved;
-  final PendingPurchase? pending;
-  final OrderReceipt? lastOrder;
-
-  ShoppingData withLists({List<CartLine>? cart, List<CartLine>? saved}) =>
-      ShoppingData(
-        cart: cart ?? this.cart,
-        saved: saved ?? this.saved,
-        pending: pending,
-        lastOrder: lastOrder,
-      );
+class const ShoppingData({
+  final List<CartLine> cart = const [],
+  final List<CartLine> saved = const [],
+  final PendingPurchase? pending,
+  final OrderReceipt? lastOrder,
+}) {
+  ShoppingData withLists({List<CartLine>? cart, List<CartLine>? saved}) => .new(
+    cart: cart ?? this.cart,
+    saved: saved ?? this.saved,
+    pending: pending,
+    lastOrder: lastOrder,
+  );
 }
 
 abstract interface class ShoppingRepository {

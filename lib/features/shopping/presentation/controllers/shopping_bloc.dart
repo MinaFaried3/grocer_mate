@@ -11,9 +11,12 @@ import '../../domain/use_cases/submit_pending_purchase.dart';
 import 'shopping_event.dart';
 import 'shopping_state.dart';
 
-class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
-  ShoppingBloc(this._storage, this._checkout, this._connection)
-    : super(const ShopState()) {
+class ShoppingBloc(
+  final ShoppingRepository _storage,
+  final CheckoutRepository _checkout,
+  final Connection _connection,
+) extends Bloc<ShopEvent, ShopState> {
+  this : super(const .new()) {
     on<ShopEvent>(
       _handle,
       transformer: (events, mapper) => events.asyncExpand(mapper),
@@ -23,21 +26,18 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
     });
   }
 
-  final ShoppingRepository _storage;
-  final CheckoutRepository _checkout;
-  final Connection _connection;
   late final StreamSubscription<bool> _subscription;
 
   Future<void> _handle(ShopEvent event, Emitter<ShopState> emit) async {
     if (event is ShopStarted) {
       if (state.data != null) return;
-      emit(const ShopState());
+      emit(const .new());
       try {
         final data = await _storage.read();
         emit(state.copyWith(data: data));
         if (data.pending != null) await _submit(data, emit);
       } catch (_) {
-        emit(const ShopState(loadError: true));
+        emit(const .new(loadError: true));
       }
       return;
     }
@@ -125,7 +125,7 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
       cart: data.cart,
       saved: data.saved,
       lastOrder: data.lastOrder,
-      pending: lines.isEmpty ? null : PendingPurchase(pending.id, lines),
+      pending: lines.isEmpty ? null : .new(pending.id, lines),
     );
     await _save(
       updated,
@@ -144,9 +144,8 @@ class ShoppingBloc extends Bloc<ShopEvent, ShopState> {
     emit(state.copyWith(busy: true, clearReview: true, clearNotice: true));
     final result = await submitPendingPurchase(data, _storage, _checkout);
     final notice = switch (result.failure) {
-      SubmissionFailure.offline => 'Purchase queued for when you’re online.',
-      SubmissionFailure.retry =>
-        'Checkout couldn’t finish. Your purchase is saved for retry.',
+      .offline => 'Purchase queued for when you’re online.',
+      .retry => 'Checkout couldn’t finish. Your purchase is saved for retry.',
       null => null,
     };
     emit(

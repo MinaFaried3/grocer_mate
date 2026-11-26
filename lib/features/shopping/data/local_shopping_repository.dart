@@ -3,15 +3,14 @@ import 'package:grocer_mate/core/storage/json_store.dart';
 import '../domain/shopping.dart';
 import 'shopping_json.dart';
 
-class LocalShoppingRepository implements ShoppingRepository {
-  const LocalShoppingRepository(this.store);
+class const LocalShoppingRepository(final JsonStore store)
+    implements ShoppingRepository {
   static const _key = 'shopping_v1';
-  final JsonStore store;
 
   @override
   Future<ShoppingData> read() async {
     final json = await store.read(_key);
-    return json == null ? const ShoppingData() : decodeShopping(json);
+    return json == null ? const .new() : decodeShopping(json);
   }
 
   @override

@@ -7,27 +7,16 @@ const CatalogQuery _defaultQuery = (
   deals: false,
 );
 
-class CatalogState {
-  const CatalogState({
-    this.query = _defaultQuery,
-    this.categories = const [],
-    this.brands = const [],
-    this.products = const [],
-    this.page = 0,
-    this.total = 0,
-    this.loading = true,
-    this.error,
-  });
-
-  final CatalogQuery query;
-  final List<Category> categories;
-  final List<String> brands;
-  final List<Product> products;
-  final int page;
-  final int total;
-  final bool loading;
-  final String? error;
-
+class const CatalogState({
+  final CatalogQuery query = _defaultQuery,
+  final List<Category> categories = const [],
+  final List<String> brands = const [],
+  final List<Product> products = const [],
+  final int page = 0,
+  final int total = 0,
+  final bool loading = true,
+  final String? error,
+}) {
   bool get hasMore => products.length < total;
 
   CatalogState copyWith({
@@ -40,7 +29,7 @@ class CatalogState {
     bool? loading,
     String? error,
     bool clearError = false,
-  }) => CatalogState(
+  }) => .new(
     query: query ?? this.query,
     categories: categories ?? this.categories,
     brands: brands ?? this.brands,

@@ -21,7 +21,7 @@ class const PendingPurchasePanel(final ShopState state, {super.key})
     final pending = state.data!.pending!;
     return MarketPanel(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: .start,
         children: [
           Row(
             children: [
@@ -72,7 +72,7 @@ class const PendingPurchasePanel(final ShopState state, {super.key})
                   )
                 else
                   const Padding(
-                    padding: EdgeInsets.only(top: 11),
+                    padding: .only(top: 11),
                     child: Text(
                       'We’ll check prices and stock when you reconnect.',
                     ),

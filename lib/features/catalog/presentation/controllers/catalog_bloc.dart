@@ -8,13 +8,13 @@ import '../../domain/catalog.dart';
 import 'catalog_event.dart';
 import 'catalog_state.dart';
 
-class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
-  CatalogBloc(this._repository) : super(const CatalogState()) {
+class CatalogBloc(final CatalogRepository _repository)
+    extends Bloc<CatalogEvent, CatalogState> {
+  this : super(const .new()) {
     on<CatalogEvent>(_handle);
   }
 
   static const pageSize = 8;
-  final CatalogRepository _repository;
   Timer? _searchTimer;
   String _input = '';
   int _generation = 0;
@@ -101,7 +101,7 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
           brands: result.brands,
           products: firstPage
               ? result.products
-              : List.unmodifiable([...loading.products, ...result.products]),
+              : .unmodifiable([...loading.products, ...result.products]),
           page: page,
           total: result.total,
           loading: false,

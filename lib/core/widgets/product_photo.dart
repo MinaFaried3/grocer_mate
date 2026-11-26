@@ -4,7 +4,7 @@ class const ProductPhoto(
   final String path, {
   super.key,
   final int? cacheWidth,
-  final BoxFit fit = BoxFit.cover,
+  final BoxFit fit = .cover,
 }) extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Image.asset(

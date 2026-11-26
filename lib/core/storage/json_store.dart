@@ -2,11 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-class JsonStore {
-  const JsonStore(this.preferences);
-
-  final SharedPreferencesAsync preferences;
-
+class const JsonStore(final SharedPreferencesAsync preferences) {
   Future<Map<String, dynamic>?> read(String key) async {
     final raw = await preferences.getString(key);
     return raw == null ? null : jsonDecode(raw) as Map<String, dynamic>;

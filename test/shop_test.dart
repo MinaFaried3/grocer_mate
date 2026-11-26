@@ -172,9 +172,8 @@ void main() {
   );
 }
 
-class _Storage implements ShoppingRepository {
-  _Storage([this.data = const ShoppingData()]);
-  ShoppingData data;
+class _Storage([var ShoppingData data = const .new()])
+    implements ShoppingRepository {
   bool failReceiptWrite = false;
 
   @override
@@ -190,9 +189,7 @@ class _Storage implements ShoppingRepository {
   }
 }
 
-class _Connection implements Connection {
-  _Connection(this.online);
-
+class _Connection(this.online) implements Connection {
   @override
   bool online;
 
@@ -209,9 +206,7 @@ class _Connection implements Connection {
   Future<void> close() => _events.close();
 }
 
-class _Checkout implements CheckoutRepository {
-  _Checkout({this.review = true});
-  final bool review;
+class _Checkout({final bool review = true}) implements CheckoutRepository {
   final requests = <PendingPurchase>[];
 
   @override

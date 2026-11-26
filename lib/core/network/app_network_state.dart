@@ -1,10 +1,8 @@
-class AppNetworkState {
-  const AppNetworkState({required this.online, required this.simulated});
-
-  final bool online;
-  final bool simulated;
-
-  AppNetworkState copyWith({bool? online, bool? simulated}) => AppNetworkState(
+class const AppNetworkState({
+  required final bool online,
+  required final bool simulated,
+}) {
+  AppNetworkState copyWith({bool? online, bool? simulated}) => .new(
     online: online ?? this.online,
     simulated: simulated ?? this.simulated,
   );

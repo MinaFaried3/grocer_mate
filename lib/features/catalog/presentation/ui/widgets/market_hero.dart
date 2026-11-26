@@ -8,7 +8,7 @@ class const MarketHero({super.key, required final VoidCallback onDeals})
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: .circular(18),
       child: ColoredBox(
         color: const Color(0xff15382b),
         child: LayoutBuilder(
@@ -36,20 +36,17 @@ class const MarketHero({super.key, required final VoidCallback onDeals})
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: wide ? 30 : 17,
-                    vertical: 19,
-                  ),
+                  padding: .symmetric(horizontal: wide ? 30 : 17, vertical: 19),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: .start,
+                    mainAxisSize: .min,
                     children: [
                       Text(
                         'Fresh finds,\nbetter prices.',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: wide ? 39 : 28,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: .w800,
                           height: 1.06,
                           letterSpacing: -.85,
                         ),
@@ -60,7 +57,7 @@ class const MarketHero({super.key, required final VoidCallback onDeals})
                         style: FilledButton.styleFrom(
                           backgroundColor: lime,
                           foregroundColor: const Color(0xff173722),
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          padding: const .symmetric(horizontal: 12),
                         ),
                         child: const Text('Shop deals'),
                       ),

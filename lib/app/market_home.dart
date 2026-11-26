@@ -1,42 +1,21 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'package:grocer_mate/core/network/app_connection.dart';
 import 'package:grocer_mate/core/network/app_network_state.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_event.dart';
-import 'package:grocer_mate/features/catalog/presentation/ui/screens/catalog_screen.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_state.dart';
-import 'package:grocer_mate/features/shopping/presentation/ui/screens/shopping_screen.dart';
 import 'package:grocer_mate/features/shopping/presentation/ui/widgets/checkout_sheet.dart';
 
-import 'demo_settings_sheet.dart';
-import 'mock_market.dart';
-
-class const MarketHome({super.key, required final MockMarket market})
-    extends StatefulWidget {
-  @override
-  State<MarketHome> createState() => _MarketHomeState();
-}
-
-class _MarketHomeState extends State<MarketHome> {
-  int _tab = 0;
-
-  void _browse() => setState(() => _tab = 0);
-
-  void _settings() {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (_) => DemoSettingsSheet(market: widget.market),
-    );
-  }
-
+class const MarketHome({
+  super.key,
+  required final StatefulNavigationShell navigationShell,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MultiBlocListener(
     listeners: [
@@ -62,10 +41,14 @@ class _MarketHomeState extends State<MarketHome> {
             before.review != after.review && after.review != null,
         listener: (context, state) {
           context.read<CatalogBloc>().add(const CatalogRefreshed());
-          setState(() => _tab = 1);
-          unawaited(
-            showCheckoutReview(context, state.data!.pending!, state.review!),
-          );
+          navigationShell.goBranch(1);
+          // Let the Cart route settle before showing the review on top of it.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!context.mounted) return;
+            unawaited(
+              showCheckoutReview(context, state.data!.pending!, state.review!),
+            );
+          });
         },
       ),
       BlocListener<ShoppingBloc, ShopState>(
@@ -75,7 +58,7 @@ class _MarketHomeState extends State<MarketHome> {
             after.data?.lastOrder != null,
         listener: (context, state) {
           context.read<CatalogBloc>().add(const CatalogRefreshed());
-          if (_tab != 1) {
+          if (navigationShell.currentIndex != 1) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Order ${state.data!.lastOrder!.id} placed.'),
@@ -90,23 +73,10 @@ class _MarketHomeState extends State<MarketHome> {
         bottom: false,
         child: Center(
           child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: _tab == 0 ? 1120 : 680),
-            child: IndexedStack(
-              index: _tab,
-              children: [
-                CatalogScreen(onSettings: _settings),
-                ShoppingScreen(
-                  saved: false,
-                  onBrowse: _browse,
-                  onSettings: _settings,
-                ),
-                ShoppingScreen(
-                  saved: true,
-                  onBrowse: _browse,
-                  onSettings: _settings,
-                ),
-              ],
+            constraints: BoxConstraints(
+              maxWidth: navigationShell.currentIndex == 0 ? 1120 : 680,
             ),
+            child: navigationShell,
           ),
         ),
       ),
@@ -122,8 +92,8 @@ class _MarketHomeState extends State<MarketHome> {
               saved: state.data?.saved.length ?? 0,
             ),
             builder: (context, count) => NavigationBar(
-              selectedIndex: _tab,
-              onDestinationSelected: (value) => setState(() => _tab = value),
+              selectedIndex: navigationShell.currentIndex,
+              onDestinationSelected: navigationShell.goBranch,
               destinations: [
                 const NavigationDestination(
                   icon: Icon(Icons.storefront_outlined),

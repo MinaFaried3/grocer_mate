@@ -5,12 +5,12 @@ import '../domain/shopping.dart';
 
 ShoppingData decodeShopping(Map<String, dynamic> json) {
   final pending = json['pending'];
-  return ShoppingData(
+  return .new(
     cart: _decodeLines(json['cart']),
     saved: _decodeLines(json['saved']),
     pending: pending == null
         ? null
-        : PendingPurchase(
+        : .new(
             readText(pending, 'id'),
             _decodeLines(pending['lines']),
             attempted: pending['attempted'] as bool? ?? false,
@@ -21,7 +21,7 @@ ShoppingData decodeShopping(Map<String, dynamic> json) {
   );
 }
 
-List<CartLine> _decodeLines(List<dynamic> lines) => List.unmodifiable(
+List<CartLine> _decodeLines(List<dynamic> lines) => .unmodifiable(
   lines.map((json) {
     final Map<String, dynamic> product = json['product'];
     // Earlier carts stored the whole catalog product, including its image list.
@@ -80,7 +80,7 @@ List<Map<String, Object>> _encodeLines(List<CartLine> lines) => [
 ];
 
 OrderReceipt decodeReceipt(Map<String, dynamic> json) =>
-    OrderReceipt(id: readText(json, 'id'), total: readInt(json, 'total'));
+    .new(id: readText(json, 'id'), total: readInt(json, 'total'));
 
 Map<String, Object> encodeReceipt(OrderReceipt receipt) => {
   'id': receipt.id,

@@ -22,7 +22,7 @@ class const OrderReceiptPanel(final OrderReceipt order, {super.key})
           const SizedBox(width: 12),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: .start,
               children: [
                 Text(
                   'Order placed',

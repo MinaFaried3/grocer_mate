@@ -9,27 +9,23 @@ import '../core/storage/json_fields.dart';
 import '../features/shopping/data/shopping_json.dart';
 import '../features/shopping/domain/shopping.dart';
 
-enum CheckoutScenario {
+enum CheckoutScenario(final String label) {
   normal('Normal checkout'),
   prices('Price changes'),
   stock('Stock changes'),
-  mixed('Price and stock changes');
-
-  const CheckoutScenario(this.label);
-  final String label;
+  mixed('Price and stock changes'),
 }
 
-class MockMarket implements CheckoutRepository {
-  MockMarket(this.store, this.connection, this.bundle);
-
+class MockMarket(
+  final JsonStore store,
+  final Connection connection,
+  final AssetBundle bundle,
+) implements CheckoutRepository {
   static const catalogAsset = 'assets/catalog.json';
   static const _serverKey = 'mock_market_v1';
 
-  final JsonStore store;
-  final Connection connection;
-  final AssetBundle bundle;
   Future<Map<String, dynamic>>? _seed;
-  CheckoutScenario scenario = CheckoutScenario.normal;
+  CheckoutScenario scenario = .normal;
 
   Future<Map<String, dynamic>> _loadSeed() async {
     try {
@@ -79,7 +75,7 @@ class MockMarket implements CheckoutRepository {
         availability[id]?['stock'] ?? products[id]?.stock ?? 0;
 
     final armed = scenario;
-    if (armed != CheckoutScenario.normal) {
+    if (armed != .normal) {
       _applyScenario(armed, purchase.lines, availability, priceFor, stockFor);
     }
     final changes = <CheckoutChange>[];
@@ -111,14 +107,14 @@ class MockMarket implements CheckoutRepository {
       result = receipt;
     } else {
       result = PurchaseReview(List.unmodifiable(changes));
-      if (armed == CheckoutScenario.normal) return result;
+      if (armed == .normal) return result;
     }
 
     await store.write(_serverKey, {
       'availability': availability,
       'receipts': receipts,
     });
-    if (scenario == armed) scenario = CheckoutScenario.normal;
+    if (scenario == armed) scenario = .normal;
     return result;
   }
 
@@ -147,10 +143,8 @@ class MockMarket implements CheckoutRepository {
     int Function(String id, int fallback) priceFor,
     int Function(String id) stockFor,
   ) {
-    final priceEdit =
-        type == CheckoutScenario.prices || type == CheckoutScenario.mixed;
-    final stockEdit =
-        type == CheckoutScenario.stock || type == CheckoutScenario.mixed;
+    final priceEdit = type == .prices || type == .mixed;
+    final stockEdit = type == .stock || type == .mixed;
     for (final (index, line) in lines.take(2).indexed) {
       final id = line.product.id;
       var price = priceFor(id, line.product.price);

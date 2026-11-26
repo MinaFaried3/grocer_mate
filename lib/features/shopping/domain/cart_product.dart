@@ -1,25 +1,16 @@
 import 'package:grocer_mate/features/catalog/domain/catalog.dart';
 
-class CartProduct {
-  const CartProduct({
-    required this.id,
-    required this.title,
-    required this.image,
-    required this.price,
-    required this.originalPrice,
-    required this.stock,
-  }) : assert(price >= 0),
-       assert(originalPrice >= 0),
-       assert(stock >= 0);
+class const CartProduct({
+  required final String id,
+  required final String title,
+  required final String image,
+  required final int price,
+  required final int originalPrice,
+  required final int stock,
+}) {
+  this : assert(price >= 0), assert(originalPrice >= 0), assert(stock >= 0);
 
-  final String id;
-  final String title;
-  final String image;
-  final int price;
-  final int originalPrice;
-  final int stock;
-
-  factory CartProduct.fromProduct(Product product) => CartProduct(
+  factory fromProduct(Product product) => .new(
     id: product.id,
     title: product.title,
     image: product.images.first,
@@ -29,7 +20,7 @@ class CartProduct {
   );
 
   CartProduct withAvailability({required int price, required int stock}) =>
-      CartProduct(
+      .new(
         id: id,
         title: title,
         image: image,

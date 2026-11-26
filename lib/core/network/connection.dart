@@ -3,6 +3,4 @@ abstract interface class Connection {
   Stream<bool> get changes;
 }
 
-class OfflineException implements Exception {
-  const OfflineException();
-}
+class const OfflineException() implements Exception;

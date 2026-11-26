@@ -17,9 +17,9 @@ class const CheckoutChangePanel({
     final theme = Theme.of(context);
     final maxQuantity = change.quantityFor(line);
     return MarketPanel(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+      padding: const .fromLTRB(12, 10, 12, 8),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: .start,
         children: [
           Text(line.product.title, style: theme.textTheme.titleMedium),
           if (change.priceChanged(line))

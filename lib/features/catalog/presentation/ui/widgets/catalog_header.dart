@@ -24,10 +24,10 @@ class const CatalogHeader({
         state.query.category == null &&
         state.query.brand == null;
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(20, 15, 20, 17),
+      padding: const .fromLTRB(20, 15, 20, 17),
       sliver: SliverToBoxAdapter(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: .start,
           children: [
             Row(
               children: [
@@ -36,7 +36,7 @@ class const CatalogHeader({
                   height: 42,
                   decoration: BoxDecoration(
                     color: forest,
-                    borderRadius: BorderRadius.circular(13),
+                    borderRadius: .circular(13),
                   ),
                   child: const Icon(
                     Icons.shopping_basket_outlined,
@@ -61,7 +61,7 @@ class const CatalogHeader({
               builder: (context, _) => TextField(
                 key: const ValueKey('catalog-search'),
                 controller: searchController,
-                textInputAction: TextInputAction.search,
+                textInputAction: .search,
                 onChanged: (value) => bloc.add(SearchTyped(value)),
                 decoration: InputDecoration(
                   hintText: 'Search groceries',
@@ -92,7 +92,7 @@ class const CatalogHeader({
             Text('Shop by category', style: theme.textTheme.titleLarge),
             const SizedBox(height: 9),
             SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+              scrollDirection: .horizontal,
               child: Row(
                 spacing: 7,
                 children: [

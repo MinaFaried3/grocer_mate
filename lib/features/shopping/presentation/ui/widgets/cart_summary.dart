@@ -21,7 +21,7 @@ class const CartSummary(final ShoppingData data, {super.key})
     );
     return MarketPanel(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: .stretch,
         children: [
           Text('Order summary', style: theme.textTheme.titleLarge),
           const SizedBox(height: 10),
@@ -37,7 +37,7 @@ class const CartSummary(final ShoppingData data, {super.key})
           ),
           const Divider(height: 19),
           DefaultTextStyle.merge(
-            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+            style: const TextStyle(fontWeight: .w800, fontSize: 16),
             child: OrderAmountRow('Total', money(totals.total)),
           ),
           const SizedBox(height: 12),

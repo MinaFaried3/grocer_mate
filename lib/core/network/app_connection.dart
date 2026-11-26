@@ -6,11 +6,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'app_network_state.dart';
 import 'connection.dart';
 
-class AppConnection extends Cubit<AppNetworkState> implements Connection {
-  AppConnection(this._connectivity)
-    : super(const AppNetworkState(online: true, simulated: false));
+class AppConnection(final Connectivity _connectivity)
+    extends Cubit<AppNetworkState>
+    implements Connection {
+  this : super(const .new(online: true, simulated: false));
 
-  final Connectivity _connectivity;
   StreamSubscription<List<ConnectivityResult>>? _subscription;
   bool _hasTransport = true;
 
@@ -34,7 +34,7 @@ class AppConnection extends Cubit<AppNetworkState> implements Connection {
   }
 
   bool _connected(List<ConnectivityResult> value) =>
-      value.any((result) => result != ConnectivityResult.none);
+      value.any((result) => result != .none);
 
   void simulateOffline(bool value) => _publish(value);
 

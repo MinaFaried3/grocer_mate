@@ -12,7 +12,7 @@ class const DemoSettingsSheet({super.key, required final MockMarket market})
   State<DemoSettingsSheet> createState() => _DemoSettingsState();
 }
 
-class _DemoSettingsState extends State<DemoSettingsSheet> {
+class _DemoSettingsState() extends State<DemoSettingsSheet> {
   @override
   Widget build(BuildContext context) {
     final connection = context.read<AppConnection>();
@@ -21,10 +21,10 @@ class _DemoSettingsState extends State<DemoSettingsSheet> {
     return SafeArea(
       top: false,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+        padding: const .fromLTRB(20, 0, 20, 16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: .stretch,
+          mainAxisSize: .min,
           children: [
             Text('Demo settings', style: theme.textTheme.headlineSmall),
             const SizedBox(height: 10),
@@ -35,15 +35,15 @@ class _DemoSettingsState extends State<DemoSettingsSheet> {
                 if (value != null) setState(() => market.scenario = value);
               },
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisSize: .min,
                 children: [
                   for (final scenario in CheckoutScenario.values)
                     RadioListTile<CheckoutScenario>(
                       value: scenario,
                       title: Text(scenario.label),
                       dense: true,
-                      visualDensity: VisualDensity.compact,
-                      contentPadding: EdgeInsets.zero,
+                      visualDensity: .compact,
+                      contentPadding: .zero,
                     ),
                 ],
               ),
@@ -52,7 +52,7 @@ class _DemoSettingsState extends State<DemoSettingsSheet> {
             BlocSelector<AppConnection, AppNetworkState, bool>(
               selector: (state) => state.simulated,
               builder: (context, simulated) => SwitchListTile(
-                contentPadding: EdgeInsets.zero,
+                contentPadding: .zero,
                 title: const Text('Simulate offline'),
                 subtitle: const Text(
                   'Test cached browsing and queued purchases.',

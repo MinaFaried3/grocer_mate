@@ -57,7 +57,7 @@ void main() {
   });
 }
 
-class _Source implements CatalogRepository {
+class _Source() implements CatalogRepository {
   final requests = <(CatalogQuery, int, bool)>[];
   bool failNextPage = false;
 

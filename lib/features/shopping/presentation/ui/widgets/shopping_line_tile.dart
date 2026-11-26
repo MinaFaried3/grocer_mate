@@ -24,11 +24,11 @@ class const ShoppingLineTile({
     final bloc = context.read<ShoppingBloc>();
     final theme = Theme.of(context);
     return MarketPanel(
-      padding: const EdgeInsets.fromLTRB(12, 10, 8, 8),
+      padding: const .fromLTRB(12, 10, 8, 8),
       child: Column(
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: .center,
             children: [
               if (selecting)
                 Checkbox(
@@ -40,14 +40,14 @@ class const ShoppingLineTile({
                 width: 55,
                 height: 55,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(11),
+                  borderRadius: .circular(11),
                   child: ProductPhoto(product.image, cacheWidth: 112),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: .start,
                   children: [
                     Text(product.title, style: theme.textTheme.titleMedium),
                     const SizedBox(height: 2),
@@ -71,13 +71,13 @@ class const ShoppingLineTile({
           ),
           if (!selecting)
             Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              crossAxisAlignment: WrapCrossAlignment.center,
+              alignment: .spaceBetween,
+              crossAxisAlignment: .center,
               spacing: 12,
               children: [
                 if (!saved)
                   Row(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisSize: .min,
                     children: [
                       IconButton(
                         tooltip: 'Decrease ${product.title} quantity',

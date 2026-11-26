@@ -9,13 +9,16 @@ import '../../controllers/catalog_state.dart';
 import '../widgets/catalog_header.dart';
 import '../widgets/product_tile.dart';
 
-class const CatalogScreen({super.key, required final VoidCallback onSettings})
-    extends StatefulWidget {
+class const CatalogScreen({
+  super.key,
+  required final VoidCallback onSettings,
+  required final ValueChanged<String> onProductSelected,
+}) extends StatefulWidget {
   @override
   State<CatalogScreen> createState() => _CatalogScreenState();
 }
 
-class _CatalogScreenState extends State<CatalogScreen> {
+class _CatalogScreenState() extends State<CatalogScreen> {
   final _search = TextEditingController();
   final _scroll = ScrollController();
 
@@ -53,7 +56,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
             key: const PageStorageKey('catalog'),
             controller: _scroll,
             physics: const AlwaysScrollableScrollPhysics(),
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            keyboardDismissBehavior: .onDrag,
             slivers: [
               CatalogHeader(
                 state: state,
@@ -64,7 +67,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 SliverToBoxAdapter(
                   child: state.loading
                       ? const Padding(
-                          padding: EdgeInsets.all(45),
+                          padding: .all(45),
                           child: Center(child: CircularProgressIndicator()),
                         )
                       : state.error != null
@@ -84,7 +87,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 )
               else ...[
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const .symmetric(horizontal: 20),
                   sliver: SliverGrid(
                     gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                       maxCrossAxisExtent: 260,
@@ -96,20 +99,22 @@ class _CatalogScreenState extends State<CatalogScreen> {
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
                     ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) =>
-                          ProductTile(product: state.products[index]),
-                      childCount: state.products.length,
-                    ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final product = state.products[index];
+                      return ProductTile(
+                        product: product,
+                        onOpen: () => widget.onProductSelected(product.id),
+                      );
+                    }, childCount: state.products.length),
                   ),
                 ),
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 24),
+                    padding: const .fromLTRB(20, 14, 20, 24),
                     child: Center(
                       child: state.loading
                           ? const Padding(
-                              padding: EdgeInsets.all(10),
+                              padding: .all(10),
                               child: CircularProgressIndicator(),
                             )
                           : state.error != null
