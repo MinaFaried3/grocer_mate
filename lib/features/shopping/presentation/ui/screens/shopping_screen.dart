@@ -58,7 +58,7 @@ class _ShoppingScreenState() extends State<ShoppingScreen> {
                       ),
                     ),
                     IconButton.outlined(
-                      tooltip: 'Demo settings',
+                      tooltip: 'Settings',
                       onPressed: widget.onSettings,
                       icon: const Icon(Icons.tune_rounded, size: 21),
                     ),

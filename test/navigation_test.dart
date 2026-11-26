@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:grocer_mate/app/grocer_mate_app.dart';
-import 'package:grocer_mate/app/mock_market.dart';
+import 'package:grocer_mate/app/local_market.dart';
 import 'package:grocer_mate/core/network/app_connection.dart';
 import 'package:grocer_mate/core/network/connectivity_monitor.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
@@ -73,10 +73,10 @@ void main() {
 
     await tester.tap(find.text('Cart'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Demo settings'));
+    await tester.tap(find.byTooltip('Settings'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Price changes'));
-    await tester.tap(find.text('Simulate offline'));
+    await tester.tap(find.text('Offline mode'));
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Queue purchase'));
@@ -89,7 +89,7 @@ void main() {
     tester
         .element(find.byType(AppBar))
         .read<AppConnection>()
-        .simulateOffline(false);
+        .setOfflineMode(false);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pumpAndSettle();
@@ -102,13 +102,13 @@ Future<GoRouter> _startApp(WidgetTester tester) async {
   await tester.binding.setSurfaceSize(const Size(900, 1000));
   addTearDown(() => tester.binding.setSurfaceSize(null));
   final seed = await tester.runAsync(
-    () => rootBundle.loadString(MockMarket.catalogAsset),
+    () => rootBundle.loadString(LocalMarket.catalogAsset),
   );
   final connection = AppConnection(_OnlineMonitor());
   await connection.start();
   addTearDown(connection.close);
   final store = _MemoryStorage();
-  final market = MockMarket(store, connection, _CatalogBundle(seed!));
+  final market = LocalMarket(store, connection, _CatalogBundle(seed!));
   final catalog = CachedCatalog(store, connection, market);
   final shopping = LocalShoppingRepository(store);
 
@@ -130,7 +130,7 @@ Future<GoRouter> _startApp(WidgetTester tester) async {
             )..add(const ShopStarted()),
           ),
         ],
-        child: GrocerMateApp(demoSettings: market),
+        child: GrocerMateApp(checkoutSettings: market),
       ),
     ),
   );

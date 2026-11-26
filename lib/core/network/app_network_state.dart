@@ -1,18 +1,18 @@
 class const AppNetworkState({
   required final bool online,
-  required final bool simulated,
+  required final bool offlineMode,
 }) {
-  AppNetworkState copyWith({bool? online, bool? simulated}) => .new(
+  AppNetworkState copyWith({bool? online, bool? offlineMode}) => .new(
     online: online ?? this.online,
-    simulated: simulated ?? this.simulated,
+    offlineMode: offlineMode ?? this.offlineMode,
   );
 
   @override
   bool operator ==(Object other) =>
       other is AppNetworkState &&
       online == other.online &&
-      simulated == other.simulated;
+      offlineMode == other.offlineMode;
 
   @override
-  int get hashCode => Object.hash(online, simulated);
+  int get hashCode => Object.hash(online, offlineMode);
 }

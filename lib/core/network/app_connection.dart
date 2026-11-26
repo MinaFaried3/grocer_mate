@@ -9,7 +9,7 @@ import 'connectivity_monitor.dart';
 class AppConnection(final ConnectivityMonitor _monitor)
     extends Cubit<AppNetworkState>
     implements Connection {
-  this : super(const .new(online: true, simulated: false));
+  this : super(const .new(online: true, offlineMode: false));
 
   StreamSubscription<bool>? _subscription;
   bool _hasTransport = true;
@@ -23,20 +23,20 @@ class AppConnection(final ConnectivityMonitor _monitor)
   Future<void> start() async {
     try {
       _hasTransport = await _monitor.checkOnline();
-      _publish(state.simulated);
+      _publish(state.offlineMode);
       _subscription = _monitor.changes.listen((value) {
         _hasTransport = value;
-        _publish(state.simulated);
+        _publish(state.offlineMode);
       }, onError: (Object _) {});
     } catch (_) {
-      // The mock service remains usable if the platform has no monitor.
+      // The local market remains usable if the platform has no monitor.
     }
   }
 
-  void simulateOffline(bool value) => _publish(value);
+  void setOfflineMode(bool value) => _publish(value);
 
-  void _publish(bool simulated) => emit(
-    state.copyWith(online: _hasTransport && !simulated, simulated: simulated),
+  void _publish(bool offlineMode) => emit(
+    state.copyWith(online: _hasTransport && !offlineMode, offlineMode: offlineMode),
   );
 
   @override

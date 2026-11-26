@@ -50,7 +50,7 @@ class const CatalogHeader({
                   child: Text('GrocerMate', style: theme.textTheme.titleLarge),
                 ),
                 IconButton.outlined(
-                  tooltip: 'Demo settings',
+                  tooltip: 'Settings',
                   onPressed: onSettings,
                   icon: const Icon(Icons.tune_rounded, size: 21),
                 ),

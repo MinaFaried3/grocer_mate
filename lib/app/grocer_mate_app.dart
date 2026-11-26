@@ -4,17 +4,17 @@ import 'package:material_ui/material_ui.dart';
 import 'package:grocer_mate/core/theme/market_theme.dart';
 
 import 'app_router.dart';
-import 'demo_settings.dart';
+import 'checkout_settings.dart';
 import 'offline_banner.dart';
 
-class const GrocerMateApp({super.key, required final DemoSettings demoSettings})
+class const GrocerMateApp({super.key, required final CheckoutSettings checkoutSettings})
     extends StatefulWidget {
   @override
   State<GrocerMateApp> createState() => _GrocerMateAppState();
 }
 
 class _GrocerMateAppState() extends State<GrocerMateApp> {
-  late final GoRouter _router = createAppRouter(widget.demoSettings);
+  late final GoRouter _router = createAppRouter(widget.checkoutSettings);
 
   @override
   void dispose() {

@@ -2,7 +2,7 @@
 
 ## Easy-to-miss requirements
 
-- **Offline mode.** Show an offline banner. Let users open cached categories, products and product details, and edit Cart and Saved. The offline story mentions queuing a purchase, but the bonus section and demo checklist label it optional. Checkout must still check prices and stock after reconnecting. (pp. 3, 10–11)
+- **Offline mode.** Show an offline banner. Let users open cached categories, products and product details, and edit Cart and Saved. The offline story mentions queuing a purchase, but the bonus section and checklist label it optional. Checkout must still check prices and stock after reconnecting. (pp. 3, 10–11)
 - **Cart totals.** The PDF gives the same order ID two totals. The purchase shows $7.86 for milk, an apple and bread. The order lookup leaves out the bread and shows $6.32 with tax and delivery. Calculate totals from the actual basket, count each discount once, and use the same calculation at checkout. (pp. 7–10)
 - **Checkout changes.** Prices can go up or down, and stock can change in the same order. Show all changes in the review sheet. If someone wants two loaves and only one remains, let them reduce the quantity. If none remain, let them remove the item. Submit once they accept the changes, and make retries safe. (pp. 3, 7–8, 10)
 - **Search and scrolling.** The sample search for `ap` includes Banana. Use the actual product names, category and brand to find matches. Wait briefly after typing, then start the results at page one. If loading the next page fails, keep the products already on screen and retry that page. (pp. 3–5, 10)

@@ -16,21 +16,21 @@ import 'package:grocer_mate/features/shopping/domain/repositories/shopping_repos
 import 'package:grocer_mate/features/shopping/domain/use_cases/submit_pending_purchase.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
 
-import 'demo_settings.dart';
-import 'mock_market.dart';
+import 'checkout_settings.dart';
+import 'local_market.dart';
 
 Future<GetIt> configureDependencies() async {
   final dependencies = GetIt.asNewInstance();
   final LocalStorage store = SecureLocalStorage();
   final connection = AppConnection(PlatformConnectivityMonitor());
   await connection.start();
-  final market = MockMarket(store, connection, rootBundle);
+  final market = LocalMarket(store, connection, rootBundle);
 
   dependencies.registerSingleton<AppConnection>(
     connection,
     dispose: (connection) => connection.close(),
   );
-  dependencies.registerSingleton<DemoSettings>(market);
+  dependencies.registerSingleton<CheckoutSettings>(market);
   dependencies.registerSingleton<CatalogRemoteDataSource>(market);
   dependencies.registerSingleton<CheckoutRepository>(market);
   dependencies.registerLazySingleton<CatalogRepository>(
