@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:grocer_mate/app/demo_settings.dart';
 import 'package:grocer_mate/app/dependencies.dart';
 import 'package:grocer_mate/app/grocer_mate_app.dart';
 import 'package:grocer_mate/core/network/app_connection.dart';
@@ -31,7 +32,7 @@ Future<void> main() async {
                 dependencies<ShoppingBloc>()..add(const ShopStarted()),
           ),
         ],
-        child: GrocerMateApp(market: dependencies()),
+        child: GrocerMateApp(demoSettings: dependencies<DemoSettings>()),
       ),
     ),
   );

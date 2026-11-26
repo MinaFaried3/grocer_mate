@@ -13,7 +13,7 @@ flutter analyze
 flutter test
 ```
 
-For Chrome, run `flutter run -d chrome --no-web-resources-cdn`. Android, iOS, and web project files are included. The app follows the system light or dark theme.
+For Chrome, run `flutter run -d chrome --no-web-resources-cdn`. Web storage requires HTTPS or localhost. Android, iOS, and web project files are included. The app follows the system light or dark theme.
 
 ## Try the offline checkout
 
@@ -30,7 +30,7 @@ The mock scenario applies to the next purchase and persists its catalog changes.
 ## Implementation
 
 - `lib/main.dart` initializes Flutter and launches the app. `lib/app` wires dependencies, navigation, theming, and the local mock market.
-- `lib/core` contains shared connectivity, storage, formatting, and UI components.
+- `lib/core` contains shared connectivity, storage, formatting, and UI components. App-owned interfaces isolate the connectivity and secure storage plugins.
 - `lib/features/catalog` handles browsing, product details, category and brand filters, 400 ms debounced search, and page retries. It uses the latest cached snapshot for filtering and pagination and refreshes on reconnect, a checkout update, or pull to refresh.
 - `lib/features/shopping` handles cart, saved items, and checkout. Totals use integer cents. Discounts are applied before 5% tax, and the $1 delivery fee is waived at $25.
 - The outbox stores one pending purchase, retries it on reconnect or relaunch, and reuses its idempotency key. The mock market records the order and inventory together so a repeated request returns the original receipt.

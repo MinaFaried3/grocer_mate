@@ -42,7 +42,12 @@ void main() {
     () async {
       final connection = _Connection(true);
       final storage = _Storage();
-      final bloc = ShoppingBloc(storage, _Checkout(), connection);
+      final bloc = ShoppingBloc(
+        storage,
+        _Checkout(),
+        connection,
+        createPurchaseId: _purchaseId,
+      );
       addTearDown(connection.close);
       addTearDown(bloc.close);
 
@@ -83,7 +88,12 @@ void main() {
       ),
     );
     final checkout = _Checkout();
-    final first = ShoppingBloc(storage, checkout, connection);
+    final first = ShoppingBloc(
+      storage,
+      checkout,
+      connection,
+      createPurchaseId: _purchaseId,
+    );
     addTearDown(connection.close);
 
     final queued = first.stream.firstWhere(
@@ -97,7 +107,12 @@ void main() {
     expect(checkout.requests, isEmpty);
     await first.close();
 
-    final restored = ShoppingBloc(storage, checkout, connection);
+    final restored = ShoppingBloc(
+      storage,
+      checkout,
+      connection,
+      createPurchaseId: _purchaseId,
+    );
     addTearDown(restored.close);
     final added = restored.stream.firstWhere(
       (state) => state.data?.cart.isNotEmpty == true,
@@ -144,7 +159,12 @@ void main() {
         ShoppingData(cart: [CartLine(.fromProduct(milk), 1)]),
       )..failReceiptWrite = true;
       final checkout = _Checkout(review: false);
-      final bloc = ShoppingBloc(storage, checkout, connection);
+      final bloc = ShoppingBloc(
+        storage,
+        checkout,
+        connection,
+        createPurchaseId: _purchaseId,
+      );
       addTearDown(connection.close);
       addTearDown(bloc.close);
 
@@ -171,6 +191,8 @@ void main() {
     },
   );
 }
+
+String _purchaseId() => 'purchase-1';
 
 class _Storage([var ShoppingData data = const .new()])
     implements ShoppingRepository {

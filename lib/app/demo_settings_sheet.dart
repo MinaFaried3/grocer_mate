@@ -5,9 +5,9 @@ import 'package:grocer_mate/core/network/app_connection.dart';
 import 'package:grocer_mate/core/network/app_network_state.dart';
 import 'package:grocer_mate/core/theme/theme_context.dart';
 
-import 'mock_market.dart';
+import 'demo_settings.dart';
 
-class const DemoSettingsSheet({super.key, required final MockMarket market})
+class const DemoSettingsSheet({super.key, required final DemoSettings settings})
     extends StatefulWidget {
   @override
   State<DemoSettingsSheet> createState() => _DemoSettingsState();
@@ -17,7 +17,7 @@ class _DemoSettingsState() extends State<DemoSettingsSheet> {
   @override
   Widget build(BuildContext context) {
     final connection = context.read<AppConnection>();
-    final market = widget.market;
+    final settings = widget.settings;
     final textTheme = context.textTheme;
     return SafeArea(
       top: false,
@@ -31,9 +31,9 @@ class _DemoSettingsState() extends State<DemoSettingsSheet> {
             const SizedBox(height: 10),
             Text('Next checkout scenario', style: textTheme.titleSmall),
             RadioGroup<CheckoutScenario>(
-              groupValue: market.scenario,
+              groupValue: settings.scenario,
               onChanged: (value) {
-                if (value != null) setState(() => market.scenario = value);
+                if (value != null) setState(() => settings.scenario = value);
               },
               child: Column(
                 mainAxisSize: .min,

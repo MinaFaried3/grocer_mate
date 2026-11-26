@@ -1,4 +1,3 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,7 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:grocer_mate/app/grocer_mate_app.dart';
 import 'package:grocer_mate/app/mock_market.dart';
 import 'package:grocer_mate/core/network/app_connection.dart';
-import 'package:grocer_mate/core/storage/json_store.dart';
+import 'package:grocer_mate/core/network/connectivity_monitor.dart';
+import 'package:grocer_mate/core/storage/local_storage.dart';
 import 'package:grocer_mate/features/catalog/data/cached_catalog.dart';
 import 'package:grocer_mate/features/catalog/domain/repositories/catalog_repository.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
@@ -15,7 +15,6 @@ import 'package:grocer_mate/features/shopping/data/local_shopping_repository.dar
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_event.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   testWidgets('opens a product deep link and returns to the Browse tab', (
@@ -104,11 +103,12 @@ Future<GoRouter> _startApp(WidgetTester tester) async {
   final seed = await tester.runAsync(
     () => rootBundle.loadString(MockMarket.catalogAsset),
   );
-  final connection = AppConnection(Connectivity());
+  final connection = AppConnection(_OnlineMonitor());
+  await connection.start();
   addTearDown(connection.close);
-  final store = JsonStore(_MemoryPreferences());
+  final store = _MemoryStorage();
   final market = MockMarket(store, connection, _CatalogBundle(seed!));
-  final catalog = CachedCatalog(store, connection, market.catalog);
+  final catalog = CachedCatalog(store, connection, market);
 
   await tester.pumpWidget(
     RepositoryProvider<CatalogRepository>.value(
@@ -120,12 +120,15 @@ Future<GoRouter> _startApp(WidgetTester tester) async {
             create: (_) => CatalogBloc(catalog)..add(const CatalogRefreshed()),
           ),
           BlocProvider(
-            create: (_) =>
-                ShoppingBloc(LocalShoppingRepository(store), market, connection)
-                  ..add(const ShopStarted()),
+            create: (_) => ShoppingBloc(
+              LocalShoppingRepository(store),
+              market,
+              connection,
+              createPurchaseId: () => 'purchase-1',
+            )..add(const ShopStarted()),
           ),
         ],
-        child: GrocerMateApp(market: market),
+        child: GrocerMateApp(demoSettings: market),
       ),
     ),
   );
@@ -139,14 +142,22 @@ class _CatalogBundle(final String seed) extends Fake implements AssetBundle {
   Future<String> loadString(String key, {bool cache = true}) async => seed;
 }
 
-class _MemoryPreferences() extends Fake implements SharedPreferencesAsync {
-  final _values = <String, String>{};
+class _OnlineMonitor implements ConnectivityMonitor {
+  @override
+  Future<bool> checkOnline() async => true;
 
   @override
-  Future<String?> getString(String key) async => _values[key];
+  Stream<bool> get changes => const Stream.empty();
+}
+
+class _MemoryStorage implements LocalStorage {
+  final _values = <String, Map<String, dynamic>>{};
 
   @override
-  Future<void> setString(String key, String value) async {
+  Future<Map<String, dynamic>?> read(String key) async => _values[key];
+
+  @override
+  Future<void> write(String key, Map<String, Object?> value) async {
     _values[key] = value;
   }
 }

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:uuid/uuid.dart';
 
 import 'package:grocer_mate/core/network/connection.dart';
 
@@ -16,8 +15,9 @@ import 'shopping_state.dart';
 class ShoppingBloc(
   final ShoppingRepository _storage,
   final CheckoutRepository _checkout,
-  final Connection _connection,
-) extends Bloc<ShopEvent, ShopState> {
+  final Connection _connection, {
+  required final String Function() createPurchaseId,
+}) extends Bloc<ShopEvent, ShopState> {
   this : super(const .new()) {
     on<ShopEvent>(
       _handle,
@@ -75,7 +75,7 @@ class ShoppingBloc(
           await _save(data.removeItems(ids, fromSaved: fromSaved), emit);
         case CheckoutRequested():
           if (data.pending != null || data.cart.isEmpty) return;
-          final request = PendingPurchase(const Uuid().v4(), data.cart);
+          final request = PendingPurchase(createPurchaseId(), data.cart);
           final updated = ShoppingData(
             saved: data.saved,
             pending: request,
