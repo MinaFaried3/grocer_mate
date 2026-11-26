@@ -56,8 +56,9 @@ class MockMarket(
     await _delay(const Duration(milliseconds: 320));
     final market = await _readServer();
     final receipts = Map<String, dynamic>.from(market['receipts']);
-    final previousReceipt = receipts[purchase.id];
-    if (previousReceipt != null) return decodeReceipt(previousReceipt);
+    if (receipts[purchase.id] case final previous?) {
+      return decodeReceipt(previous);
+    }
 
     final seed = await (_seed ??= _loadSeed());
     final products = {
@@ -93,10 +94,9 @@ class MockMarket(
     if (changes.isEmpty) {
       for (final line in purchase.lines) {
         final id = line.product.id;
-        availability[id] = {
-          'price': priceFor(id, line.product.price),
-          'stock': stockFor(id) - line.quantity,
-        };
+        final item = availability.putIfAbsent(id, Map<String, int>.new);
+        item['price'] = priceFor(id, line.product.price);
+        item['stock'] = stockFor(id) - line.quantity;
       }
       final receipt = OrderReceipt(
         id: 'GM-${1001 + receipts.length}',
@@ -154,7 +154,9 @@ class MockMarket(
       if (stockEdit && (index == 1 || !priceEdit || lines.length == 1)) {
         stock = index == 1 ? 0 : math.min(stock, line.quantity - 1);
       }
-      availability[id] = {'price': price, 'stock': stock};
+      availability.putIfAbsent(id, Map<String, int>.new)
+        ..['price'] = price
+        ..['stock'] = stock;
     }
   }
 }

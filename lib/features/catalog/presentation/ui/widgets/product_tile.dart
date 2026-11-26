@@ -22,11 +22,11 @@ class const ProductTile({
     final canAdd = context.select(
       (ShoppingBloc bloc) => bloc.state.data != null,
     );
-    final stock = product.stock == 0
-        ? 'Out of stock'
-        : product.stock <= 8
-        ? 'Only ${product.stock} left'
-        : 'In stock';
+    final stock = switch (product.stock) {
+      0 => 'Out of stock',
+      <= 8 => 'Only ${product.stock} left',
+      _ => 'In stock',
+    };
 
     return Material(
       color: theme.colorScheme.surface,

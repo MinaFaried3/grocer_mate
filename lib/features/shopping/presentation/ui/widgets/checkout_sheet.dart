@@ -50,11 +50,6 @@ class _CheckoutSheetState() extends State<_CheckoutSheet> {
     final changes = {
       for (final change in widget.review.changes) change.productId: change,
     };
-    final reviewed = [
-      for (final line in widget.pending.lines)
-        if (changes[line.product.id] case final CheckoutChange change)
-          (line, change),
-    ];
     final adjusted = widget.review.applyTo(widget.pending.lines, _quantities);
     final totals = OrderTotals.forLines(adjusted);
 
@@ -81,19 +76,21 @@ class _CheckoutSheetState() extends State<_CheckoutSheet> {
                     'Prices or stock changed. Review the updates before placing your order.',
                     style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                   ),
-                  for (final (line, change) in reviewed) ...[
-                    const SizedBox(height: 12),
-                    CheckoutChangePanel(
-                      line: line,
-                      change: change,
-                      selected: change.quantityFor(
-                        line,
-                        _quantities[line.product.id],
+                  for (final line in widget.pending.lines)
+                    if (changes[line.product.id] case final change?) ...[
+                      const SizedBox(height: 12),
+                      CheckoutChangePanel(
+                        line: line,
+                        change: change,
+                        selected: change.quantityFor(
+                          line,
+                          _quantities[line.product.id],
+                        ),
+                        onChanged: (value) => setState(
+                          () => _quantities[line.product.id] = value,
+                        ),
                       ),
-                      onChanged: (value) =>
-                          setState(() => _quantities[line.product.id] = value),
-                    ),
-                  ],
+                    ],
                 ],
               ),
             ),

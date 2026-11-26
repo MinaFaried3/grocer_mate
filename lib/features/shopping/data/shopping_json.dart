@@ -25,15 +25,11 @@ List<CartLine> _decodeLines(List<dynamic> lines) => .unmodifiable(
   lines.map((json) {
     final Map<String, dynamic> product = json['product'];
     // Earlier carts stored the whole catalog product, including its image list.
-    final String image;
-    if (product.containsKey('image')) {
-      image = readText(product, 'image');
-    } else if (product['images'] case [final String first, ...]
-        when first.trim().isNotEmpty) {
-      image = first;
-    } else {
-      throw const FormatException('Cart product is missing its image.');
-    }
+    final image = switch (product) {
+      {'image': _} => readText(product, 'image'),
+      {'images': [String first, ...]} when first.trim().isNotEmpty => first,
+      _ => throw const FormatException('Cart product is missing its image.'),
+    };
     return CartLine(
       CartProduct(
         id: readText(product, 'id'),

@@ -20,16 +20,13 @@ class CachedCatalog(
 
   Future<_CatalogSnapshot> _catalog({bool refresh = false}) async {
     if (!_connection.online) return _readCache();
-    final loading = _loading;
-    if (loading != null) return loading;
-    final snapshot = _snapshot;
-    if (!refresh && snapshot != null) return snapshot;
+    if (_loading case final loading?) return loading;
+    if (_snapshot case final snapshot? when !refresh) return snapshot;
     return _loading = _refresh();
   }
 
   Future<_CatalogSnapshot> _readCache() async {
-    final snapshot = _snapshot;
-    if (snapshot != null) return snapshot;
+    if (_snapshot case final snapshot?) return snapshot;
     final data = await _store.read(_key);
     if (data == null) throw const OfflineException();
     return _snapshot ??= .fromJson(data);
