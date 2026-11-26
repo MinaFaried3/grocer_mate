@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 
 import 'package:grocer_mate/core/money.dart';
 import 'package:grocer_mate/core/network/app_connection.dart';
+import 'package:grocer_mate/core/theme/theme_context.dart';
 import 'package:grocer_mate/core/widgets/market_panel.dart';
 
 import '../../../domain/shopping.dart';
@@ -15,7 +16,6 @@ class const CartSummary(final ShoppingData data, {super.key})
   @override
   Widget build(BuildContext context) {
     final totals = OrderTotals.forLines(data.cart);
-    final theme = Theme.of(context);
     final online = context.select(
       (AppConnection connection) => connection.online,
     );
@@ -23,7 +23,7 @@ class const CartSummary(final ShoppingData data, {super.key})
       child: Column(
         crossAxisAlignment: .stretch,
         children: [
-          Text('Order summary', style: theme.textTheme.titleLarge),
+          Text('Order summary', style: context.textTheme.titleLarge),
           const SizedBox(height: 10),
           OrderAmountRow('Subtotal', money(totals.subtotal)),
           OrderAmountRow(

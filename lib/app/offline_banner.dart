@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'package:grocer_mate/core/network/app_connection.dart';
+import 'package:grocer_mate/core/theme/theme_context.dart';
 
 class const OfflineBanner({super.key}) extends StatelessWidget {
   @override
@@ -10,7 +11,7 @@ class const OfflineBanner({super.key}) extends StatelessWidget {
       (AppConnection connection) => connection.online,
     );
     if (online) return const SizedBox.shrink();
-    final colors = Theme.of(context).colorScheme;
+    final colors = context.colorScheme;
     return Semantics(
       liveRegion: true,
       child: Material(

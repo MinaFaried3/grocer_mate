@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'package:grocer_mate/core/money.dart';
+import 'package:grocer_mate/core/theme/theme_context.dart';
 
 import '../../../domain/shopping.dart';
 import '../../controllers/shopping_bloc.dart';
@@ -45,7 +46,7 @@ class _CheckoutSheetState() extends State<_CheckoutSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final theme = context.theme;
     final changes = {
       for (final change in widget.review.changes) change.productId: change,
     };

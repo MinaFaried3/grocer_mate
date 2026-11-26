@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../theme/theme_context.dart';
+
 class const StatusPanel({
   super.key,
   required final IconData icon,
@@ -10,7 +12,7 @@ class const StatusPanel({
 }) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final theme = context.theme;
     return Center(
       child: Padding(
         padding: const .symmetric(horizontal: 24, vertical: 36),

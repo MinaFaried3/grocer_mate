@@ -1,8 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 
-const forest = Color(0xff174735);
-const lime = Color(0xffd9f491);
-const canvas = Color(0xfff8f8f1);
+import 'market_palette.dart' as palette;
+
+export 'market_palette.dart' show canvas, forest, lime;
 
 abstract class const MarketThemeFactory() {
   static const MarketThemeFactory light = _LightMarketThemeFactory();
@@ -74,34 +74,34 @@ abstract class const MarketThemeFactory() {
 
 class const _LightMarketThemeFactory() extends MarketThemeFactory {
   @override
-  Color get scaffoldBackgroundColor => canvas;
+  Color get scaffoldBackgroundColor => palette.canvas;
 
   @override
   ColorScheme createColorScheme() => ColorScheme.fromSeed(
-    seedColor: forest,
+    seedColor: palette.forest,
     brightness: .light,
-    primary: forest,
+    primary: palette.forest,
     onPrimary: Colors.white,
-    primaryContainer: const Color(0xffe7efdd),
-    onPrimaryContainer: forest,
-    surface: const Color(0xfffffff9),
-    outlineVariant: const Color(0xffe0e4d8),
+    primaryContainer: palette.lightPrimaryContainer,
+    onPrimaryContainer: palette.forest,
+    surface: palette.lightSurface,
+    outlineVariant: palette.lightOutlineVariant,
   );
 }
 
 class const _DarkMarketThemeFactory() extends MarketThemeFactory {
   @override
-  Color get scaffoldBackgroundColor => const Color(0xff181d19);
+  Color get scaffoldBackgroundColor => palette.darkScaffoldBackground;
 
   @override
   ColorScheme createColorScheme() => ColorScheme.fromSeed(
-    seedColor: forest,
+    seedColor: palette.forest,
     brightness: .dark,
-    primary: const Color(0xffa8da9d),
-    onPrimary: const Color(0xff102a1b),
-    primaryContainer: const Color(0xff2c4937),
-    onPrimaryContainer: const Color(0xffd2ebc2),
-    surface: const Color(0xff232824),
-    outlineVariant: const Color(0xff414942),
+    primary: palette.darkPrimary,
+    onPrimary: palette.darkOnPrimary,
+    primaryContainer: palette.darkPrimaryContainer,
+    onPrimaryContainer: palette.darkOnPrimaryContainer,
+    surface: palette.darkSurface,
+    outlineVariant: palette.darkOutlineVariant,
   );
 }

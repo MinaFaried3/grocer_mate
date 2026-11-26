@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'package:grocer_mate/core/theme/market_theme.dart';
+import 'package:grocer_mate/core/theme/theme_context.dart';
 
 import '../../controllers/catalog_bloc.dart';
 import '../../controllers/catalog_event.dart';
@@ -17,7 +18,7 @@ class const CatalogHeader({
   @override
   Widget build(BuildContext context) {
     final bloc = context.read<CatalogBloc>();
-    final theme = Theme.of(context);
+    final theme = context.theme;
     final landing =
         state.query.search.isEmpty &&
         !state.query.deals &&

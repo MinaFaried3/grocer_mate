@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../theme/theme_context.dart';
+
 class const MarketPanel({
   super.key,
   required final Widget child,
@@ -7,7 +9,7 @@ class const MarketPanel({
 }) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final colors = context.colorScheme;
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.surface,

@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../theme/theme_context.dart';
+
 class const ProductPhoto(
   final String path, {
   super.key,
@@ -16,7 +18,7 @@ class const ProductPhoto(
     height: double.infinity,
     excludeFromSemantics: true,
     errorBuilder: (context, error, stack) => ColoredBox(
-      color: Theme.of(context).colorScheme.primaryContainer,
+      color: context.colorScheme.primaryContainer,
       child: const Center(child: Icon(Icons.shopping_basket_outlined)),
     ),
   );

@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 
 import 'package:grocer_mate/core/money.dart';
 import 'package:grocer_mate/core/theme/market_theme.dart';
+import 'package:grocer_mate/core/theme/theme_context.dart';
 import 'package:grocer_mate/core/widgets/product_photo.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_event.dart';
@@ -16,7 +17,7 @@ class const ProductTile({
 }) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final theme = context.theme;
     final discount = product.discountPercent;
     final canAdd = context.select(
       (ShoppingBloc bloc) => bloc.state.data != null,

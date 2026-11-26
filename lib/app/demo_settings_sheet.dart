@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 
 import 'package:grocer_mate/core/network/app_connection.dart';
 import 'package:grocer_mate/core/network/app_network_state.dart';
+import 'package:grocer_mate/core/theme/theme_context.dart';
 
 import 'mock_market.dart';
 
@@ -17,7 +18,7 @@ class _DemoSettingsState() extends State<DemoSettingsSheet> {
   Widget build(BuildContext context) {
     final connection = context.read<AppConnection>();
     final market = widget.market;
-    final theme = Theme.of(context);
+    final textTheme = context.textTheme;
     return SafeArea(
       top: false,
       child: SingleChildScrollView(
@@ -26,9 +27,9 @@ class _DemoSettingsState() extends State<DemoSettingsSheet> {
           crossAxisAlignment: .stretch,
           mainAxisSize: .min,
           children: [
-            Text('Demo settings', style: theme.textTheme.headlineSmall),
+            Text('Demo settings', style: textTheme.headlineSmall),
             const SizedBox(height: 10),
-            Text('Next checkout scenario', style: theme.textTheme.titleSmall),
+            Text('Next checkout scenario', style: textTheme.titleSmall),
             RadioGroup<CheckoutScenario>(
               groupValue: market.scenario,
               onChanged: (value) {

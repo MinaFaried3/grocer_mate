@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import 'package:grocer_mate/core/money.dart';
+import 'package:grocer_mate/core/theme/theme_context.dart';
 import 'package:grocer_mate/core/widgets/market_panel.dart';
 
 import '../../../domain/shopping.dart';
@@ -14,7 +15,7 @@ class const CheckoutChangePanel({
 }) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final theme = context.theme;
     final maxQuantity = change.quantityFor(line);
     return MarketPanel(
       padding: const .fromLTRB(12, 10, 12, 8),

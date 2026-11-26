@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'package:grocer_mate/core/money.dart';
+import 'package:grocer_mate/core/theme/theme_context.dart';
 import 'package:grocer_mate/core/widgets/market_panel.dart';
 import 'package:grocer_mate/core/widgets/product_photo.dart';
 
@@ -22,7 +23,7 @@ class const ShoppingLineTile({
     final product = line.product;
     final id = product.id;
     final bloc = context.read<ShoppingBloc>();
-    final theme = Theme.of(context);
+    final textTheme = context.textTheme;
     return MarketPanel(
       padding: const .fromLTRB(12, 10, 8, 8),
       child: Column(
@@ -49,13 +50,13 @@ class const ShoppingLineTile({
                 child: Column(
                   crossAxisAlignment: .start,
                   children: [
-                    Text(product.title, style: theme.textTheme.titleMedium),
+                    Text(product.title, style: textTheme.titleMedium),
                     const SizedBox(height: 2),
                     Text(
                       saved
                           ? '${line.quantity} · ${money(product.price)} each'
                           : '${money(product.price)} each',
-                      style: theme.textTheme.bodySmall,
+                      style: textTheme.bodySmall,
                     ),
                   ],
                 ),
@@ -89,10 +90,7 @@ class const ShoppingLineTile({
                           size: 20,
                         ),
                       ),
-                      Text(
-                        '${line.quantity}',
-                        style: theme.textTheme.titleSmall,
-                      ),
+                      Text('${line.quantity}', style: textTheme.titleSmall),
                       IconButton(
                         tooltip: 'Increase ${product.title} quantity',
                         onPressed: line.quantity >= product.stock

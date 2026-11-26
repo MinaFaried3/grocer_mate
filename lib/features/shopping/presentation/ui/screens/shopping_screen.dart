@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'package:grocer_mate/core/theme/theme_context.dart';
 import 'package:grocer_mate/core/widgets/status_panel.dart';
 
 import '../../../domain/shopping.dart';
@@ -33,7 +34,6 @@ class _ShoppingScreenState() extends State<ShoppingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final saved = widget.saved;
     final bloc = context.read<ShoppingBloc>();
     return BlocBuilder<ShoppingBloc, ShopState>(
@@ -54,7 +54,7 @@ class _ShoppingScreenState() extends State<ShoppingScreen> {
                     Expanded(
                       child: Text(
                         saved ? 'Saved for later' : 'Your cart',
-                        style: theme.textTheme.headlineLarge,
+                        style: context.textTheme.headlineLarge,
                       ),
                     ),
                     IconButton.outlined(
