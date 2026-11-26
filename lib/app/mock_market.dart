@@ -4,28 +4,25 @@ import 'dart:math' as math;
 import 'package:flutter/services.dart';
 
 import '../core/network/connection.dart';
-import '../core/storage/json_store.dart';
 import '../core/storage/json_fields.dart';
+import '../core/storage/local_storage.dart';
+import '../features/catalog/data/catalog_remote_data_source.dart';
 import '../features/shopping/data/shopping_json.dart';
 import '../features/shopping/domain/entities/shopping.dart';
 import '../features/shopping/domain/repositories/checkout_repository.dart';
 
-enum CheckoutScenario(final String label) {
-  normal('Normal checkout'),
-  prices('Price changes'),
-  stock('Stock changes'),
-  mixed('Price and stock changes'),
-}
+import 'demo_settings.dart';
 
 class MockMarket(
-  final JsonStore store,
+  final LocalStorage store,
   final Connection connection,
   final AssetBundle bundle,
-) implements CheckoutRepository {
+) implements CatalogRemoteDataSource, CheckoutRepository, DemoSettings {
   static const catalogAsset = 'assets/catalog.json';
   static const _serverKey = 'mock_market_v1';
 
   Future<Map<String, dynamic>>? _seed;
+  @override
   CheckoutScenario scenario = .normal;
 
   Future<Map<String, dynamic>> _loadSeed() async {
@@ -38,7 +35,8 @@ class MockMarket(
     }
   }
 
-  Future<Map<String, dynamic>> catalog() async {
+  @override
+  Future<Map<String, dynamic>> fetchCatalog() async {
     await _delay(const Duration(milliseconds: 260));
     final seed = await (_seed ??= _loadSeed());
     final market = await _readServer();

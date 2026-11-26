@@ -1,17 +1,17 @@
 import 'dart:async';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'app_network_state.dart';
 import 'connection.dart';
+import 'connectivity_monitor.dart';
 
-class AppConnection(final Connectivity _connectivity)
+class AppConnection(final ConnectivityMonitor _monitor)
     extends Cubit<AppNetworkState>
     implements Connection {
   this : super(const .new(online: true, simulated: false));
 
-  StreamSubscription<List<ConnectivityResult>>? _subscription;
+  StreamSubscription<bool>? _subscription;
   bool _hasTransport = true;
 
   @override
@@ -22,19 +22,16 @@ class AppConnection(final Connectivity _connectivity)
 
   Future<void> start() async {
     try {
-      _hasTransport = _connected(await _connectivity.checkConnectivity());
+      _hasTransport = await _monitor.checkOnline();
       _publish(state.simulated);
-      _subscription = _connectivity.onConnectivityChanged.listen((value) {
-        _hasTransport = _connected(value);
+      _subscription = _monitor.changes.listen((value) {
+        _hasTransport = value;
         _publish(state.simulated);
       }, onError: (Object _) {});
     } catch (_) {
       // The mock service remains usable if the platform has no monitor.
     }
   }
-
-  bool _connected(List<ConnectivityResult> value) =>
-      value.any((result) => result != .none);
 
   void simulateOffline(bool value) => _publish(value);
 

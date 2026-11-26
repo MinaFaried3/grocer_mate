@@ -1,10 +1,10 @@
-import 'package:grocer_mate/core/storage/json_store.dart';
+import 'package:grocer_mate/core/storage/local_storage.dart';
 
 import '../domain/entities/shopping.dart';
 import '../domain/repositories/shopping_repository.dart';
 import 'shopping_json.dart';
 
-class const LocalShoppingRepository(final JsonStore store)
+class const LocalShoppingRepository(final LocalStorage store)
     implements ShoppingRepository {
   static const _key = 'shopping_v1';
 

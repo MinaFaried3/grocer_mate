@@ -1,16 +1,17 @@
 import 'dart:math' as math;
 
 import 'package:grocer_mate/core/network/connection.dart';
-import 'package:grocer_mate/core/storage/json_store.dart';
+import 'package:grocer_mate/core/storage/local_storage.dart';
 
 import '../domain/entities/catalog.dart';
 import '../domain/repositories/catalog_repository.dart';
 import 'catalog_json.dart';
+import 'catalog_remote_data_source.dart';
 
 class CachedCatalog(
-  final JsonStore _store,
+  final LocalStorage _store,
   final Connection _connection,
-  final Future<Map<String, dynamic>> Function() _fetchCatalog,
+  final CatalogRemoteDataSource _remote,
 ) implements CatalogRepository {
   static const _key = 'catalog_v1';
 
@@ -36,7 +37,7 @@ class CachedCatalog(
 
   Future<_CatalogSnapshot> _refresh() async {
     try {
-      final data = await _fetchCatalog();
+      final data = await _remote.fetchCatalog();
       final snapshot = _CatalogSnapshot.fromJson(data);
       await _store.write(_key, data);
       return _snapshot = snapshot;
