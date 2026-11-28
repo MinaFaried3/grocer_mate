@@ -23,6 +23,7 @@ class CatalogBloc(final CatalogRepository _repository)
   Future<void> _handle(CatalogEvent event, Emitter<CatalogState> emit) async {
     final query = state.query;
     switch (event) {
+      //------------ Debounce and Apply Search ---------------
       case SearchTyped(:final input):
         _searchTimer?.cancel();
         _input = input.trim();
@@ -40,6 +41,8 @@ class CatalogBloc(final CatalogRepository _repository)
           brand: query.brand,
           deals: query.deals,
         ), emit);
+
+      //------------ Apply Catalog Filters ---------------
       case CategorySelected(:final id):
         await _load((
           search: _input,
@@ -61,6 +64,8 @@ class CatalogBloc(final CatalogRepository _repository)
           brand: query.brand,
           deals: !query.deals,
         ), emit);
+
+      //------------ Refresh or Load the Next Page ---------------
       case CatalogRefreshed():
         await _load(query, emit, refresh: true);
       case NextPageRequested():
@@ -75,6 +80,7 @@ class CatalogBloc(final CatalogRepository _repository)
     int page = 1,
     bool refresh = false,
   }) async {
+    //------------ Publish Loading State ---------------
     final generation = ++_generation;
     final firstPage = page == 1;
     final loading = state.copyWith(
@@ -89,6 +95,7 @@ class CatalogBloc(final CatalogRepository _repository)
     emit(loading);
 
     try {
+      //------------ Fetch the Current Request ---------------
       final result = await _repository.browse(
         query,
         page: page,
@@ -96,6 +103,8 @@ class CatalogBloc(final CatalogRepository _repository)
         refresh: refresh,
       );
       if (generation != _generation) return;
+
+      //------------ Publish the Result ---------------
       emit(
         loading.copyWith(
           categories: result.categories,
@@ -110,6 +119,8 @@ class CatalogBloc(final CatalogRepository _repository)
       );
     } catch (error) {
       if (generation != _generation) return;
+
+      //------------ Report the Current Request Failure ---------------
       final message = !firstPage
           ? 'We couldn’t load more groceries.'
           : error is OfflineException

@@ -64,6 +64,8 @@ class const MoveItems()
     final (:data, :ids, :fromSaved) = input;
     final source = fromSaved ? data.saved : data.cart;
     var target = fromSaved ? data.cart : data.saved;
+
+    //------------ Move Selected Quantities Within Stock Limits ---------------
     final remaining = <CartLine>[];
     var limited = false;
     for (final line in source) {
@@ -86,6 +88,8 @@ class const MoveItems()
         limited = true;
       }
     }
+
+    //------------ Update the Cart and Saved List ---------------
     final updated = fromSaved
         ? data.withLists(cart: target, saved: remaining)
         : data.withLists(cart: remaining, saved: target);

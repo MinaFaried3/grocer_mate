@@ -35,6 +35,7 @@ class ShoppingBloc(
   late final StreamSubscription<bool> _subscription;
 
   Future<void> _handle(ShopEvent event, Emitter<ShopState> emit) async {
+    //------------ Restore Shopping Data and Retry Pending Checkout ---------------
     if (event is ShopStarted) {
       if (state.data != null) return;
       emit(const .new());
@@ -47,12 +48,16 @@ class ShoppingBloc(
       }
       return;
     }
+
+    //------------ Require Loaded Shopping Data ---------------
     final data = state.data;
     if (data == null) return;
     try {
       switch (event) {
         case ShopStarted():
           break;
+
+        //------------ Cart and Saved Item Changes ---------------
         case ItemAdded(:final product):
           final updated = _addProduct((data: data, product: product));
           if (updated == null) {
@@ -87,6 +92,8 @@ class ShoppingBloc(
             _removeItems((data: data, ids: ids, fromSaved: fromSaved)),
             emit,
           );
+
+        //------------ Queue and Submit Checkout ---------------
         case CheckoutRequested():
           if (data.pending != null || data.cart.isEmpty) return;
           final request = PendingPurchase(createPurchaseId(), data.cart);
@@ -103,6 +110,8 @@ class ShoppingBloc(
                 : 'Purchase queued for when you’re online.',
           );
           await _submit(updated, emit);
+
+        //------------ Retry, Cancel, or Accept Checkout ---------------
         case PendingRetried():
           if (state.review == null) await _submit(data, emit);
         case PendingCanceled():
@@ -121,6 +130,7 @@ class ShoppingBloc(
           await _accept(data, quantities, emit);
       }
     } catch (_) {
+      //------------ Report Failed Changes ---------------
       emit(
         state.copyWith(
           notice: 'We couldn’t save that change. Please try again.',
@@ -155,8 +165,12 @@ class ShoppingBloc(
   Future<void> _submit(ShoppingData data, Emitter<ShopState> emit) async {
     final pending = data.pending;
     if (pending == null || !_isOnline()) return;
+
+    //------------ Submit the Pending Purchase ---------------
     emit(state.copyWith(busy: true, clearReview: true, clearNotice: true));
     final result = await _submitPendingPurchase(data);
+
+    //------------ Publish the Checkout Result ---------------
     final notice = switch (result.failure) {
       .offline => 'Purchase queued for when you’re online.',
       .retry => 'Checkout couldn’t finish. Your purchase is saved for retry.',

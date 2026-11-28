@@ -7,6 +7,7 @@ extension _MockPurchase on MockMarket {
     String? key, {
     String scenario = 'normal',
   }) async {
+    //------------ Replay a Previous Purchase ---------------
     if (key != null) {
       if (market['purchases'][key] case final Json previous) {
         return previous;
@@ -20,6 +21,7 @@ extension _MockPurchase on MockMarket {
       }
     }
 
+    //------------ Validate the Request ---------------
     final flags = await _fixture(Endpoints.flags) as Json;
     if (flags['maintenanceMode'] == true) {
       throw const MockMarketException(
@@ -52,6 +54,7 @@ extension _MockPurchase on MockMarket {
       lines[id] = (qty: qty + (previous?.qty ?? 0), expectedPrice: price);
     }
 
+    //------------ Load Prices, Stock, and Scenario Rules ---------------
     final productById = {
       for (final item in await _products(market)) item['id']: item,
     };
@@ -77,6 +80,8 @@ extension _MockPurchase on MockMarket {
       rules['stockChanges'],
     );
     final availability = market['availability'] as Json;
+
+    //------------ Calculate Line Changes and Fulfillment ---------------
     final changes = <Json>[];
     final outOfStock = <Json>[];
     final fulfilled = <Json>[];
@@ -129,6 +134,8 @@ extension _MockPurchase on MockMarket {
         subtotal += price * availableQty;
       }
     }
+
+    //------------ Return Changes for Review ---------------
     if (changes.isNotEmpty) {
       if (outOfStock.isNotEmpty) {
         return {
@@ -146,6 +153,7 @@ extension _MockPurchase on MockMarket {
       return {'status': 'out_of_stock', 'items': outOfStock};
     }
 
+    //------------ Deduct Fulfilled Stock ---------------
     for (final line in fulfilled) {
       final id = readText(line, 'productId');
       final stock =
@@ -158,6 +166,8 @@ extension _MockPurchase on MockMarket {
         stock - readInt(line, 'qty'),
       );
     }
+
+    //------------ Record the Order and Idempotent Response ---------------
     final orders = market['orders'] as Json;
     final receipts = market['receipts'] as Json;
     final orderId =
@@ -196,10 +206,14 @@ extension _MockPurchase on MockMarket {
   Map<String, Json> _changesForCart(List<String> ids, List<dynamic>? changes) {
     final rules = changes?.cast<Json>() ?? const <Json>[];
     final result = <String, Json>{};
+
+    //------------ Match Rules by Product ID ---------------
     for (final rule in rules) {
       final id = readText(rule, 'productId');
       if (ids.contains(id)) result[id] = rule;
     }
+
+    //------------ Apply Unmatched Rules by Cart Position ---------------
     for (final rule in rules) {
       if (result.containsValue(rule)) continue;
       final index = readInt(rule, 'fallbackIndex');
@@ -223,6 +237,7 @@ extension _MockPurchase on MockMarket {
   }
 
   Future<Json> _sync(Json market, Json body) async {
+    //------------ Read the Sync Request and Current Version ---------------
     final seed = await _fixture(Endpoints.sync) as Json;
     final version = market['version'] as int? ?? readInt(seed, 'baseVersion');
     final base = readInt(body, 'baseVersion');
@@ -230,6 +245,8 @@ extension _MockPurchase on MockMarket {
     if (mutations is! List) {
       throw const FormatException('Expected sync mutations.');
     }
+
+    //------------ Collect Unprocessed Purchases ---------------
     final synced = market['synced'] as Json;
     final pending = <({String key, Json payload})>[];
     final keys = <String>{};
@@ -244,10 +261,14 @@ extension _MockPurchase on MockMarket {
         pending.add((key: key, payload: mutation['payload'] as Json));
       }
     }
+
+    //------------ Validate the Batch Version ---------------
     if (pending.isEmpty) return {'status': 'ok', 'newVersion': version};
     if (base != version) {
       throw const MockMarketException(409, 'Sync version has changed.');
     }
+
+    //------------ Apply and Save the Batch ---------------
     for (final (:key, :payload) in pending) {
       final result = await _purchase(market, payload, key);
       if (result['status'] != 'success') {

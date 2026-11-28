@@ -73,12 +73,15 @@ class MockMarket {
     int page = 1,
     int pageSize = 10,
   }) async {
+    //------------ Validate and Normalize the Query ---------------
     if (page < 1 || pageSize < 1) {
       throw const FormatException('Expected positive pagination values.');
     }
     final categoryId = category?.trim().toLowerCase() ?? '';
     final brandName = brand?.trim().toLowerCase() ?? '';
     final words = (search?.trim().toLowerCase() ?? '').split(RegExp(r'\s+'));
+
+    //------------ Filter Products Before Paging ---------------
     final products = await _products(await _readMarket());
     final matching = products.where((product) {
       // Check category, brand, and search query filters for each product.
@@ -92,6 +95,8 @@ class MockMarket {
       );
       return matchesCategory && matchesBrand && matchesSearch;
     }).toList();
+
+    //------------ Build the Requested Page ---------------
     return {
       'data': page - 1 > matching.length ~/ pageSize
           ? <Json>[]
@@ -199,6 +204,7 @@ class MockMarket {
   }
 
   Future<Json> _productData(String kind, String id) async {
+    //------------ Find the Product and Load Its Fixture ---------------
     final key = id.toLowerCase();
     final products = await _products(await _readMarket());
     final product = products.where((item) => item['id'] == key).firstOrNull;
@@ -206,6 +212,8 @@ class MockMarket {
       throw const MockMarketException(404, 'Product not found.');
     }
     final fixture = await _fixture(kind) as Json;
+
+    //------------ Build Product or Inventory Details ---------------
     if (kind == Endpoints.product) {
       return {...product, ...?(fixture[key] as Json?)}..remove('image');
     }
@@ -217,6 +225,8 @@ class MockMarket {
         'stock': product['stock'],
       };
     }
+
+    //------------ Append the Current Price to History ---------------
     final history = (fixture[key] as List?) ?? [product['originalPrice']];
     return {
       'productId': key,

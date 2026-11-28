@@ -61,9 +61,12 @@ sealed class const PurchaseResult();
 class const PurchaseReview(final List<CheckoutChange> changes)
     extends PurchaseResult {
   List<CartLine> applyTo(List<CartLine> lines, Map<String, int> quantities) {
+    //------------ Index Checkout Changes by Product ---------------
     final changesById = {
       for (final change in changes) change.productId: change,
     };
+
+    //------------ Apply Updated Prices and Quantities ---------------
     final adjusted = <CartLine>[];
     for (final line in lines) {
       final id = line.product.id;

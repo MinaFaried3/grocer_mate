@@ -26,6 +26,7 @@ class const SubmitPendingPurchase(
     }
     var persisted = data;
     try {
+      //------------ Persist the Attempt for Idempotent Retries ---------------
       if (!pending.attempted) {
         // Persist the attempt before sending. A retry must reuse this purchase ID.
         final marked = ShoppingData(
@@ -37,6 +38,8 @@ class const SubmitPendingPurchase(
         await _storage.write(marked);
         persisted = marked;
       }
+
+      //------------ Submit and Handle the Purchase Result ---------------
       final result = await _purchase(persisted.pending!);
       switch (result) {
         case PurchaseReview():
@@ -69,6 +72,7 @@ class const SubmitPendingPurchase(
           return (data: completed, review: null, failure: null, notice: null);
       }
     } on OfflineException {
+      //------------ Keep the Pending Purchase on Failure ---------------
       return (
         data: persisted,
         review: null,

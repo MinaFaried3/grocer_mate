@@ -27,6 +27,7 @@ class const ProductResponse({
   Json toJson() => _$ProductResponseToJson(this);
 
   Product toProduct({Product? summary}) {
+    //------------ Validate Product Images and Rating ---------------
     final resolvedImages = images ?? [?image];
     // Require at least one non-empty image URL or asset path.
     final hasBlankImage = resolvedImages.any((item) => item.trim().isEmpty);
@@ -41,6 +42,8 @@ class const ProductResponse({
     if (hasInvalidRating) {
       throw const FormatException('Product rating must be between 0 and 5.');
     }
+
+    //------------ Build the Product with Summary Fallbacks ---------------
     return Product(
       id: requireText(id, 'id'),
       title: requireText(title, 'title'),

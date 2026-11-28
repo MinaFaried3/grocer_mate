@@ -173,6 +173,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 400));
     await tester.pumpAndSettle();
 
+    //------------ Keep Browse Search Across Tabs ---------------
     await tester.tap(find.text('Saved'));
     await tester.pumpAndSettle();
     expect(router.routeInformationProvider.value.uri.path, '/saved');
@@ -180,6 +181,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.widget<TextField>(search).controller!.text, 'milk');
 
+    //------------ Open Product Details and Add to Cart ---------------
     await tester.tap(find.text('Milk 2% 1L'));
     await tester.pumpAndSettle();
     expect(
@@ -191,6 +193,7 @@ void main() {
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
 
+    //------------ Enable Offline Mode and Queue Checkout ---------------
     await tester.tap(find.text('Cart'));
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Settings'));
@@ -206,6 +209,7 @@ void main() {
     await tester.tap(find.text('Queue purchase'));
     await tester.pumpAndSettle();
 
+    //------------ Reconnect and Show Review Over Cart ---------------
     await tester.tap(find.text('Home'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Milk 2% 1L'));
@@ -231,6 +235,8 @@ Future<GoRouter> _startApp(
 }) async {
   await tester.binding.setSurfaceSize(const Size(900, 1000));
   addTearDown(() => tester.binding.setSurfaceSize(null));
+
+  //------------ Load Bundled Market Fixtures ---------------
   final fixtures = await tester.runAsync(
     () async => {
       for (final name in [
@@ -248,6 +254,8 @@ Future<GoRouter> _startApp(
         ),
     },
   );
+
+  //------------ Create Repositories and Connection State ---------------
   final connection = AppConnectionCubit(_OnlineChecker(connectionChanges));
   connection.setOfflineMode(offline);
   addTearDown(connection.close);
@@ -263,6 +271,8 @@ Future<GoRouter> _startApp(
     () => connection.online,
   );
   final shopping = LocalShoppingRepository(LocalShoppingSource(store));
+
+  //------------ Register the Test Dependencies ---------------
   final injector = GetItInjector();
   await injector.reset();
   addTearDown(injector.reset);
@@ -293,6 +303,7 @@ Future<GoRouter> _startApp(
     );
   tracking = true;
 
+  //------------ Launch the App and Read Its Router ---------------
   await tester.pumpWidget(const GrocerMateApp());
   await tester.pumpAndSettle();
   return tester.widget<MaterialApp>(find.byType(MaterialApp)).routerConfig!

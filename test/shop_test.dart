@@ -97,6 +97,7 @@ void main() {
     );
     addTearDown(connection.close);
 
+    //------------ Queue the Purchase Offline ---------------
     final queued = first.stream.firstWhere(
       (state) => state.data?.pending != null,
     );
@@ -108,6 +109,7 @@ void main() {
     expect(checkout.requests, isEmpty);
     await first.close();
 
+    //------------ Restart and Add a Cart Item ---------------
     final restored = ShoppingBloc(
       storage,
       SubmitPendingPurchase(storage, checkout.purchase),
@@ -124,6 +126,7 @@ void main() {
       ..add(const ItemAdded(bread));
     await added;
 
+    //------------ Reconnect and Review Changes ---------------
     final review = restored.stream.firstWhere((state) => state.review != null);
     connection.setOnline(true);
     final reviewState = await review;
@@ -133,6 +136,7 @@ void main() {
       'milk': 1,
     });
 
+    //------------ Accept the Review and Verify the Cart ---------------
     final receipt = restored.stream.firstWhere(
       (state) => state.data?.lastOrder != null,
     );

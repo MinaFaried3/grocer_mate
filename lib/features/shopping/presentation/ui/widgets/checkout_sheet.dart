@@ -66,6 +66,7 @@ class _CheckoutSheetState() extends State<_CheckoutSheet> {
                 shrinkWrap: true,
                 padding: const .fromLTRB(20, 0, 20, 12),
                 children: [
+                  //------------ Review Instructions ---------------
                   Text(
                     'Review order changes',
                     style: theme.textTheme.headlineSmall,
@@ -75,6 +76,8 @@ class _CheckoutSheetState() extends State<_CheckoutSheet> {
                     'Prices or stock changed. Review the updates before placing your order.',
                     style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                   ),
+
+                  //------------ Adjust Changed Items ---------------
                   for (final line in memento.lines)
                     if (changes[line.product.id] case final change?) ...[
                       const SizedBox(height: 12),

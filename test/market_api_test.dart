@@ -111,6 +111,8 @@ void main() {
       CartLine(.fromProduct(await catalog.detail(appleId)), 1),
       CartLine(.fromProduct(await catalog.detail(breadId)), 1),
     ];
+
+    //------------ Verify Price and Stock Review ---------------
     demo.checkoutScenario = 'mixed';
     final result = await checkout.purchase(
       PendingPurchase('mixed', lines),
@@ -123,6 +125,7 @@ void main() {
     );
     expect((await demo.inventory(milkId))['stock'], 6);
 
+    //------------ Retry Partial Fulfillment with the Same Purchase ID ---------------
     final revisedMilk = result.applyTo(lines, {}).first;
     final pending = PendingPurchase('partial', [revisedMilk, lines[1]]);
     demo.checkoutScenario = 'partial';
@@ -138,6 +141,7 @@ void main() {
     ]);
     expect((await demo.order(partial.receipt!.id))['total'], 3.92);
 
+    //------------ Replay the Queued Purchase and Restore Missing Items ---------------
     final localShopping = LocalShoppingRepository(LocalShoppingSource(storage));
     final saved = ShoppingData(pending: pending);
     await localShopping.write(saved);

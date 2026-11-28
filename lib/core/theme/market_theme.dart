@@ -15,6 +15,7 @@ abstract class const MarketThemeFactory() {
     final scheme = createColorScheme();
     final base = ThemeData(colorScheme: scheme, useMaterial3: true);
     return base.copyWith(
+      //------------ Scaffold and Navigation ---------------
       scaffoldBackgroundColor: scaffoldBackgroundColor,
       appBarTheme: AppBarTheme(
         backgroundColor: scaffoldBackgroundColor,
@@ -33,6 +34,8 @@ abstract class const MarketThemeFactory() {
           base.textTheme.labelMedium?.copyWith(fontWeight: .w700),
         ),
       ),
+
+      //------------ Buttons and Inputs ---------------
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(48, 46),
@@ -53,6 +56,8 @@ abstract class const MarketThemeFactory() {
           borderSide: BorderSide(color: scheme.outlineVariant),
         ),
       ),
+
+      //------------ Typography ---------------
       textTheme: base.textTheme.copyWith(
         headlineLarge: base.textTheme.headlineLarge?.copyWith(
           fontWeight: .w800,

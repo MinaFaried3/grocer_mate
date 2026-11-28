@@ -22,11 +22,14 @@ Future<void> main(List<String> args) async {
 }
 
 Future<void> _handle(HttpRequest request, MockMarket market) async {
+  //------------ Configure Cross-Origin Headers ---------------
   final response = request.response;
   response.headers
     ..set('Access-Control-Allow-Origin', '*')
     ..set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
     ..set('Access-Control-Allow-Headers', 'Content-Type, Idempotency-Key');
+
+  //------------ Handle Preflight and Return JSON ---------------
   try {
     if (request.method == 'OPTIONS') {
       response.statusCode = HttpStatus.noContent;
@@ -49,6 +52,7 @@ Future<void> _handle(HttpRequest request, MockMarket market) async {
 }
 
 Future<Object> _route(HttpRequest request, MockMarket market) async {
+  //------------ Normalize Request Parameters ---------------
   final segments = request.uri.pathSegments
       .map((segment) => segment.toLowerCase())
       .toList();
@@ -56,6 +60,7 @@ Future<Object> _route(HttpRequest request, MockMarket market) async {
     (key, value) => MapEntry(key.toLowerCase(), value.trim()),
   );
   return switch ((request.method, segments)) {
+    //------------ Catalog and Checkout Reads ---------------
     ('GET', [Endpoints.categories]) => market.categories(),
     ('GET', [Endpoints.flags]) => market.flags(),
     ('GET', [Endpoints.brands]) => market.brands(query['categoryid']),
@@ -73,6 +78,8 @@ Future<Object> _route(HttpRequest request, MockMarket market) async {
     ('GET', [Endpoints.stockCheck]) => market.checkStock(query['ids']),
     ('GET', [Endpoints.dealsOfDay]) => market.dealsOfDay(),
     ('GET', [Endpoints.orders, final id]) => market.order(id),
+
+    //------------ Purchase and Sync Writes ---------------
     ('POST', [Endpoints.purchase]) => market.purchase(
       await _readBody(request),
       key: request.headers.value('Idempotency-Key'),

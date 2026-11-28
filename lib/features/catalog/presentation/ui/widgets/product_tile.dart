@@ -82,6 +82,7 @@ class const ProductTile({
                 child: Column(
                   crossAxisAlignment: .start,
                   children: [
+                    //------------ Brand and Product Name ---------------
                     Text(
                       product.brand,
                       maxLines: 1,
@@ -99,6 +100,8 @@ class const ProductTile({
                         height: 1.13,
                       ),
                     ),
+
+                    //------------ Stock Status ---------------
                     const Spacer(),
                     Text(
                       stock,
@@ -110,6 +113,8 @@ class const ProductTile({
                             : theme.colorScheme.primary,
                       ),
                     ),
+
+                    //------------ Prices and Add to Cart ---------------
                     Row(
                       children: [
                         Expanded(

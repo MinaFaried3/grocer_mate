@@ -47,6 +47,7 @@ class const PurchaseResponse({
     List<PriceChangeResponse> prices = const [],
     List<StockChangeResponse> stocks = const [],
   }) {
+    //------------ Index Price and Stock Changes ---------------
     final currentPrices = {
       for (final item in prices)
         requireText(item.productId, 'productId'): requireCents(
@@ -61,6 +62,8 @@ class const PurchaseResponse({
           'available',
         ),
     };
+
+    //------------ Match Changes to the Pending Purchase ---------------
     final updates = [
       for (final line in purchase.lines)
         if (currentPrices.containsKey(line.product.id) ||
@@ -78,6 +81,7 @@ class const PurchaseResponse({
   }
 
   PartialPurchase _partial(PendingPurchase purchase) {
+    //------------ Validate Fulfilled Quantities ---------------
     final lines = {for (final line in purchase.lines) line.product.id: line};
     final completed = <String, int>{};
     for (final item in fulfilled ?? const []) {
@@ -92,6 +96,8 @@ class const PurchaseResponse({
     if (completed.isEmpty) {
       throw const FormatException('No items were fulfilled.');
     }
+
+    //------------ Restore Unfulfilled Quantities to the Cart ---------------
     // Restore every unfulfilled item, including lines omitted from example responses.
     final unfulfilled = [
       for (final line in purchase.lines)

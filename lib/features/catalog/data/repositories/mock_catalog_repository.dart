@@ -35,23 +35,34 @@ class MockCatalogRepository implements CatalogRepository {
     required int pageSize,
     bool refresh = false,
   }) async {
+    //------------ Offline Fallback ---------------
     final cache = await _saved;
     if (!_isOnline()) return _offlinePage(cache, query, page, pageSize);
 
     final brandKey = query.category ?? '';
     try {
-      final metadata = (
-        refresh || cache.categories == null
-            ? _source.categories()
-            : Future.value(cache.categories!),
-        refresh || !cache.brands.containsKey(brandKey)
-            ? _source.brands(query.category)
-            : Future.value(cache.brands[brandKey]!),
-        query.deals
-            ? _dealsPage(cache, query, page, pageSize)
-            : _source.products(query, page: page, pageSize: pageSize),
-      );
-      final (categories, brands, result) = await metadata.wait;
+      //------------ Categories and Brands ---------------
+      final cachedCategories = cache.categories;
+      final categoriesRequest = refresh || cachedCategories == null
+          ? _source.categories()
+          : Future.value(cachedCategories);
+
+      final cachedBrands = cache.brands[brandKey];
+      final brandsRequest = refresh || cachedBrands == null
+          ? _source.brands(query.category)
+          : Future.value(cachedBrands);
+
+      //------------ Product Page ---------------
+      final productsRequest = query.deals
+          ? _dealsPage(cache, query, page, pageSize)
+          : _source.products(query, page: page, pageSize: pageSize);
+      final (categories, brands, result) = await (
+        categoriesRequest,
+        brandsRequest,
+        productsRequest,
+      ).wait;
+
+      //------------ Save Results ---------------
       cache.categories = categories;
       cache.brands[brandKey] = brands;
       if (!query.deals) {
@@ -82,6 +93,7 @@ class MockCatalogRepository implements CatalogRepository {
     int page,
     int pageSize,
   ) async {
+    //------------ Load Active Offers ---------------
     final deals = await _source.dealsOfDay();
     final now = DateTime.now().toUtc();
     final offers = <String, CachedDeal>{
@@ -93,6 +105,8 @@ class MockCatalogRepository implements CatalogRepository {
     };
     final prices = Map.of(offers)
       ..removeWhere((_, deal) => !deal.endsAt.isAfter(now));
+
+    //------------ Match Offers to Products ---------------
     final matches = <Product>[];
     if (prices.isNotEmpty) {
       const batchSize = 50;
@@ -119,6 +133,8 @@ class MockCatalogRepository implements CatalogRepository {
         }
       }
     }
+
+    //------------ Cache Offers and Return Page ---------------
     cache.deals = offers;
     return (products: _page(matches, page, pageSize), total: matches.length);
   }
@@ -129,6 +145,7 @@ class MockCatalogRepository implements CatalogRepository {
     int page,
     int pageSize,
   ) {
+    //------------ Read Available Offline Data ---------------
     final categories = cache.categories;
     if (categories == null) throw const OfflineException();
     final words = query.search.trim().toLowerCase().split(RegExp(r'\s+'));
@@ -137,6 +154,8 @@ class MockCatalogRepository implements CatalogRepository {
       for (final MapEntry(:key, :value) in cache.deals.entries)
         if (value.endsAt.isAfter(now)) key: value.price,
     };
+
+    //------------ Apply Catalog Filters ---------------
     final categoryProducts = cache.products.values.where(
       (product) =>
           query.category == null ||
@@ -149,8 +168,10 @@ class MockCatalogRepository implements CatalogRepository {
           query.brand == null ||
           product.brand.toLowerCase() == query.brand!.toLowerCase();
 
-      // Match active deal filter and search keywords.
+      // Require an active offer when the deals filter is selected.
       final matchesDeals = !query.deals || prices.containsKey(product.id);
+
+      // Match every search term against the product title.
       final matchesSearch = words.every(product.title.toLowerCase().contains);
 
       if (matchesBrand && matchesDeals && matchesSearch) {
@@ -161,6 +182,8 @@ class MockCatalogRepository implements CatalogRepository {
         );
       }
     }
+
+    //------------ Build Offline Page ---------------
     return (
       products: _page(matching, page, pageSize),
       total: matching.length,
@@ -175,6 +198,7 @@ class MockCatalogRepository implements CatalogRepository {
 
   @override
   Future<Product> detail(String id) async {
+    //------------ Fetch and Cache Product Details ---------------
     final cache = await _saved;
     final summary = cache.products[id];
     if (_isOnline()) {
@@ -188,6 +212,8 @@ class MockCatalogRepository implements CatalogRepository {
         // Use details or the summary already downloaded for this product.
       }
     }
+
+    //------------ Build Details from the Cache ---------------
     final detail = cache.details[id];
     final product = switch ((detail, summary)) {
       (final detail?, final summary?) => _withCurrentOffer(detail, summary),
