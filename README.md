@@ -50,6 +50,7 @@ Each endpoint has a JSON fixture in `assets/mock_api/`. Edit `products.json` to 
 
 ## Implementation
 
+- API paths are defined in `Endpoints`. After editing the JSON models, run `dart run build_runner build` to regenerate their serializers.
 - Feature injection selects the bundled mock repositories or the live repositories. The live repositories use a small API interface backed by Dio. The standalone mock server uses the same fixtures and inventory logic as the bundled demo.
 - The catalog caches pages and product details for offline browsing. Cart and Saved use durable local storage.
 - The checkout preview calculates prices in integer cents with the sample 5% tax and $1 delivery fee waived at $25. Completed receipts use the total returned by the server.

@@ -20,7 +20,7 @@ extension _MockPurchase on MockMarket {
       }
     }
 
-    final flags = await _fixture('flags') as Json;
+    final flags = await _fixture(Endpoints.flags) as Json;
     if (flags['maintenanceMode'] == true) {
       throw const MockMarketException(
         503,
@@ -63,7 +63,7 @@ extension _MockPurchase on MockMarket {
           if (DateTime.parse(readText(item, 'endsAt')).isAfter(now))
             readText(item, 'productId'): readCents(item, 'dealPrice'),
     };
-    final purchaseFixture = await _fixture('purchase') as Json;
+    final purchaseFixture = await _fixture(Endpoints.purchase) as Json;
     final rules = purchaseFixture['scenarios'][scenario] as Json?;
     if (rules == null) {
       throw const FormatException('Unknown checkout scenario.');
@@ -189,10 +189,7 @@ extension _MockPurchase on MockMarket {
     return response;
   }
 
-  Map<String, Json> _changesForCart(
-    List<String> ids,
-    List<dynamic>? changes,
-  ) {
+  Map<String, Json> _changesForCart(List<String> ids, List<dynamic>? changes) {
     final rules = changes?.cast<Json>() ?? const <Json>[];
     final result = <String, Json>{};
     for (final rule in rules) {
@@ -222,7 +219,7 @@ extension _MockPurchase on MockMarket {
   }
 
   Future<Json> _sync(Json market, Json body) async {
-    final seed = await _fixture('sync') as Json;
+    final seed = await _fixture(Endpoints.sync) as Json;
     final version = market['version'] as int? ?? readInt(seed, 'baseVersion');
     final base = readInt(body, 'baseVersion');
     final mutations = body['mutations'];

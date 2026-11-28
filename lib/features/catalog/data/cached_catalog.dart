@@ -86,10 +86,10 @@ class CachedCatalog(
     final deals = await _source.dealsOfDay();
     final now = DateTime.now().toUtc();
     final offers = <String, _Deal>{
-      for (final Json item in deals['items'] as List)
-        readText(item, 'productId'): (
-          price: readCents(item, 'dealPrice'),
-          endsAt: DateTime.parse(readText(item, 'endsAt')),
+      for (final item in deals.items)
+        requireText(item.productId, 'productId'): (
+          price: requireCents(item.dealPrice, 'dealPrice'),
+          endsAt: DateTime.parse(item.endsAt),
         ),
     };
     final prices = Map.of(offers)

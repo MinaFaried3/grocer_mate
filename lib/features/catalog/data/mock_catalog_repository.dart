@@ -1,10 +1,10 @@
 import 'package:grocer_mate/core/mock/mock_market.dart';
-import 'package:grocer_mate/core/storage/json_fields.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
 
 import '../domain/entities/catalog.dart';
 import 'cached_catalog.dart';
 import 'catalog_json.dart';
+import 'catalog_models.dart';
 import 'catalog_source.dart';
 
 class MockCatalogRepository extends CachedCatalog {
@@ -45,5 +45,6 @@ class const _MockCatalogSource(final MockMarket _market)
       decodeApiProduct(await _market.product(id), summary: summary);
 
   @override
-  Future<Json> dealsOfDay() => _market.dealsOfDay();
+  Future<DealsResponse> dealsOfDay() async =>
+      DealsResponse.fromJson(await _market.dealsOfDay());
 }

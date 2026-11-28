@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:grocer_mate/core/mock/mock_market.dart';
+import 'package:grocer_mate/core/network/endpoints.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
 import 'package:grocer_mate/core/storage/json_fields.dart';
 
@@ -55,28 +56,28 @@ Future<Object> _route(HttpRequest request, MockMarket market) async {
     (key, value) => MapEntry(key.toLowerCase(), value.trim()),
   );
   return switch ((request.method, segments)) {
-    ('GET', ['categories']) => market.categories(),
-    ('GET', ['flags']) => market.flags(),
-    ('GET', ['brands']) => market.brands(query['categoryid']),
-    ('GET', ['products']) => market.products(
+    ('GET', [Endpoints.categories]) => market.categories(),
+    ('GET', [Endpoints.flags]) => market.flags(),
+    ('GET', [Endpoints.brands]) => market.brands(query['categoryid']),
+    ('GET', [Endpoints.products]) => market.products(
       category: query['category'],
       brand: query['brand'],
       search: query['search'],
       page: int.parse(query['page'] ?? '1'),
       pageSize: int.parse(query['pagesize'] ?? '10'),
     ),
-    ('GET', ['product', final id]) => market.product(id),
-    ('GET', ['inventory', final id]) => market.inventory(id),
-    ('GET', ['price-history', final id]) => market.priceHistory(id),
-    ('GET', ['suggest']) => market.suggestions(query['q']),
-    ('GET', ['stock-check']) => market.checkStock(query['ids']),
-    ('GET', ['deals-of-day']) => market.dealsOfDay(),
-    ('GET', ['orders', final id]) => market.order(id),
-    ('POST', ['purchase']) => market.purchase(
+    ('GET', [Endpoints.product, final id]) => market.product(id),
+    ('GET', [Endpoints.inventory, final id]) => market.inventory(id),
+    ('GET', [Endpoints.priceHistory, final id]) => market.priceHistory(id),
+    ('GET', [Endpoints.suggest]) => market.suggestions(query['q']),
+    ('GET', [Endpoints.stockCheck]) => market.checkStock(query['ids']),
+    ('GET', [Endpoints.dealsOfDay]) => market.dealsOfDay(),
+    ('GET', [Endpoints.orders, final id]) => market.order(id),
+    ('POST', [Endpoints.purchase]) => market.purchase(
       await _readBody(request),
       key: request.headers.value('Idempotency-Key'),
     ),
-    ('POST', ['sync']) => market.sync(await _readBody(request)),
+    ('POST', [Endpoints.sync]) => market.sync(await _readBody(request)),
     _ => throw const MockMarketException(
       HttpStatus.notFound,
       'Endpoint not found.',

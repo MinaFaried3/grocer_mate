@@ -6,9 +6,11 @@ import 'package:grocer_mate/core/mock/mock_market.dart';
 import 'package:grocer_mate/core/network/dio_factory.dart';
 import 'package:grocer_mate/core/network/dio_market_api.dart';
 import 'package:grocer_mate/core/network/market_api.dart';
+import 'package:grocer_mate/core/network/page_response.dart';
 import 'package:grocer_mate/core/storage/json_fields.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
 import 'package:grocer_mate/features/catalog/data/cached_catalog.dart';
+import 'package:grocer_mate/features/catalog/data/catalog_models.dart';
 import 'package:grocer_mate/features/catalog/data/catalog_remote_data_source.dart';
 import 'package:grocer_mate/features/catalog/data/mock_catalog_repository.dart';
 import 'package:grocer_mate/features/shopping/data/api_checkout_repository.dart';
@@ -58,6 +60,11 @@ void main() {
       brand: 'DairyPure',
     );
     expect(result['total'], 2);
+    final response = PageResponse<ProductResponse>.fromJson(
+      result,
+      (item) => ProductResponse.fromJson(item as Json),
+    );
+    expect(response.toJson((item) => item.toJson()), result);
     expect((result['data'] as List).map((item) => item['id']), [
       milkId,
       'p_milk_skim',

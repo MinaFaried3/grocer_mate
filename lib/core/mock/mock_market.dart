@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import '../network/endpoints.dart';
 import '../storage/json_fields.dart';
 import '../storage/local_storage.dart';
 
@@ -39,7 +40,7 @@ class MockMarket {
       await _storage.read(_marketKey) ?? await _storage.read(_legacyKey) ?? {};
 
   Future<List<Json>> _products(Json market) async {
-    final seed = (await _fixture('products') as List).cast<Json>();
+    final seed = (await _fixture(Endpoints.products) as List).cast<Json>();
     final availability = market['availability'] as Map? ?? const {};
     return [
       for (final product in seed)
@@ -57,12 +58,12 @@ class MockMarket {
   };
 
   Future<List<dynamic>> categories() async =>
-      await _fixture('categories') as List;
+      await _fixture(Endpoints.categories) as List;
 
-  Future<Json> flags() async => await _fixture('flags') as Json;
+  Future<Json> flags() async => await _fixture(Endpoints.flags) as Json;
 
   Future<Json> brands([String? category]) async {
-    final brands = await _fixture('brands') as Json;
+    final brands = await _fixture(Endpoints.brands) as Json;
     final id = category?.trim().toLowerCase();
     return id == null || id.isEmpty ? brands : {id: brands[id] ?? <String>[]};
   }
@@ -101,15 +102,15 @@ class MockMarket {
     };
   }
 
-  Future<Json> product(String id) => _productData('product', id);
-  Future<Json> inventory(String id) => _productData('inventory', id);
+  Future<Json> product(String id) => _productData(Endpoints.product, id);
+  Future<Json> inventory(String id) => _productData(Endpoints.inventory, id);
   Future<Json> priceHistory(String id) =>
-      _productData('price-history', id);
+      _productData(Endpoints.priceHistory, id);
   Future<Json> dealsOfDay() async => _dealsToday(await _readMarket());
 
   Future<Json> suggestions(String? input) async {
     final q = input?.trim().toLowerCase() ?? '';
-    final words = await _fixture('suggest') as List;
+    final words = await _fixture(Endpoints.suggest) as List;
     final products = await _products(await _readMarket());
     final candidates = {
       ...words.cast<String>(),
@@ -125,7 +126,7 @@ class MockMarket {
   }
 
   Future<Json> checkStock(String? input) async {
-    final seed = await _fixture('stock-check') as Json;
+    final seed = await _fixture(Endpoints.stockCheck) as Json;
     final ids =
         (input?.split(',') ?? (seed['defaultIds'] as List).cast<String>())
             .map((id) => id.trim().toLowerCase())
@@ -146,17 +147,14 @@ class MockMarket {
 
   Future<Json> order(String id) async {
     final market = await _readMarket();
-    final orders = await _fixture('orders') as Json;
+    final orders = await _fixture(Endpoints.orders) as Json;
     final key = id.toLowerCase();
     return market['orders']?[key] ??
         orders[key] ??
         (throw const MockMarketException(404, 'Order not found.'));
   }
 
-  Future<Json> purchase(
-    Json body, {
-    String? key,
-  }) => _write(() async {
+  Future<Json> purchase(Json body, {String? key}) => _write(() async {
     final market = await _readForWrite();
     final scenario = checkoutScenario;
     final existing =
@@ -203,10 +201,10 @@ class MockMarket {
       throw const MockMarketException(404, 'Product not found.');
     }
     final fixture = await _fixture(kind) as Json;
-    if (kind == 'product') {
+    if (kind == Endpoints.product) {
       return {...product, ...?(fixture[key] as Json?)}..remove('image');
     }
-    if (kind == 'inventory') {
+    if (kind == Endpoints.inventory) {
       return {
         ...fixture['default'] as Json,
         ...?(fixture[key] as Json?),
@@ -225,8 +223,8 @@ class MockMarket {
   }
 
   Future<Json> _dealsToday(Json market) async {
-    final flags = await _fixture('flags') as Json;
-    final data = await _fixture('deals-of-day') as Json;
+    final flags = await _fixture(Endpoints.flags) as Json;
+    final data = await _fixture(Endpoints.dealsOfDay) as Json;
     final now = DateTime.now().toUtc();
     final date = now.toIso8601String().split('T').first;
     final availability = market['availability'] as Map? ?? const {};

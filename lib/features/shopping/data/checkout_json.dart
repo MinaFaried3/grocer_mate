@@ -1,51 +1,62 @@
 import 'package:grocer_mate/core/storage/json_fields.dart';
 
 import '../domain/entities/shopping.dart';
+import 'checkout_models.dart';
 
-Json encodePurchase(PendingPurchase purchase, {String? currency}) => {
-  'items': [
-    for (final line in purchase.lines)
-      {
-        'productId': line.product.id,
-        'qty': line.quantity,
-        'expectedPrice': line.product.price / 100,
-      },
-  ],
-  'currency': ?currency,
-};
+PurchaseRequest purchaseRequest(PendingPurchase purchase, {String? currency}) =>
+    PurchaseRequest(
+      items: [
+        for (final line in purchase.lines)
+          PurchaseItem(
+            productId: line.product.id,
+            qty: line.quantity,
+            expectedPrice: line.product.price / 100,
+          ),
+      ],
+      currency: currency,
+    );
 
-PurchaseResult decodePurchase(PendingPurchase purchase, Json response) {
-  return switch (response['status']) {
+PurchaseResult decodePurchase(
+  PendingPurchase purchase,
+  PurchaseResponse response,
+) {
+  return switch (response.status) {
     'success' => _receipt(response),
-    'price_changed' => _review(purchase, prices: response['changes']),
-    'out_of_stock' => _review(purchase, stocks: response['items']),
+    'price_changed' => _review(purchase, prices: response.changes ?? const []),
+    'out_of_stock' => _review(purchase, stocks: response.items ?? const []),
     'review_required' => _review(
       purchase,
-      prices: response['priceChanges'],
-      stocks: response['oos'],
+      prices: response.priceChanges ?? const [],
+      stocks: response.oos ?? const [],
     ),
     'partial' => _partial(purchase, response),
     _ => throw const FormatException('Unknown purchase status.'),
   };
 }
 
-OrderReceipt _receipt(Json response) => OrderReceipt(
-  id: readText(response, 'orderId'),
-  total: readCents(response, 'finalTotal'),
+OrderReceipt _receipt(PurchaseResponse response) => OrderReceipt(
+  id: requireText(response.orderId, 'orderId'),
+  total: requireCents(response.finalTotal, 'finalTotal'),
 );
 
 PurchaseReview _review(
   PendingPurchase purchase, {
-  List<dynamic> prices = const [],
-  List<dynamic> stocks = const [],
+  List<PriceChangeResponse> prices = const [],
+  List<StockChangeResponse> stocks = const [],
 }) {
   final currentPrices = {
-    for (final Json item in prices)
-      readText(item, 'productId'): readCents(item, 'newPrice'),
+    for (final item in prices)
+      requireText(item.productId, 'productId'): requireCents(
+        item.newPrice,
+        'newPrice',
+      ),
   };
   final currentStocks = {
-    for (final Json item in stocks)
-      readText(item, 'productId'): readInt(item, 'available'),
+    for (final item in stocks)
+      requireText(item.productId, 'productId'): requireInt(
+        item.available,
+        'available',
+      ),
   };
   final changes = [
     for (final line in purchase.lines)
@@ -63,12 +74,12 @@ PurchaseReview _review(
   return PurchaseReview(List.unmodifiable(changes));
 }
 
-PartialPurchase _partial(PendingPurchase purchase, Json response) {
+PartialPurchase _partial(PendingPurchase purchase, PurchaseResponse response) {
   final lines = {for (final line in purchase.lines) line.product.id: line};
   final fulfilled = <String, int>{};
-  for (final Json item in response['fulfilled'] as List) {
-    final id = readText(item, 'productId');
-    final quantity = readInt(item, 'qty', minimum: 1);
+  for (final item in response.fulfilled ?? const []) {
+    final id = requireText(item.productId, 'productId');
+    final quantity = requireInt(item.qty, 'qty', minimum: 1);
     final total = (fulfilled[id] ?? 0) + quantity;
     if (lines[id] == null || total > lines[id]!.quantity) {
       throw const FormatException('Invalid fulfilled quantity.');
@@ -86,10 +97,9 @@ PartialPurchase _partial(PendingPurchase purchase, Json response) {
   ];
   return PartialPurchase(
     List.unmodifiable(missing),
-    receipt:
-        response.containsKey('orderId') && response.containsKey('finalTotal')
+    receipt: response.orderId != null && response.finalTotal != null
         ? _receipt(response)
         : null,
-    note: response['note'] as String?,
+    note: response.note,
   );
 }

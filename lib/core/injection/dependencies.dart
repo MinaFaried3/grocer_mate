@@ -29,22 +29,6 @@ extension SharedDependencies on Injector {
     dispose: (api) => api.close(),
   );
 
-  LocalStorage get localStorage => singleton<LocalStorage>(() {
-    final secureStorage = SecureLocalStorage();
-    return usesMockData
-        ? secureStorage
-        : _BackendStorage(secureStorage, _backendUrl);
-  });
+  LocalStorage get localStorage => singleton<LocalStorage>(SecureLocalStorage.new);
 }
 
-class const _BackendStorage(final LocalStorage store, final String backend)
-    implements LocalStorage {
-  String _key(String key) => 'backend_${Uri.encodeComponent(backend)}_$key';
-
-  @override
-  Future<Map<String, dynamic>?> read(String key) => store.read(_key(key));
-
-  @override
-  Future<void> write(String key, Map<String, Object?> value) =>
-      store.write(_key(key), value);
-}

@@ -1,10 +1,12 @@
 import 'package:grocer_mate/core/network/connectivity/offline_exception.dart';
+import 'package:grocer_mate/core/network/endpoints.dart';
 import 'package:grocer_mate/core/network/market_api.dart';
 import 'package:grocer_mate/core/storage/json_fields.dart';
 
 import '../domain/entities/shopping.dart';
 import '../domain/repositories/checkout_repository.dart';
 import 'checkout_json.dart';
+import 'checkout_models.dart';
 
 class ApiCheckoutRepository(
   final MarketApi _api,
@@ -12,11 +14,12 @@ class ApiCheckoutRepository(
 ) implements CheckoutRepository {
   Future<String>? _currency;
 
-  Future<Json> flags() => _api.get('flags');
+  Future<FlagsResponse> flags() async =>
+      FlagsResponse.fromJson(await _api.get<Json>(Endpoints.flags));
 
   Future<String> _loadCurrency() async {
     try {
-      return readText(await flags(), 'currency');
+      return requireText((await flags()).currency, 'currency');
     } catch (_) {
       _currency = null;
       rethrow;
@@ -29,15 +32,17 @@ class ApiCheckoutRepository(
     final currency = await (_currency ??= _loadCurrency());
     if (!_isOnline()) throw const OfflineException();
     final response = await _api.post(
-      'purchase',
-      encodePurchase(purchase, currency: currency),
+      Endpoints.purchase,
+      purchaseRequest(purchase, currency: currency).toJson(),
       idempotencyKey: purchase.id,
       acceptedStatuses: const {409, 422},
     );
-    return decodePurchase(purchase, response);
+    return decodePurchase(purchase, PurchaseResponse.fromJson(response));
   }
 
-  Future<Json> order(String id) => _api.get('orders', id: id);
+  Future<OrderResponse> order(String id) async =>
+      OrderResponse.fromJson(await _api.get<Json>(Endpoints.orders, id: id));
 
-  Future<Json> sync(Json request) => _api.post('sync', request);
+  Future<SyncResponse> sync(SyncRequest request) async =>
+      SyncResponse.fromJson(await _api.post(Endpoints.sync, request.toJson()));
 }

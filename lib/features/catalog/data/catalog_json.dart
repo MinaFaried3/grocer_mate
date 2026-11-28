@@ -1,12 +1,17 @@
+import 'package:grocer_mate/core/network/page_response.dart';
 import 'package:grocer_mate/core/storage/json_fields.dart';
 
 import '../domain/entities/catalog.dart';
+import 'catalog_models.dart';
 
-Category decodeCategory(Map<String, dynamic> json) => Category(
-  id: readText(json, 'id'),
-  name: readText(json, 'name'),
-  icon: readText(json, 'icon'),
-);
+Category decodeCategory(Json json) {
+  final category = CategoryResponse.fromJson(json);
+  return Category(
+    id: requireText(category.id, 'id'),
+    name: requireText(category.name, 'name'),
+    icon: requireText(category.icon, 'icon'),
+  );
+}
 
 Product decodeProduct(
   Map<String, dynamic> json, {
@@ -42,23 +47,26 @@ Product decodeProduct(
   );
 }
 
-Product decodeApiProduct(Map<String, dynamic> json, {Product? summary}) =>
-    decodeProduct({
-      ...json,
-      'price': readCents(json, 'price'),
-      'originalPrice': readCents(json, 'originalPrice'),
-      'images': json['images'] ?? [json['image']],
-      'rating': json['rating'] ?? summary?.rating ?? 0.0,
-      'badges': json['badges'] ?? summary?.badges ?? const <String>[],
-      'categoryId': json['categoryId'] ?? summary?.categoryId ?? '',
-      'description': json['description'] ?? '',
-    }, allowMissingCategory: true);
+Product decodeApiProduct(Json json, {Product? summary}) =>
+    _apiProduct(ProductResponse.fromJson(json), summary: summary);
 
-Map<String, dynamic> encodeCategory(Category category) => {
-  'id': category.id,
-  'name': category.name,
-  'icon': category.icon,
-};
+Product _apiProduct(ProductResponse response, {Product? summary}) {
+  final json = response.toJson()
+    ..['price'] = requireCents(response.price, 'price')
+    ..['originalPrice'] = requireCents(response.originalPrice, 'originalPrice')
+    ..['images'] = response.images ?? [?response.image]
+    ..['rating'] = response.rating ?? summary?.rating ?? 0.0
+    ..['badges'] = response.badges ?? summary?.badges ?? const <String>[]
+    ..['categoryId'] = response.categoryId ?? summary?.categoryId ?? ''
+    ..['description'] = response.description ?? '';
+  return decodeProduct(json, allowMissingCategory: true);
+}
+
+Json encodeCategory(Category category) => CategoryResponse(
+  id: category.id,
+  name: category.name,
+  icon: category.icon,
+).toJson();
 
 Map<String, dynamic> encodeProduct(Product product) => {
   'id': product.id,
@@ -77,7 +85,7 @@ Map<String, dynamic> encodeProduct(Product product) => {
   'related': product.related,
 };
 List<Category> decodeCategories(List<dynamic> items) => [
-  for (final item in items) decodeCategory(item),
+  for (final item in items) decodeCategory(item as Json),
 ];
 
 List<String> decodeBrands(Json json, String? category) => {
@@ -85,7 +93,10 @@ List<String> decodeBrands(Json json, String? category) => {
     if (names is List) ...names.cast<String>(),
 }.toList()..sort();
 
-({List<Product> products, int total}) decodeProductPage(Json json) => (
-  products: [for (final item in json['data']) decodeApiProduct(item)],
-  total: json['total'] as int,
-);
+({List<Product> products, int total}) decodeProductPage(Json json) {
+  final page = PageResponse<ProductResponse>.fromJson(
+    json,
+    (item) => ProductResponse.fromJson(item as Json),
+  );
+  return (products: page.data.map(_apiProduct).toList(), total: page.total);
+}
