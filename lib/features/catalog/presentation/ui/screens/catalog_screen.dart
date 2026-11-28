@@ -60,11 +60,15 @@ class _CatalogScreenState() extends State<CatalogScreen> {
 
         //------------ Shopping Review & Order Listener ---------------
         BlocListener<ShoppingBloc, ShopState>(
-          listenWhen: (before, after) =>
-              (before.review != after.review && after.review != null) ||
-              (before.data != null &&
-                  before.data?.lastOrder != after.data?.lastOrder &&
-                  after.data?.lastOrder != null),
+          listenWhen: (before, after) {
+            final hasNewReview =
+                before.review != after.review && after.review != null;
+            final hasNewOrder =
+                before.data != null &&
+                before.data?.lastOrder != after.data?.lastOrder &&
+                after.data?.lastOrder != null;
+            return hasNewReview || hasNewOrder;
+          },
           listener: (_, _) => bloc.add(const CatalogRefreshed()),
         ),
       ],
