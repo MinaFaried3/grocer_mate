@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 import '../../domain/entities/catalog.dart';
 
 const CatalogQuery _defaultQuery = (
@@ -16,7 +18,7 @@ class const CatalogState({
   final int total = 0,
   final bool loading = true,
   final String? error,
-}) {
+}) extends Equatable {
   bool get hasMore => products.length < total;
 
   CatalogState copyWith({
@@ -39,4 +41,16 @@ class const CatalogState({
     loading: loading ?? this.loading,
     error: clearError ? null : error ?? this.error,
   );
+
+  @override
+  List<Object?> get props => [
+    query,
+    categories,
+    brands,
+    products,
+    page,
+    total,
+    loading,
+    error,
+  ];
 }

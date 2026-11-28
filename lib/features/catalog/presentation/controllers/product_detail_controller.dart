@@ -1,3 +1,4 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:grocer_mate/core/network/connectivity/offline_exception.dart';
@@ -5,17 +6,26 @@ import 'package:grocer_mate/core/network/connectivity/offline_exception.dart';
 import '../../domain/entities/catalog.dart';
 import '../../domain/repositories/catalog_repository.dart';
 
-sealed class ProductDetailState {
+sealed class ProductDetailState extends Equatable {
   const ProductDetailState();
+
+  @override
+  List<Object?> get props => [];
 }
 
 class const ProductDetailLoading() extends ProductDetailState;
 
 class const ProductDetailLoaded(final Product product)
-    extends ProductDetailState;
+    extends ProductDetailState {
+  @override
+  List<Object?> get props => [product];
+}
 
 class const ProductDetailFailed(final String message)
-    extends ProductDetailState;
+    extends ProductDetailState {
+  @override
+  List<Object?> get props => [message];
+}
 
 class ProductDetailController(
   final CatalogRepository _repository,

@@ -6,7 +6,7 @@ abstract final class RoutesConstants {
   static final shellNavigatorKey = GlobalKey<NavigatorState>();
 
   //------------ Route Paths & Names ---------------
-  static const browse = '/';
+  static const home = '/';
   static const product = 'products/:id';
   static const productName = 'product';
   static const cart = '/cart';

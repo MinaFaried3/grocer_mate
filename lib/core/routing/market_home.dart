@@ -16,7 +16,7 @@ class const MarketHome({
   required final Widget child,
 }) extends StatelessWidget {
   static const _tabs = [
-    RoutesConstants.browse,
+    RoutesConstants.home,
     RoutesConstants.cart,
     RoutesConstants.saved,
   ];
@@ -117,7 +117,7 @@ class const MarketHome({
                   const NavigationDestination(
                     icon: Icon(Icons.storefront_outlined),
                     selectedIcon: Icon(Icons.storefront_rounded),
-                    label: 'Browse',
+                    label: 'Home',
                   ),
 
                   //------------ Cart Tab ---------------

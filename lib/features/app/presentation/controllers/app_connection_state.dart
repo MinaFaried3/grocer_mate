@@ -1,15 +1,11 @@
+import 'package:equatable/equatable.dart';
+
 class const AppConnectionState({
   required final bool? connected,
   required final bool offlineMode,
-}) {
+}) extends Equatable {
   bool get online => connected == true && !offlineMode;
 
   @override
-  bool operator ==(Object other) =>
-      other is AppConnectionState &&
-      connected == other.connected &&
-      offlineMode == other.offlineMode;
-
-  @override
-  int get hashCode => Object.hash(connected, offlineMode);
+  List<Object?> get props => [connected, offlineMode];
 }

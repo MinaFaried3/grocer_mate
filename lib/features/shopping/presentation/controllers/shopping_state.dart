@@ -1,3 +1,5 @@
+import 'package:equatable/equatable.dart';
+
 import '../../domain/entities/shopping.dart';
 
 class const ShopState({
@@ -6,7 +8,7 @@ class const ShopState({
   final bool loadError = false,
   final PurchaseReview? review,
   final String? notice,
-}) {
+}) extends Equatable {
   ShopState copyWith({
     ShoppingData? data,
     bool? busy,
@@ -22,4 +24,7 @@ class const ShopState({
     review: clearReview ? null : review ?? this.review,
     notice: clearNotice ? null : notice ?? this.notice,
   );
+
+  @override
+  List<Object?> get props => [data, busy, loadError, review, notice];
 }

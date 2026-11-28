@@ -56,9 +56,9 @@ GoRouter createAppRouter() {
           child: MarketHome(location: state.uri.path, child: child),
         ),
         routes: [
-          //------------ Browse Route ---------------
+          //------------ Home Route ---------------
           GoRoute(
-            path: RoutesConstants.browse,
+            path: RoutesConstants.home,
             builder: (context, state) => CatalogScreen(
               onSettings: () => showSettings(context),
               onProductSelected: (id) => context.goNamed(
@@ -102,7 +102,7 @@ GoRouter createAppRouter() {
           GoRoute(
             path: RoutesConstants.cart,
             builder: (context, state) => CartScreen(
-              onBrowse: () => context.go(RoutesConstants.browse),
+              onBrowse: () => context.go(RoutesConstants.home),
               onSettings: () => showSettings(context),
             ),
           ),
@@ -111,7 +111,7 @@ GoRouter createAppRouter() {
           GoRoute(
             path: RoutesConstants.saved,
             builder: (context, state) => SavedScreen(
-              onBrowse: () => context.go(RoutesConstants.browse),
+              onBrowse: () => context.go(RoutesConstants.home),
               onSettings: () => showSettings(context),
             ),
           ),

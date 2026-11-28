@@ -51,6 +51,7 @@ class _CatalogScreenState() extends State<CatalogScreen> {
     final bloc = context.read<CatalogBloc>();
     return MultiBlocListener(
       listeners: [
+        //i added this to when the connection received the app refresh for the items and qtys
         //------------ Connection Status Listener ---------------
         BlocListener<AppConnectionCubit, AppConnectionState>(
           listenWhen: (before, after) => before.online != after.online,
