@@ -9,16 +9,12 @@ import 'get_it_injector.dart';
 import 'injector.dart';
 
 const _backendUrl = String.fromEnvironment('GROCER_API_BASE_URL');
-final _dependencies = _registerAppDependencies();
+final Injector injector = GetItInjector();
 
 /// Shares app startup across calls. Feature instances resolve on demand.
-Future<Injector> initializeDependencies() => _dependencies;
-
-Future<Injector> _registerAppDependencies() async {
-  final dependencies = GetItInjector();
+Future<void> initializeDependencies() async {
   // A cold deep link needs the initial status before reading the catalog.
-  await dependencies.appConnection.stream.first;
-  return dependencies;
+  await injector.appConnection.stream.first;
 }
 
 extension SharedDependencies on Injector {
