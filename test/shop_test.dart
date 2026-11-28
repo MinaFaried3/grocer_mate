@@ -45,7 +45,7 @@ void main() {
       final storage = _Storage();
       final bloc = ShoppingBloc(
         storage,
-        SubmitPendingPurchase(storage, _Checkout()),
+        SubmitPendingPurchase(storage, _Checkout().purchase),
         connection,
         createPurchaseId: _purchaseId,
       );
@@ -91,7 +91,7 @@ void main() {
     final checkout = _Checkout();
     final first = ShoppingBloc(
       storage,
-      SubmitPendingPurchase(storage, checkout),
+      SubmitPendingPurchase(storage, checkout.purchase),
       connection,
       createPurchaseId: _purchaseId,
     );
@@ -110,7 +110,7 @@ void main() {
 
     final restored = ShoppingBloc(
       storage,
-      SubmitPendingPurchase(storage, checkout),
+      SubmitPendingPurchase(storage, checkout.purchase),
       connection,
       createPurchaseId: () => 'purchase-reviewed',
     );
@@ -165,7 +165,7 @@ void main() {
       final checkout = _Checkout(review: false);
       final bloc = ShoppingBloc(
         storage,
-        SubmitPendingPurchase(storage, checkout),
+        SubmitPendingPurchase(storage, checkout.purchase),
         connection,
         createPurchaseId: _purchaseId,
       );

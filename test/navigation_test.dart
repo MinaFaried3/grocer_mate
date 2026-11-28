@@ -2,12 +2,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:grocer_mate/app/grocer_mate_app.dart';
-import 'package:grocer_mate/app/checkout_settings.dart';
+import 'package:grocer_mate/core/grocer_mate_app.dart';
 import 'package:grocer_mate/core/network/demo/demo_market_client.dart';
 import 'package:grocer_mate/core/network/market_api.dart';
 import 'package:grocer_mate/core/network/app_connection.dart';
 import 'package:grocer_mate/core/network/connectivity_monitor.dart';
+import 'package:grocer_mate/core/settings/checkout_settings.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
 import 'package:grocer_mate/features/catalog/data/cached_catalog.dart';
 import 'package:grocer_mate/features/catalog/data/catalog_remote_data_source.dart';
@@ -73,10 +73,15 @@ void main() {
     addTearDown(
       tester.binding.platformDispatcher.clearDefaultRouteNameTestValue,
     );
-    final router = await _startApp(tester);
+    var catalogCreations = 0;
+    final router = await _startApp(
+      tester,
+      onCreateCatalog: () => catalogCreations++,
+    );
 
     expect(find.widgetWithText(AppBar, 'Milk 2% 1L'), findsOneWidget);
     expect(find.byType(NavigationBar), findsNothing);
+    expect(catalogCreations, 0);
 
     router.go('/products/p_bread_sourdough');
     await tester.pumpAndSettle();
@@ -85,10 +90,37 @@ void main() {
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
     expect(router.routeInformationProvider.value.uri.path, '/');
+    expect(catalogCreations, 1);
     expect(
       tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
       0,
     );
+  });
+
+  testWidgets('defers product and settings factories until their views build', (
+    tester,
+  ) async {
+    var productCreations = 0;
+    var settingsLookups = 0;
+    await _startApp(
+      tester,
+      onCreateProduct: () => productCreations++,
+      onGetCheckoutSettings: () => settingsLookups++,
+    );
+    expect(productCreations, 0);
+    expect(settingsLookups, 0);
+
+    await tester.tap(find.byTooltip('Settings'));
+    expect(settingsLookups, 0);
+    await tester.pumpAndSettle();
+    expect(settingsLookups, greaterThan(0));
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Milk 2% 1L'));
+    expect(productCreations, 0);
+    await tester.pumpAndSettle();
+    expect(productCreations, 1);
   });
 
   testWidgets('retries product details after reconnecting', (tester) async {
@@ -164,7 +196,13 @@ void main() {
   });
 }
 
-Future<GoRouter> _startApp(WidgetTester tester, {bool offline = false}) async {
+Future<GoRouter> _startApp(
+  WidgetTester tester, {
+  bool offline = false,
+  VoidCallback? onCreateCatalog,
+  VoidCallback? onCreateProduct,
+  VoidCallback? onGetCheckoutSettings,
+}) async {
   await tester.binding.setSurfaceSize(const Size(900, 1000));
   addTearDown(() => tester.binding.setSurfaceSize(null));
   final fixtures = await tester.runAsync(
@@ -203,13 +241,21 @@ Future<GoRouter> _startApp(WidgetTester tester, {bool offline = false}) async {
     BlocProvider<AppConnection>.value(
       value: connection,
       child: GrocerMateApp(
-        checkoutSettings: CheckoutSettings(demo),
-        createCatalogBloc: () => CatalogBloc(catalog),
-        createProductDetailController: (id) =>
-            ProductDetailController(catalog, id),
+        getCheckoutSettings: () {
+          onGetCheckoutSettings?.call();
+          return CheckoutSettings(demo);
+        },
+        createCatalogBloc: () {
+          onCreateCatalog?.call();
+          return CatalogBloc(catalog);
+        },
+        createProductDetailController: (id) {
+          onCreateProduct?.call();
+          return ProductDetailController(catalog, id);
+        },
         createShoppingBloc: () => ShoppingBloc(
           shopping,
-          SubmitPendingPurchase(shopping, checkout),
+          SubmitPendingPurchase(shopping, checkout.purchase),
           connection,
           createPurchaseId: () => 'purchase-1',
         ),

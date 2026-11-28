@@ -1,4 +1,4 @@
-import '../core/network/demo/demo_market_client.dart';
+import 'package:grocer_mate/core/network/demo/demo_market_client.dart';
 
 enum CheckoutUpdate(final String label) {
   normal('Normal checkout'),

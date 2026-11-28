@@ -2,6 +2,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'package:grocer_mate/core/settings/checkout_settings.dart';
+import 'package:grocer_mate/core/settings/settings_sheet.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_event.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/product_detail_controller.dart';
@@ -11,12 +13,10 @@ import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_event.dart';
 import 'package:grocer_mate/features/shopping/presentation/ui/screens/shopping_screen.dart';
 
-import 'checkout_settings.dart';
 import 'market_home.dart';
-import 'settings_sheet.dart';
 
 GoRouter createAppRouter({
-  required CheckoutSettings? checkoutSettings,
+  required CheckoutSettings? Function() getCheckoutSettings,
   required CatalogBloc Function() createCatalogBloc,
   required ProductDetailController Function(String id)
   createProductDetailController,
@@ -31,7 +31,7 @@ GoRouter createAppRouter({
       showDragHandle: true,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) => SettingsSheet(settings: checkoutSettings),
+      builder: (_) => SettingsSheet(settings: getCheckoutSettings()),
     );
   }
 
@@ -56,6 +56,7 @@ GoRouter createAppRouter({
                       create: (_) =>
                           createCatalogBloc()..add(const CatalogRefreshed()),
                       child: CatalogScreen(
+                        isVisible: state.uri.path == '/',
                         onSettings: () => showSettings(context),
                         onProductSelected: (id) => context.goNamed(
                           'product',

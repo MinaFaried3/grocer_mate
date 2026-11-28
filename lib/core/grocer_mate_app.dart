@@ -1,18 +1,17 @@
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'package:grocer_mate/core/routing/app_router.dart';
+import 'package:grocer_mate/core/settings/checkout_settings.dart';
 import 'package:grocer_mate/core/theme/market_theme.dart';
+import 'package:grocer_mate/core/widgets/offline_banner.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/product_detail_controller.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
 
-import 'app_router.dart';
-import 'checkout_settings.dart';
-import 'offline_banner.dart';
-
 class const GrocerMateApp({
   super.key,
-  required final CheckoutSettings? checkoutSettings,
+  required final CheckoutSettings? Function() getCheckoutSettings,
   required final CatalogBloc Function() createCatalogBloc,
   required final ProductDetailController Function(String id)
   createProductDetailController,
@@ -24,7 +23,7 @@ class const GrocerMateApp({
 
 class _GrocerMateAppState() extends State<GrocerMateApp> {
   late final GoRouter _router = createAppRouter(
-    checkoutSettings: widget.checkoutSettings,
+    getCheckoutSettings: widget.getCheckoutSettings,
     createCatalogBloc: widget.createCatalogBloc,
     createProductDetailController: widget.createProductDetailController,
     createShoppingBloc: widget.createShoppingBloc,

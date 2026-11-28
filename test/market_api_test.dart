@@ -203,9 +203,10 @@ void main() {
     final localShopping = LocalShoppingRepository(storage);
     final saved = ShoppingData(pending: pending);
     await localShopping.write(saved);
-    final submitted = await SubmitPendingPurchase(localShopping, checkout)(
-      saved,
-    );
+    final submitted = await SubmitPendingPurchase(
+      localShopping,
+      checkout.purchase,
+    )(saved);
     expect(submitted.data.pending, isNull);
     expect(submitted.data.cart.single.product.id, appleId);
     expect(submitted.data.lastOrder?.id, partial.receipt?.id);

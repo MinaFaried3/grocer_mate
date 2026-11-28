@@ -2,7 +2,6 @@ import 'package:grocer_mate/core/network/connection.dart';
 import 'package:grocer_mate/core/use_case.dart';
 
 import '../entities/shopping.dart';
-import '../repositories/checkout_repository.dart';
 import '../repositories/shopping_repository.dart';
 import 'cart_operations.dart';
 
@@ -17,7 +16,7 @@ typedef SubmissionResult = ({
 
 class const SubmitPendingPurchase(
   final ShoppingRepository _storage,
-  final CheckoutRepository _checkout,
+  final Future<PurchaseResult> Function(PendingPurchase) _purchase,
 ) extends UseCase<ShoppingData, Future<SubmissionResult>> {
   @override
   Future<SubmissionResult> call(ShoppingData data) async {
@@ -38,7 +37,7 @@ class const SubmitPendingPurchase(
         await _storage.write(marked);
         persisted = marked;
       }
-      final result = await _checkout.purchase(persisted.pending!);
+      final result = await _purchase(persisted.pending!);
       switch (result) {
         case PurchaseReview():
           return (data: persisted, review: result, failure: null, notice: null);

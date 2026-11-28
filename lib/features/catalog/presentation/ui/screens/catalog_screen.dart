@@ -15,6 +15,7 @@ import '../widgets/product_tile.dart';
 
 class const CatalogScreen({
   super.key,
+  required final bool isVisible,
   required final VoidCallback onSettings,
   required final ValueChanged<String> onProductSelected,
 }) extends StatefulWidget {
@@ -25,6 +26,7 @@ class const CatalogScreen({
 class _CatalogScreenState() extends State<CatalogScreen> {
   final _search = TextEditingController();
   final _scroll = ScrollController();
+  bool _opened = false;
 
   @override
   void initState() {
@@ -47,6 +49,9 @@ class _CatalogScreenState() extends State<CatalogScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // A product deep link can place Browse underneath the product page.
+    if (!_opened && !widget.isVisible) return const SizedBox.shrink();
+    _opened = true;
     final bloc = context.read<CatalogBloc>();
     return MultiBlocListener(
       listeners: [
