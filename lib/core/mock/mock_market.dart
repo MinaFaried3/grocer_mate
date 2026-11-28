@@ -82,15 +82,18 @@ class MockMarket {
     final brandName = brand?.trim().toLowerCase() ?? '';
     final words = (search?.trim().toLowerCase() ?? '').split(RegExp(r'\s+'));
     final products = await _products(await _readMarket());
-    final matching = products
-        .where(
-          (product) =>
-              (categoryId.isEmpty || product['categoryId'] == categoryId) &&
-              (brandName.isEmpty ||
-                  (product['brand'] as String).toLowerCase() == brandName) &&
-              words.every((product['title'] as String).toLowerCase().contains),
-        )
-        .toList();
+    final matching = products.where((product) {
+      // Check category, brand, and search query filters for each product.
+      final matchesCategory =
+          categoryId.isEmpty || product['categoryId'] == categoryId;
+      final matchesBrand =
+          brandName.isEmpty ||
+          (product['brand'] as String).toLowerCase() == brandName;
+      final matchesSearch = words.every(
+        (product['title'] as String).toLowerCase().contains,
+      );
+      return matchesCategory && matchesBrand && matchesSearch;
+    }).toList();
     return {
       'data': page - 1 > matching.length ~/ pageSize
           ? <Json>[]
@@ -157,12 +160,16 @@ class MockMarket {
   Future<Json> purchase(Json body, {String? key}) => _write(() async {
     final market = await _readForWrite();
     final scenario = checkoutScenario;
-    final existing =
+    // Check if this idempotency key already has a saved purchase or receipt.
+    final hasSavedAttempt =
         key != null &&
         (market['purchases'][key] != null || market['receipts'][key] != null);
     final result = await _purchase(market, body, key, scenario: scenario);
     await _storage.write(_marketKey, market);
-    if (!existing && checkoutScenario == scenario) checkoutScenario = 'normal';
+    // Reset one-shot checkout scenario after a fresh purchase attempt completes.
+    final shouldResetScenario =
+        !hasSavedAttempt && checkoutScenario == scenario;
+    if (shouldResetScenario) checkoutScenario = 'normal';
     return result;
   });
 

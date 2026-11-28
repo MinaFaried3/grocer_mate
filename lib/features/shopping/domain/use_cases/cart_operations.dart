@@ -99,7 +99,11 @@ class const CancelPendingPurchase()
   ShoppingData? call(({ShoppingData data, bool underReview}) input) {
     final (:data, :underReview) = input;
     final purchase = data.pending;
-    if (purchase == null || (purchase.attempted && !underReview)) return null;
+    // Prevent canceling an attempted purchase unless it is paused for user review.
+    final isLockedAttempt =
+        purchase != null && purchase.attempted && !underReview;
+    final cannotCancel = purchase == null || isLockedAttempt;
+    if (cannotCancel) return null;
     return .new(
       cart: mergePurchaseLines(data.cart, purchase.lines),
       saved: data.saved,

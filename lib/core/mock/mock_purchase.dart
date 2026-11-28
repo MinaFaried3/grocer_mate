@@ -102,10 +102,12 @@ extension _MockPurchase on MockMarket {
         stock = stock.clamp(0, target);
         _updateAvailability(availability, id, 'stock', stock);
       }
-      if (product != null &&
-          flags['enablePriceRevalidation'] == true &&
-          expectedPrice != null &&
-          expectedPrice != price) {
+      // Record price change when price revalidation is enabled and price differs.
+      final isPriceRevalidationEnabled =
+          product != null && flags['enablePriceRevalidation'] == true;
+      final hasPriceDifference =
+          expectedPrice != null && expectedPrice != price;
+      if (isPriceRevalidationEnabled && hasPriceDifference) {
         changes.add({
           'productId': id,
           'oldPrice': expectedPrice / 100,
@@ -137,8 +139,10 @@ extension _MockPurchase on MockMarket {
       }
       return {'status': 'price_changed', 'changes': changes};
     }
-    if (outOfStock.isNotEmpty &&
-        (rules['allowPartial'] != true || fulfilled.isEmpty)) {
+    // Return out-of-stock review when partial orders are disabled or nothing can be fulfilled.
+    final cannotFulfillPartially =
+        rules['allowPartial'] != true || fulfilled.isEmpty;
+    if (outOfStock.isNotEmpty && cannotFulfillPartially) {
       return {'status': 'out_of_stock', 'items': outOfStock};
     }
 

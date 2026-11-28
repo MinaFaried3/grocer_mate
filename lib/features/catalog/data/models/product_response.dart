@@ -28,12 +28,17 @@ class const ProductResponse({
 
   Product toProduct({Product? summary}) {
     final resolvedImages = images ?? [?image];
-    if (resolvedImages.isEmpty ||
-        resolvedImages.any((item) => item.trim().isEmpty)) {
+    // Require at least one non-empty image URL or asset path.
+    final hasBlankImage = resolvedImages.any((item) => item.trim().isEmpty);
+    final hasInvalidImages = resolvedImages.isEmpty || hasBlankImage;
+    if (hasInvalidImages) {
       throw const FormatException('A product needs a usable image.');
     }
     final resolvedRating = rating ?? summary?.rating ?? 0.0;
-    if (!resolvedRating.isFinite || resolvedRating < 0 || resolvedRating > 5) {
+    // Ensure product rating is a finite number between 0 and 5.
+    final isOutOfRange = resolvedRating < 0 || resolvedRating > 5;
+    final hasInvalidRating = !resolvedRating.isFinite || isOutOfRange;
+    if (hasInvalidRating) {
       throw const FormatException('Product rating must be between 0 and 5.');
     }
     return Product(

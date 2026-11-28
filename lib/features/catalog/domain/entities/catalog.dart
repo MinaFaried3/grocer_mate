@@ -33,13 +33,17 @@ class const Product({
   factory fromJson(Json json) {
     final images = json['images'];
     final rating = json['rating'];
-    if (images is! List ||
+    // Validate that images is a non-empty list of non-blank strings.
+    final hasInvalidImages =
+        images is! List ||
         images.isEmpty ||
-        images.any((image) => image is! String || image.trim().isEmpty) ||
-        rating is! num ||
-        !rating.isFinite ||
-        rating < 0 ||
-        rating > 5) {
+        images.any((image) => image is! String || image.trim().isEmpty);
+
+    // Validate that rating is a finite number between 0 and 5.
+    final hasInvalidRating =
+        rating is! num || !rating.isFinite || rating < 0 || rating > 5;
+
+    if (hasInvalidImages || hasInvalidRating) {
       throw const FormatException('Invalid product data.');
     }
     readText(json, 'id');

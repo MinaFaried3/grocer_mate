@@ -63,10 +63,16 @@ class const MarketHome({
 
         //------------ Order Placed Listener ---------------
         BlocListener<ShoppingBloc, ShopState>(
-          listenWhen: (before, after) =>
-              before.data != null &&
-              before.data?.lastOrder != after.data?.lastOrder &&
-              after.data?.lastOrder != null,
+          listenWhen: (before, after) {
+            // Make sure this is not the initial app load from local storage.
+            final isNotInitialLoad = before.data != null;
+
+            // Check if a new order receipt was just created.
+            final isOrderChanged =
+                before.data?.lastOrder != after.data?.lastOrder &&
+                after.data?.lastOrder != null;
+            return isNotInitialLoad && isOrderChanged;
+          },
           listener: (context, state) {
             if (_currentIndex != 1) {
               ScaffoldMessenger.of(context).showSnackBar(

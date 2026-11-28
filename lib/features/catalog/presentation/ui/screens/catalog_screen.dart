@@ -61,12 +61,19 @@ class _CatalogScreenState() extends State<CatalogScreen> {
         //------------ Shopping Review & Order Listener ---------------
         BlocListener<ShoppingBloc, ShopState>(
           listenWhen: (before, after) {
+            // Check if a new price or stock review arrived.
             final hasNewReview =
                 before.review != after.review && after.review != null;
-            final hasNewOrder =
-                before.data != null &&
+
+            // Make sure this is not the initial app load from local storage.
+            final isNotInitialLoad = before.data != null;
+
+            // Check if a new order receipt was just created.
+            final isOrderChanged =
                 before.data?.lastOrder != after.data?.lastOrder &&
                 after.data?.lastOrder != null;
+            final hasNewOrder = isNotInitialLoad && isOrderChanged;
+
             return hasNewReview || hasNewOrder;
           },
           listener: (_, _) => bloc.add(const CatalogRefreshed()),

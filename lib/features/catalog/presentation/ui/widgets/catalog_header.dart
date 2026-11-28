@@ -19,11 +19,11 @@ class const CatalogHeader({
   Widget build(BuildContext context) {
     final bloc = context.read<CatalogBloc>();
     final theme = context.theme;
-    final landing =
-        state.query.search.isEmpty &&
-        !state.query.deals &&
-        state.query.category == null &&
-        state.query.brand == null;
+    // Show the hero banner only when no search or filter is active.
+    final isSearchEmpty = state.query.search.isEmpty;
+    final hasNoCategoryOrBrand =
+        state.query.category == null && state.query.brand == null;
+    final landing = isSearchEmpty && !state.query.deals && hasNoCategoryOrBrand;
     return SliverPadding(
       padding: const .fromLTRB(20, 15, 20, 17),
       sliver: SliverToBoxAdapter(

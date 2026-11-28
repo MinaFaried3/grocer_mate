@@ -48,6 +48,9 @@ class _ShoppingItemsListState() extends State<ShoppingItemsList> {
         final selected = _selection.intersection(
           lines.map((line) => line.product.id).toSet(),
         );
+        // Show empty state when there are no items and no active pending order in cart.
+        final isCartWithoutPending = saved || data?.pending == null;
+        final showEmptyState = lines.isEmpty && isCartWithoutPending;
         return CustomScrollView(
           key: PageStorageKey(widget.storageKey),
           slivers: [
@@ -94,8 +97,7 @@ class _ShoppingItemsListState() extends State<ShoppingItemsList> {
             else ...[
               //------------ Header Slivers & Empty State ---------------
               ...?widget.headerSlivers?.call(state, data),
-              if (lines.isEmpty && (saved || data.pending == null))
-                SliverToBoxAdapter(child: widget.emptyState),
+              if (showEmptyState) SliverToBoxAdapter(child: widget.emptyState),
 
               if (lines.isNotEmpty) ...[
                 //------------ Selection Controls ---------------

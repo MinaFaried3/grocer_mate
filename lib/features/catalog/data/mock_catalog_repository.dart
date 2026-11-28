@@ -116,9 +116,11 @@ class MockCatalogRepository implements CatalogRepository {
           }
         }
         consumed += result.products.length;
-        if (matches.length >= prices.length ||
-            result.products.isEmpty ||
-            consumed >= result.total) {
+        // Stop scanning pages once all deals are matched or all products are consumed.
+        final foundAllDeals = matches.length >= prices.length;
+        final reachedEndOfCatalog =
+            result.products.isEmpty || consumed >= result.total;
+        if (foundAllDeals || reachedEndOfCatalog) {
           break;
         }
       }
@@ -146,16 +148,25 @@ class MockCatalogRepository implements CatalogRepository {
           query.category == null ||
           product.categoryId.toLowerCase() == query.category!.toLowerCase(),
     );
-    final matching = [
-      for (final product in categoryProducts)
-        if ((query.brand == null ||
-                product.brand.toLowerCase() == query.brand!.toLowerCase()) &&
-            (!query.deals || prices.containsKey(product.id)) &&
-            words.every(product.title.toLowerCase().contains))
+    final matching = <Product>[];
+    for (final product in categoryProducts) {
+      // Match brand filter when provided.
+      final matchesBrand =
+          query.brand == null ||
+          product.brand.toLowerCase() == query.brand!.toLowerCase();
+
+      // Match active deal filter and search keywords.
+      final matchesDeals = !query.deals || prices.containsKey(product.id);
+      final matchesSearch = words.every(product.title.toLowerCase().contains);
+
+      if (matchesBrand && matchesDeals && matchesSearch) {
+        matching.add(
           query.deals
               ? _withCurrentOffer(product, product, price: prices[product.id])
               : product,
-    ];
+        );
+      }
+    }
     return (
       products: _page(matching, page, pageSize),
       total: matching.length,
