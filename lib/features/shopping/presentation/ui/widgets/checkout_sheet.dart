@@ -11,8 +11,7 @@ import 'checkout_change_panel.dart';
 
 Future<void> showCheckoutReview(
   BuildContext context,
-  PendingPurchase pending,
-  PurchaseReview review,
+  CheckoutReviewMemento memento,
 ) {
   final bloc = context.read<ShoppingBloc>();
   return showModalBottomSheet<void>(
@@ -22,8 +21,7 @@ Future<void> showCheckoutReview(
     useSafeArea: true,
     showDragHandle: true,
     builder: (context) => _CheckoutSheet(
-      pending: pending,
-      review: review,
+      memento: memento,
       onSubmit: (quantities) {
         bloc.add(CheckoutAccepted(quantities));
         Navigator.of(context).pop();
@@ -33,8 +31,7 @@ Future<void> showCheckoutReview(
 }
 
 class const _CheckoutSheet({
-  required final PendingPurchase pending,
-  required final PurchaseReview review,
+  required final CheckoutReviewMemento memento,
   required final ValueChanged<Map<String, int>> onSubmit,
 }) extends StatefulWidget {
   @override
@@ -47,10 +44,11 @@ class _CheckoutSheetState() extends State<_CheckoutSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    final memento = widget.memento;
     final changes = {
-      for (final change in widget.review.changes) change.productId: change,
+      for (final change in memento.changes) change.productId: change,
     };
-    final adjusted = widget.review.applyTo(widget.pending.lines, _quantities);
+    final adjusted = memento.resolve(_quantities);
     final totals = OrderTotals.forLines(adjusted);
 
     return SafeArea(
@@ -77,7 +75,7 @@ class _CheckoutSheetState() extends State<_CheckoutSheet> {
                     'Prices or stock changed. Review the updates before placing your order.',
                     style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                   ),
-                  for (final line in widget.pending.lines)
+                  for (final line in memento.lines)
                     if (changes[line.product.id] case final change?) ...[
                       const SizedBox(height: 12),
                       CheckoutChangePanel(

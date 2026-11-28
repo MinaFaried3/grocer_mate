@@ -106,10 +106,10 @@ class ShoppingBloc(
         case PendingRetried():
           if (state.review == null) await _submit(data, emit);
         case PendingCanceled():
-          final restored = _cancelPendingPurchase((
-            data: data,
-            underReview: state.review != null,
-          ));
+          final review = state.review;
+          final restored = review != null
+              ? data.restoreFromMemento(review)
+              : _cancelPendingPurchase((data: data, underReview: false));
           if (restored == null) return;
           await _save(
             restored,
@@ -134,21 +134,18 @@ class ShoppingBloc(
     Map<String, int> quantities,
     Emitter<ShopState> emit,
   ) async {
-    final pending = data.pending;
     final review = state.review;
-    if (pending == null || review == null) return;
-    final lines = review.applyTo(pending.lines, quantities);
-    final updated = ShoppingData(
-      cart: data.cart,
-      saved: data.saved,
-      lastOrder: data.lastOrder,
-      pending: lines.isEmpty ? null : .new(createPurchaseId(), lines),
+    if (data.pending == null || review == null) return;
+    final updated = data.applyReviewMemento(
+      review,
+      quantities,
+      createPurchaseId,
     );
     await _save(
       updated,
       emit,
       clearReview: true,
-      notice: lines.isEmpty
+      notice: updated.pending == null
           ? 'The purchase was canceled because no items remain.'
           : null,
     );

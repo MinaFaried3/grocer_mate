@@ -6,14 +6,14 @@ class const ShopState({
   final ShoppingData? data,
   final bool busy = false,
   final bool loadError = false,
-  final PurchaseReview? review,
+  final CheckoutReviewMemento? review,
   final String? notice,
 }) extends Equatable {
   ShopState copyWith({
     ShoppingData? data,
     bool? busy,
     bool? loadError,
-    PurchaseReview? review,
+    CheckoutReviewMemento? review,
     bool clearReview = false,
     String? notice,
     bool clearNotice = false,

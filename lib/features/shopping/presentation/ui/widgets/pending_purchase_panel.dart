@@ -67,8 +67,7 @@ class const PendingPurchasePanel(final ShopState state, {super.key})
               children: [
                 if (state.review != null)
                   FilledButton.tonal(
-                    onPressed: () =>
-                        showCheckoutReview(context, pending, state.review!),
+                    onPressed: () => showCheckoutReview(context, state.review!),
                     child: const Text('Review changes'),
                   )
                 else if (online)

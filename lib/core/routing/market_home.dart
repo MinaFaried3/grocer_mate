@@ -32,6 +32,7 @@ class const MarketHome({
     final currentIndex = _currentIndex;
     return MultiBlocListener(
       listeners: [
+        //this is for all show notices for all app
         //------------ Notice SnackBar Listener ---------------
         BlocListener<ShoppingBloc, ShopState>(
           listenWhen: (before, after) =>
@@ -55,13 +56,7 @@ class const MarketHome({
             // Let the Cart route settle before showing the review on top of it.
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (!context.mounted) return;
-              unawaited(
-                showCheckoutReview(
-                  context,
-                  state.data!.pending!,
-                  state.review!,
-                ),
-              );
+              unawaited(showCheckoutReview(context, state.review!));
             });
           },
         ),

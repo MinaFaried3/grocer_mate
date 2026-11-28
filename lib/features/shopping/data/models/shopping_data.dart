@@ -2,6 +2,7 @@ import 'package:grocer_mate/core/storage/json_fields.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 import '../../domain/entities/shopping.dart';
+import '../../domain/use_cases/cart_operations.dart';
 
 part 'shopping_data.g.dart';
 
@@ -22,4 +23,27 @@ class const ShoppingData({
     pending: pending,
     lastOrder: lastOrder,
   );
+
+  CheckoutReviewMemento createReviewMemento(PurchaseReview review) =>
+      .new(pending: pending!, review: review);
+
+  ShoppingData restoreFromMemento(CheckoutReviewMemento memento) => .new(
+    cart: mergePurchaseLines(cart, memento.lines),
+    saved: saved,
+    lastOrder: lastOrder,
+  );
+
+  ShoppingData applyReviewMemento(
+    CheckoutReviewMemento memento,
+    Map<String, int> quantities,
+    String Function() createPurchaseId,
+  ) {
+    final lines = memento.resolve(quantities);
+    return .new(
+      cart: cart,
+      saved: saved,
+      lastOrder: lastOrder,
+      pending: lines.isEmpty ? null : .new(createPurchaseId(), lines),
+    );
+  }
 }

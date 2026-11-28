@@ -9,7 +9,7 @@ enum SubmissionFailure { offline, retry }
 
 typedef SubmissionResult = ({
   ShoppingData data,
-  PurchaseReview? review,
+  CheckoutReviewMemento? review,
   SubmissionFailure? failure,
   String? notice,
 });
@@ -40,7 +40,12 @@ class const SubmitPendingPurchase(
       final result = await _purchase(persisted.pending!);
       switch (result) {
         case PurchaseReview():
-          return (data: persisted, review: result, failure: null, notice: null);
+          return (
+            data: persisted,
+            review: persisted.createReviewMemento(result),
+            failure: null,
+            notice: null,
+          );
         case PartialPurchase():
           final completed = ShoppingData(
             cart: mergePurchaseLines(data.cart, result.missing),

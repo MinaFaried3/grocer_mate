@@ -9,6 +9,7 @@ export '../../data/models/pending_purchase.dart';
 export '../../data/models/shopping_data.dart';
 export 'cart_line.dart';
 export 'cart_product.dart';
+export 'checkout_review_memento.dart';
 
 part 'shopping.g.dart';
 

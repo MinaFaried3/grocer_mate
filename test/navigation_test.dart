@@ -199,7 +199,7 @@ void main() {
     await tester.tap(find.text('Queue purchase'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Browse'));
+    await tester.tap(find.text('Home'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Milk 2% 1L'));
     await tester.pumpAndSettle();
