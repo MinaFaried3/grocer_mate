@@ -8,25 +8,25 @@ import 'package:grocer_mate/core/storage/local_storage.dart';
 import '../domain/entities/catalog.dart';
 import '../domain/repositories/catalog_repository.dart';
 import 'catalog_source.dart';
-import 'models/deals_response.dart';
-import 'models/product_response.dart';
+import 'mock_catalog_source.dart';
+import 'models/catalog_cache.dart';
 
 class MockCatalogRepository implements CatalogRepository {
   MockCatalogRepository(this._store, this._isOnline, MockMarket market)
-    : _source = _MockCatalogSource(market);
+    : _source = MockCatalogSource(market);
 
   final LocalStorage _store;
   final bool Function() _isOnline;
   final CatalogSource _source;
 
   static const _key = 'catalog_v2';
-  Future<_CatalogCache>? _cache;
-  Future<_CatalogCache> get _saved => _cache ??= _load();
+  Future<CatalogCache>? _cache;
+  Future<CatalogCache> get _saved => _cache ??= _load();
 
-  Future<_CatalogCache> _load() async {
+  Future<CatalogCache> _load() async {
     try {
       final json = await _store.read(_key);
-      return json == null ? _CatalogCache() : _CatalogCache.fromJson(json);
+      return json == null ? CatalogCache() : CatalogCache.fromJson(json);
     } catch (_) {
       _cache = null;
       rethrow;
@@ -82,14 +82,14 @@ class MockCatalogRepository implements CatalogRepository {
   }
 
   Future<({List<Product> products, int total})> _dealsPage(
-    _CatalogCache cache,
+    CatalogCache cache,
     CatalogQuery query,
     int page,
     int pageSize,
   ) async {
     final deals = await _source.dealsOfDay();
     final now = DateTime.now().toUtc();
-    final offers = <String, _Deal>{
+    final offers = <String, CachedDeal>{
       for (final item in deals.items)
         requireText(item.productId, 'productId'): (
           price: requireCents(item.dealPrice, 'dealPrice'),
@@ -129,7 +129,7 @@ class MockCatalogRepository implements CatalogRepository {
   }
 
   CatalogPage _offlinePage(
-    _CatalogCache cache,
+    CatalogCache cache,
     CatalogQuery query,
     int page,
     int pageSize,
@@ -204,44 +204,7 @@ class MockCatalogRepository implements CatalogRepository {
   }
 }
 
-class const _MockCatalogSource(final MockMarket _market)
-    implements CatalogSource {
-  @override
-  Future<List<Category>> categories() async =>
-      CatalogSource.parseCategories(await _market.categories());
-
-  @override
-  Future<List<String>> brands(String? category) async =>
-      CatalogSource.parseBrands(await _market.brands(category), category);
-
-  @override
-  Future<({List<Product> products, int total})> products(
-    CatalogQuery query, {
-    required int page,
-    required int pageSize,
-  }) async => CatalogSource.parseProductPage(
-    await _market.products(
-      category: query.category,
-      brand: query.brand,
-      search: query.search,
-      page: page,
-      pageSize: pageSize,
-    ),
-  );
-
-  @override
-  Future<Product> detail(String id, {Product? summary}) async =>
-      ProductResponse.fromJson(await _market.product(id))
-          .toProduct(summary: summary);
-
-  @override
-  Future<DealsResponse> dealsOfDay() async =>
-      DealsResponse.fromJson(await _market.dealsOfDay());
-}
-
-typedef _Deal = ({int price, DateTime endsAt});
-
-Product _withActiveDeal(Product product, _Deal? deal) =>
+Product _withActiveDeal(Product product, CachedDeal? deal) =>
     deal != null && deal.endsAt.isAfter(DateTime.now().toUtc())
     ? _withCurrentOffer(product, product, price: deal.price)
     : product;
@@ -270,51 +233,3 @@ Product _withCurrentOffer(Product detail, Product current, {int? price}) =>
       allergens: detail.allergens,
       related: detail.related,
     );
-
-class _CatalogCache {
-  List<Category>? categories;
-  final brands = <String, List<String>>{};
-  final products = <String, Product>{};
-  final details = <String, Product>{};
-  Map<String, _Deal> deals = {};
-
-  _CatalogCache();
-
-  _CatalogCache.fromJson(Json json) {
-    if (json['categories'] case final List saved) {
-      categories = [for (final item in saved) Category.fromJson(item as Json)];
-    }
-    for (final entry in (json['brands'] as Map? ?? {}).entries) {
-      brands[entry.key] = (entry.value as List).cast<String>();
-    }
-    for (final item in json['products'] as List? ?? []) {
-      final product = Product.fromJson(item as Json);
-      products[product.id] = product;
-    }
-    for (final item in json['details'] as List? ?? []) {
-      final product = Product.fromJson(item as Json);
-      details[product.id] = product;
-    }
-    for (final Json item in json['deals'] as List? ?? []) {
-      deals[readText(item, 'id')] = (
-        price: readInt(item, 'price'),
-        endsAt: DateTime.parse(readText(item, 'endsAt')),
-      );
-    }
-  }
-
-  Json toJson() => {
-    'categories': categories?.map((item) => item.toJson()).toList(),
-    'brands': brands,
-    'products': [for (final item in products.values) item.toJson()],
-    'details': [for (final item in details.values) item.toJson()],
-    'deals': [
-      for (final MapEntry(:key, :value) in deals.entries)
-        {
-          'id': key,
-          'price': value.price,
-          'endsAt': value.endsAt.toIso8601String(),
-        },
-    ],
-  };
-}

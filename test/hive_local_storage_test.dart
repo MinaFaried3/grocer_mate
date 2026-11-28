@@ -81,4 +81,41 @@ void main() {
       expect((await offline.detail(productId)).description, detail.description);
     },
   );
+
+  test('reads the existing catalog cache format with deals offline', () async {
+    const dealPrice = 99;
+    const description = 'Cached product details';
+    const query = (category: 'dairy', brand: null, search: '', deals: true);
+    final endsAt = DateTime.now().toUtc().add(const Duration(days: 1));
+
+    await storage.write('catalog_v2', {
+      'categories': [
+        {'id': 'dairy', 'name': 'Dairy', 'icon': 'milk'},
+      ],
+      'brands': {
+        'dairy': [milk.brand],
+      },
+      'products': [milk.toJson()],
+      'details': [
+        {...milk.toJson(), 'description': description},
+      ],
+      'deals': [
+        {'id': milk.id, 'price': dealPrice, 'endsAt': endsAt.toIso8601String()},
+      ],
+    });
+    final offline = MockCatalogRepository(
+      storage,
+      () => false,
+      MockMarket(storage, (path) => File(path).readAsString()),
+    );
+
+    final page = await offline.browse(query, page: 1, pageSize: 3);
+    expect(page.categories.single.name, 'Dairy');
+    expect(page.brands, [milk.brand]);
+    expect(page.products.single.price, dealPrice);
+
+    final detail = await offline.detail(milk.id);
+    expect(detail.price, dealPrice);
+    expect(detail.description, description);
+  });
 }
