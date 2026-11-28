@@ -89,7 +89,6 @@ class _CatalogScreenState() extends State<CatalogScreen> {
       child: BlocBuilder<CatalogBloc, CatalogState>(
         builder: (context, state) {
           return CustomScrollView(
-            key: const PageStorageKey('catalog'),
             controller: _scroll,
             physics: const AlwaysScrollableScrollPhysics(),
             keyboardDismissBehavior: .onDrag,
