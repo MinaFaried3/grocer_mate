@@ -24,25 +24,20 @@ class _GrocerMateAppState() extends State<GrocerMateApp> {
   }
 
   @override
-  Widget build(BuildContext context) =>
-      //------------ App Connection Provider ---------------
-      BlocProvider<AppConnectionCubit>.value(
-        value: injector.appConnection,
-        child: MaterialApp.router(
-          routerConfig: _router,
-          debugShowCheckedModeBanner: false,
-          title: 'GrocerMate',
-          theme: MarketThemeFactory.light.build(),
-          darkTheme: MarketThemeFactory.dark.build(),
-          builder: (context, child) => Column(
-            children: [
-              //------------ Offline Banner ---------------
-              const OfflineBanner(),
-
-              //------------ App Content ---------------
-              Expanded(child: child!),
-            ],
-          ),
-        ),
-      );
+  Widget build(BuildContext context) => BlocProvider<AppConnectionCubit>.value(
+    value: injector.appConnection,
+    child: MaterialApp.router(
+      routerConfig: _router,
+      debugShowCheckedModeBanner: false,
+      title: 'GrocerMate',
+      theme: MarketThemeFactory.light.build(),
+      darkTheme: MarketThemeFactory.dark.build(),
+      builder: (context, child) => Column(
+        children: [
+          const OfflineBanner(),
+          Expanded(child: child!),
+        ],
+      ),
+    ),
+  );
 }

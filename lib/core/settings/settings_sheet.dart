@@ -29,8 +29,11 @@ class _SettingsSheetState() extends State<SettingsSheet> {
           crossAxisAlignment: .stretch,
           mainAxisSize: .min,
           children: [
+            //------------ Header ---------------
             Text('Settings', style: textTheme.headlineSmall),
             const SizedBox(height: 10),
+
+            //------------ Checkout Update Options ---------------
             if (settings != null) ...[
               Text('Changes for next checkout', style: textTheme.titleSmall),
               RadioGroup<CheckoutUpdate>(
@@ -56,6 +59,8 @@ class _SettingsSheetState() extends State<SettingsSheet> {
               ),
               const SizedBox(height: 8),
             ],
+
+            //------------ Offline Mode Toggle ---------------
             BlocSelector<AppConnectionCubit, AppConnectionState, bool>(
               selector: (state) => state.offlineMode,
               builder: (context, offlineMode) => SwitchListTile(
@@ -72,6 +77,8 @@ class _SettingsSheetState() extends State<SettingsSheet> {
               ),
             ),
             const SizedBox(height: 6),
+
+            //------------ Done Action ---------------
             FilledButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('Done'),

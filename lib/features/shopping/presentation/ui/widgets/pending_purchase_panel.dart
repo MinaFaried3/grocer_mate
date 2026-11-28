@@ -24,6 +24,7 @@ class const PendingPurchasePanel(final ShopState state, {super.key})
       child: Column(
         crossAxisAlignment: .start,
         children: [
+          //------------ Status Header ---------------
           Row(
             children: [
               Icon(
@@ -48,11 +49,15 @@ class const PendingPurchasePanel(final ShopState state, {super.key})
             ],
           ),
           const SizedBox(height: 6),
+
+          //------------ Pending Items Summary ---------------
           Text(
             pending.lines
                 .map((line) => '${line.quantity} × ${line.product.title}')
                 .join(' · '),
           ),
+
+          //------------ Progress or Actions ---------------
           if (state.busy) ...[
             const SizedBox(height: 12),
             const LinearProgressIndicator(),

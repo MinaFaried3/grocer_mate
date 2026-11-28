@@ -6,12 +6,14 @@ import '../../controllers/app_connection_cubit.dart';
 class const OfflineBanner({super.key}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    //------------ Offline State Check ---------------
     final offline = context.select((AppConnectionCubit connection) {
       final state = connection.state;
       return state.offlineMode || state.connected == false;
     });
     if (!offline) return const SizedBox.shrink();
 
+    //------------ Offline Banner View ---------------
     final colors = Theme.of(context).colorScheme;
     return Semantics(
       liveRegion: true,

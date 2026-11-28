@@ -22,6 +22,7 @@ class const CheckoutChangePanel({
       child: Column(
         crossAxisAlignment: .start,
         children: [
+          //------------ Product Title & Price/Stock Notices ---------------
           Text(line.product.title, style: theme.textTheme.titleMedium),
           if (change.priceChanged(line))
             Text(
@@ -34,6 +35,8 @@ class const CheckoutChangePanel({
                   : 'Only ${change.available} available · you requested ${line.quantity}',
               style: TextStyle(color: theme.colorScheme.error),
             ),
+
+          //------------ Quantity Adjustment & Keep/Remove Controls ---------------
           if (maxQuantity > 0)
             Row(
               children: [

@@ -56,12 +56,16 @@ class _CatalogScreenState() extends State<CatalogScreen> {
       _opened = true;
       _search.text = bloc.state.query.search;
     }
+
     return MultiBlocListener(
       listeners: [
+        //------------ Connection Status Listener ---------------
         BlocListener<AppConnectionCubit, AppConnectionState>(
           listenWhen: (before, after) => before.online != after.online,
           listener: (_, _) => bloc.add(const CatalogRefreshed()),
         ),
+
+        //------------ Shopping Review & Order Listener ---------------
         BlocListener<ShoppingBloc, ShopState>(
           listenWhen: (before, after) =>
               (before.review != after.review && after.review != null) ||
@@ -90,11 +94,14 @@ class _CatalogScreenState() extends State<CatalogScreen> {
             physics: const AlwaysScrollableScrollPhysics(),
             keyboardDismissBehavior: .onDrag,
             slivers: [
+              //------------ Catalog Header ---------------
               CatalogHeader(
                 state: state,
                 searchController: _search,
                 onSettings: widget.onSettings,
               ),
+
+              //------------ Empty or Error State ---------------
               if (state.products.isEmpty)
                 SliverToBoxAdapter(
                   child: state.loading
@@ -118,6 +125,7 @@ class _CatalogScreenState() extends State<CatalogScreen> {
                         ),
                 )
               else ...[
+                //------------ Products Grid ---------------
                 SliverPadding(
                   padding: const .symmetric(horizontal: 20),
                   sliver: SliverGrid(
@@ -140,6 +148,8 @@ class _CatalogScreenState() extends State<CatalogScreen> {
                     }, childCount: state.products.length),
                   ),
                 ),
+
+                //------------ Pagination Footer ---------------
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const .fromLTRB(20, 14, 20, 24),

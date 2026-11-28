@@ -14,6 +14,7 @@ class const OrderReceiptPanel(final OrderReceipt order, {super.key})
     return MarketPanel(
       child: Row(
         children: [
+          //------------ Check Avatar ---------------
           CircleAvatar(
             radius: 20,
             backgroundColor: colors.primaryContainer,
@@ -21,6 +22,8 @@ class const OrderReceiptPanel(final OrderReceipt order, {super.key})
             child: const Icon(Icons.check_rounded),
           ),
           const SizedBox(width: 12),
+
+          //------------ Receipt Details ---------------
           Expanded(
             child: Column(
               crossAxisAlignment: .start,

@@ -11,12 +11,15 @@ class const ProductScreen({super.key}) extends StatelessWidget {
   Widget build(BuildContext context) =>
       BlocBuilder<ProductDetailController, ProductDetailState>(
         builder: (context, state) => Scaffold(
+          //------------ App Bar ---------------
           appBar: AppBar(
             title: Text(switch (state) {
               ProductDetailLoaded(:final product) => product.title,
               _ => 'Product details',
             }),
           ),
+
+          //------------ Product Body ---------------
           body: switch (state) {
             ProductDetailLoading() => const Center(
               child: CircularProgressIndicator(),

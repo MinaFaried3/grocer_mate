@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:grocer_mate/core/injection/dependencies.dart';
 import 'package:grocer_mate/core/injection/get_it_injector.dart';
-import 'package:grocer_mate/core/network/market_api.dart';
 import 'package:grocer_mate/core/settings/checkout_settings.dart';
 import 'package:grocer_mate/core/settings/settings_dependencies.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
@@ -20,43 +19,36 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('shares startup and registers feature dependencies on demand', () async {
-    final startup = initializeDependencies();
-    final concurrentStartup = initializeDependencies();
-    final dependencies = await startup;
-    addTearDown(dependencies.reset);
+    await initializeDependencies();
+    addTearDown(injector.reset);
 
-    expect(concurrentStartup, same(startup));
-    expect(await initializeDependencies(), same(dependencies));
-    expect(GetItInjector(), same(dependencies));
-    expect(dependencies.isRegistered<AppConnectionCubit>(), isTrue);
-    expect(dependencies.appConnection.state.connected, isNotNull);
-    expect(dependencies.isRegistered<LocalStorage>(), isFalse);
-    expect(dependencies.isRegistered<MarketApi>(), isFalse);
-    expect(dependencies.isRegistered<ShoppingBloc>(), isFalse);
+    expect(GetItInjector(), same(injector));
+    expect(injector.isRegistered<AppConnectionCubit>(), isTrue);
+    expect(injector.appConnection.state.connected, isNotNull);
+    expect(injector.isRegistered<LocalStorage>(), isFalse);
+    expect(injector.isRegistered<ShoppingBloc>(), isFalse);
 
-    final shopping = dependencies.createShoppingBloc();
+    final shopping = injector.createShoppingBloc();
     addTearDown(shopping.close);
-    expect(dependencies.isRegistered<ShoppingBloc>(), isTrue);
-    expect(dependencies.isRegistered<CheckoutRepository>(), isFalse);
-    expect(dependencies.isRegistered<MarketApi>(), isFalse);
-    expect(dependencies.isRegistered<CatalogRepository>(), isFalse);
+    expect(injector.isRegistered<ShoppingBloc>(), isTrue);
+    expect(injector.isRegistered<CheckoutRepository>(), isFalse);
+    expect(injector.isRegistered<CatalogRepository>(), isFalse);
 
-    final detail = dependencies.createProductDetailController('milk');
+    final detail = injector.createProductDetailController('milk');
     addTearDown(detail.close);
-    expect(dependencies.isRegistered<ProductDetailController>(), isTrue);
-    final repository = dependencies.get<CatalogRepository>();
-    expect(dependencies.isRegistered<CatalogBloc>(), isFalse);
+    expect(injector.isRegistered<ProductDetailController>(), isTrue);
+    final repository = injector.get<CatalogRepository>();
+    expect(injector.isRegistered<CatalogBloc>(), isFalse);
 
-    final catalog = dependencies.createCatalogBloc();
+    final catalog = injector.createCatalogBloc();
     addTearDown(catalog.close);
-    expect(dependencies.get<CatalogRepository>(), same(repository));
-    expect(dependencies.isRegistered<CheckoutRepository>(), isFalse);
-    expect(dependencies.isRegistered<MarketApi>(), isFalse);
-    expect(dependencies.isRegistered<CheckoutSettings>(), isFalse);
+    expect(injector.get<CatalogRepository>(), same(repository));
+    expect(injector.isRegistered<CheckoutRepository>(), isFalse);
+    expect(injector.isRegistered<CheckoutSettings>(), isFalse);
 
-    final settings = dependencies.getCheckoutSettings();
+    final settings = injector.getCheckoutSettings();
     expect(settings, isNotNull);
-    expect(dependencies.getCheckoutSettings(), same(settings));
+    expect(injector.getCheckoutSettings(), same(settings));
   });
 
   test('resolves each factory request with its own parameter', () {

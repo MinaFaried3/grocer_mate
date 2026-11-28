@@ -28,6 +28,7 @@ class const ShoppingLineTile({
       padding: const .fromLTRB(12, 10, 8, 8),
       child: Column(
         children: [
+          //------------ Product Info & Remove Row ---------------
           Row(
             crossAxisAlignment: .center,
             children: [
@@ -70,6 +71,8 @@ class const ShoppingLineTile({
                 ),
             ],
           ),
+
+          //------------ Quantity & Move Actions ---------------
           if (!selecting)
             Wrap(
               alignment: .spaceBetween,

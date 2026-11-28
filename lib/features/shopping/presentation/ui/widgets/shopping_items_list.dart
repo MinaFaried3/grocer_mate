@@ -51,6 +51,7 @@ class _ShoppingItemsListState() extends State<ShoppingItemsList> {
         return CustomScrollView(
           key: PageStorageKey(widget.storageKey),
           slivers: [
+            //------------ Screen Header & Settings ---------------
             SliverPadding(
               padding: const .fromLTRB(20, 16, 20, 10),
               sliver: SliverToBoxAdapter(
@@ -71,6 +72,8 @@ class _ShoppingItemsListState() extends State<ShoppingItemsList> {
                 ),
               ),
             ),
+
+            //------------ Loading or Error State ---------------
             if (data == null)
               SliverToBoxAdapter(
                 child: state.loadError
@@ -89,10 +92,13 @@ class _ShoppingItemsListState() extends State<ShoppingItemsList> {
                       ),
               )
             else ...[
+              //------------ Header Slivers & Empty State ---------------
               ...?widget.headerSlivers?.call(state, data),
               if (lines.isEmpty && (saved || data.pending == null))
                 SliverToBoxAdapter(child: widget.emptyState),
+
               if (lines.isNotEmpty) ...[
+                //------------ Selection Controls ---------------
                 SliverPadding(
                   padding: const .fromLTRB(20, 0, 20, 8),
                   sliver: SliverToBoxAdapter(
@@ -117,6 +123,8 @@ class _ShoppingItemsListState() extends State<ShoppingItemsList> {
                     ),
                   ),
                 ),
+
+                //------------ Bulk Selection Actions ---------------
                 if (_selecting)
                   SliverPadding(
                     padding: const .fromLTRB(20, 0, 20, 10),
@@ -156,6 +164,8 @@ class _ShoppingItemsListState() extends State<ShoppingItemsList> {
                       ),
                     ),
                   ),
+
+                //------------ Items Sliver List ---------------
                 SliverPadding(
                   padding: const .symmetric(horizontal: 20),
                   sliver: SliverList.separated(
@@ -181,6 +191,8 @@ class _ShoppingItemsListState() extends State<ShoppingItemsList> {
                     },
                   ),
                 ),
+
+                //------------ Footer Section ---------------
                 if (widget.footer != null)
                   SliverPadding(
                     padding: const .fromLTRB(20, 16, 20, 24),

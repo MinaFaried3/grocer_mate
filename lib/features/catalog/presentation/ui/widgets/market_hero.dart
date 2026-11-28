@@ -16,10 +16,13 @@ class const MarketHero({super.key, required final VoidCallback onDeals})
             final wide = constraints.maxWidth >= 640;
             return Stack(
               children: [
+                //------------ Background Image ---------------
                 Positioned.fill(
                   left: constraints.maxWidth * (wide ? .32 : .33),
                   child: const ProductPhoto('assets/photos/market.webp'),
                 ),
+
+                //------------ Gradient Overlay ---------------
                 Positioned.fill(
                   child: DecoratedBox(
                     decoration: BoxDecoration(
@@ -35,6 +38,8 @@ class const MarketHero({super.key, required final VoidCallback onDeals})
                     ),
                   ),
                 ),
+
+                //------------ Hero Headline & Action ---------------
                 Padding(
                   padding: .symmetric(horizontal: wide ? 30 : 17, vertical: 19),
                   child: Column(

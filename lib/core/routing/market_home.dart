@@ -32,6 +32,7 @@ class const MarketHome({
     final currentIndex = _currentIndex;
     return MultiBlocListener(
       listeners: [
+        //------------ Notice SnackBar Listener ---------------
         BlocListener<ShoppingBloc, ShopState>(
           listenWhen: (before, after) =>
               before.notice != after.notice && after.notice != null,
@@ -44,6 +45,8 @@ class const MarketHome({
               ),
             ),
         ),
+
+        //------------ Checkout Review Listener ---------------
         BlocListener<ShoppingBloc, ShopState>(
           listenWhen: (before, after) =>
               before.review != after.review && after.review != null,
@@ -62,6 +65,8 @@ class const MarketHome({
             });
           },
         ),
+
+        //------------ Order Placed Listener ---------------
         BlocListener<ShoppingBloc, ShopState>(
           listenWhen: (before, after) =>
               before.data != null &&
@@ -79,6 +84,7 @@ class const MarketHome({
         ),
       ],
       child: Scaffold(
+        //------------ Body ---------------
         body: SafeArea(
           bottom: false,
           child: Center(
@@ -90,6 +96,8 @@ class const MarketHome({
             ),
           ),
         ),
+
+        //------------ Bottom Navigation Bar ---------------
         bottomNavigationBar:
             BlocSelector<ShoppingBloc, ShopState, ({int cart, int saved})>(
               selector: (state) => (
@@ -105,11 +113,14 @@ class const MarketHome({
                 selectedIndex: currentIndex,
                 onDestinationSelected: (index) => context.go(_tabs[index]),
                 destinations: [
+                  //------------ Browse Tab ---------------
                   const NavigationDestination(
                     icon: Icon(Icons.storefront_outlined),
                     selectedIcon: Icon(Icons.storefront_rounded),
                     label: 'Browse',
                   ),
+
+                  //------------ Cart Tab ---------------
                   NavigationDestination(
                     icon: Badge.count(
                       count: count.cart,
@@ -118,6 +129,8 @@ class const MarketHome({
                     ),
                     label: 'Cart',
                   ),
+
+                  //------------ Saved Tab ---------------
                   NavigationDestination(
                     icon: Badge.count(
                       count: count.saved,

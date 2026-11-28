@@ -40,6 +40,7 @@ class const ProductTile({
         child: Column(
           crossAxisAlignment: .start,
           children: [
+            //------------ Product Image & Badge ---------------
             SizedBox(
               height: 119,
               width: double.infinity,
@@ -73,6 +74,8 @@ class const ProductTile({
                 ],
               ),
             ),
+
+            //------------ Product Info & Add Button ---------------
             Expanded(
               child: Padding(
                 padding: const .fromLTRB(10, 8, 7, 5),

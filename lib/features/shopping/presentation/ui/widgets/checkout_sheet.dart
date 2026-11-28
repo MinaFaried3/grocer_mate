@@ -62,6 +62,7 @@ class _CheckoutSheetState() extends State<_CheckoutSheet> {
         child: Column(
           mainAxisSize: .min,
           children: [
+            //------------ Review Changes List ---------------
             Flexible(
               child: ListView(
                 shrinkWrap: true,
@@ -94,6 +95,8 @@ class _CheckoutSheetState() extends State<_CheckoutSheet> {
                 ],
               ),
             ),
+
+            //------------ Submit Action ---------------
             Padding(
               padding: const .fromLTRB(20, 6, 20, 14),
               child: SizedBox(

@@ -30,6 +30,7 @@ class const CatalogHeader({
         child: Column(
           crossAxisAlignment: .start,
           children: [
+            //------------ Top Bar & Settings ---------------
             Row(
               children: [
                 Container(
@@ -57,6 +58,8 @@ class const CatalogHeader({
               ],
             ),
             const SizedBox(height: 17),
+
+            //------------ Search Bar ---------------
             ListenableBuilder(
               listenable: searchController,
               builder: (context, _) => TextField(
@@ -80,6 +83,8 @@ class const CatalogHeader({
                 ),
               ),
             ),
+
+            //------------ Market Hero Banner ---------------
             if (landing) ...[
               const SizedBox(height: 16),
               SizedBox(
@@ -90,6 +95,8 @@ class const CatalogHeader({
               ),
             ],
             const SizedBox(height: 18),
+
+            //------------ Category Filters ---------------
             Text('Shop by category', style: theme.textTheme.titleLarge),
             const SizedBox(height: 9),
             SingleChildScrollView(
@@ -115,6 +122,8 @@ class const CatalogHeader({
               ),
             ),
             const SizedBox(height: 15),
+
+            //------------ Section Title & Brand Filter ---------------
             Row(
               children: [
                 Expanded(
@@ -145,6 +154,8 @@ class const CatalogHeader({
                   ),
               ],
             ),
+
+            //------------ Deals Chip & Product Count ---------------
             if (state.query.deals)
               InputChip(
                 label: const Text('On sale'),

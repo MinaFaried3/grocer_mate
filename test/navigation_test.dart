@@ -279,12 +279,7 @@ Future<GoRouter> _startApp(
     );
   tracking = true;
 
-  await tester.pumpWidget(
-    BlocProvider<AppConnectionCubit>.value(
-      value: connection,
-      child: const GrocerMateApp(),
-    ),
-  );
+  await tester.pumpWidget(const GrocerMateApp());
   await tester.pumpAndSettle();
   return tester.widget<MaterialApp>(find.byType(MaterialApp)).routerConfig!
       as GoRouter;

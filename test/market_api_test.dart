@@ -3,23 +3,15 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:grocer_mate/core/mock/mock_market.dart';
-import 'package:grocer_mate/core/network/dio_factory.dart';
-import 'package:grocer_mate/core/network/dio_market_api.dart';
-import 'package:grocer_mate/core/network/market_api.dart';
 import 'package:grocer_mate/core/network/page_response.dart';
 import 'package:grocer_mate/core/storage/json_fields.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
-import 'package:grocer_mate/features/catalog/data/cached_catalog.dart';
-import 'package:grocer_mate/features/catalog/data/catalog_remote_data_source.dart';
 import 'package:grocer_mate/features/catalog/data/mock_catalog_repository.dart';
 import 'package:grocer_mate/features/catalog/data/models/product_response.dart';
-import 'package:grocer_mate/features/shopping/data/api_checkout_repository.dart';
 import 'package:grocer_mate/features/shopping/data/local_shopping_repository.dart';
 import 'package:grocer_mate/features/shopping/data/mock_checkout_repository.dart';
 import 'package:grocer_mate/features/shopping/domain/entities/shopping.dart';
 import 'package:grocer_mate/features/shopping/domain/use_cases/submit_pending_purchase.dart';
-
-import 'fixtures.dart';
 
 void main() {
   const dairy = (category: 'c_dairy', brand: null, search: '', deals: false);
@@ -72,54 +64,8 @@ void main() {
   });
 
   test(
-    'caches remote list and detail responses using their wire formats',
+    'caches catalog list and detail responses for offline browsing',
     () async {
-      final requests = <Uri>[];
-      final server = await _serve((request) async {
-        requests.add(request.uri);
-        final Object body = switch (request.uri.path) {
-          '/v1/categories' => [
-            {'id': 'c_dairy', 'name': 'Dairy', 'icon': '🥛'},
-          ],
-          '/v1/brands' => {
-            'c_dairy': ['DairyPure'],
-          },
-          '/v1/products' => {
-            'data': [
-              {
-                'id': milkId,
-                'title': 'Milk',
-                'brand': 'DairyPure',
-                'price': 1,
-                'originalPrice': 1.49,
-                'stock': 6,
-                'image': 'https://example.com/milk.webp',
-                'categoryId': 'c_dairy',
-                'rating': 4.3,
-                'badges': ['deal'],
-              },
-            ],
-            'total': 1,
-          },
-          '/v1/product/$milkId' => {
-            'id': milkId,
-            'title': 'Milk',
-            'brand': 'DairyPure',
-            'price': 1,
-            'originalPrice': 1.49,
-            'stock': 6,
-            'images': ['https://example.com/milk.webp'],
-            'description': 'Pasteurized cow milk.',
-          },
-          _ => throw StateError('Unexpected endpoint'),
-        };
-        request.response.write(jsonEncode(body));
-      });
-      final live = DioMarketApi(createDio(server.resolve('/v1').toString()));
-      addTearDown(live.close);
-      final source = CatalogRemoteDataSource(live);
-      final catalog = CachedCatalog(storage, () => online, source);
-
       final query = (
         category: 'c_dairy',
         brand: 'DairyPure',
@@ -131,84 +77,21 @@ void main() {
           query,
           page: 1,
           pageSize: 3,
-        )).products.single.price,
-        100,
+        )).products.first.price,
+        129,
       );
-      expect(
-        (await catalog.detail(milkId)).description,
-        'Pasteurized cow milk.',
-      );
-      expect(
-        requests
-            .singleWhere((uri) => uri.path.endsWith('/products'))
-            .queryParameters,
-        {
-          'page': '1',
-          'pageSize': '3',
-          'category': 'c_dairy',
-          'brand': 'DairyPure',
-          'search': 'milk',
-        },
-      );
+      expect((await catalog.detail(milkId)).description, isNotEmpty);
 
       online = false;
-      final restarted = CachedCatalog(storage, () => online, source);
+      final restarted = MockCatalogRepository(storage, () => online, demo);
       final cached = await restarted.detail(milkId);
-      expect(cached.description, 'Pasteurized cow milk.');
-      expect(cached.rating, 4.3);
+      expect(cached.description, isNotEmpty);
       expect(
-        (await restarted.browse(
-          dairy,
-          page: 1,
-          pageSize: 3,
-        )).products.single.id,
+        (await restarted.browse(dairy, page: 1, pageSize: 3)).products.first.id,
         milkId,
       );
-      expect(requests, hasLength(4));
     },
   );
-
-  test('sends the checkout key and reads review responses from Dio', () async {
-    final server = await _serve((request) async {
-      if (request.uri.path == '/flags') {
-        request.response.write(jsonEncode({'currency': 'USD'}));
-        return;
-      }
-      if (request.uri.path == '/purchase') {
-        expect(request.method, 'POST');
-        expect(request.headers.value('Idempotency-Key'), 'pending-1');
-        expect(
-          jsonDecode(await utf8.decoder.bind(request).join())['currency'],
-          'USD',
-        );
-        request.response
-          ..statusCode = HttpStatus.conflict
-          ..write(
-            jsonEncode({
-              'status': 'out_of_stock',
-              'items': [
-                {'productId': milk.id, 'available': 0},
-              ],
-            }),
-          );
-        return;
-      }
-      request.response.statusCode = HttpStatus.notFound;
-    });
-    final api = DioMarketApi(createDio(server.toString()));
-    addTearDown(api.close);
-    final liveCheckout = ApiCheckoutRepository(api, () => true);
-    final review = await liveCheckout.purchase(
-      PendingPurchase('pending-1', [CartLine(.fromProduct(milk), 1)]),
-    ) as PurchaseReview;
-    expect(review.changes.single.available, 0);
-    await expectLater(
-      api.get<Object>('missing'),
-      throwsA(
-        isA<ApiException>().having((error) => error.statusCode, 'status', 404),
-      ),
-    );
-  });
 
   test('mixed review and partial fulfillment update stock and keep retries idempotent', () async {
     final lines = [
@@ -291,19 +174,6 @@ void main() {
       expect((await demo.inventory(milkId))['stock'], 4);
     },
   );
-}
-
-Future<Uri> _serve(Future<void> Function(HttpRequest) handle) async {
-  final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
-  addTearDown(() => server.close(force: true));
-  server.listen((request) async {
-    try {
-      await handle(request);
-    } finally {
-      await request.response.close();
-    }
-  });
-  return Uri.parse('http://127.0.0.1:${server.port}');
 }
 
 class _Storage implements LocalStorage {

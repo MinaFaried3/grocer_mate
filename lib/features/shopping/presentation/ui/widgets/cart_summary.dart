@@ -23,6 +23,7 @@ class const CartSummary(final ShoppingData data, {super.key})
       child: Column(
         crossAxisAlignment: .stretch,
         children: [
+          //------------ Summary Title & Breakdown ---------------
           Text('Order summary', style: context.textTheme.titleLarge),
           const SizedBox(height: 10),
           OrderAmountRow('Subtotal', money(totals.subtotal)),
@@ -36,11 +37,15 @@ class const CartSummary(final ShoppingData data, {super.key})
             totals.delivery == 0 ? 'Free' : money(totals.delivery),
           ),
           const Divider(height: 19),
+
+          //------------ Total Row ---------------
           DefaultTextStyle.merge(
             style: const TextStyle(fontWeight: .w800, fontSize: 16),
             child: OrderAmountRow('Total', money(totals.total)),
           ),
           const SizedBox(height: 12),
+
+          //------------ Checkout Action ---------------
           FilledButton.icon(
             key: const ValueKey('buy'),
             onPressed: data.pending != null

@@ -19,6 +19,7 @@ class const StatusPanel({
         child: Column(
           mainAxisSize: .min,
           children: [
+            //------------ Status Icon ---------------
             CircleAvatar(
               radius: 28,
               backgroundColor: theme.colorScheme.primaryContainer,
@@ -26,6 +27,8 @@ class const StatusPanel({
               child: Icon(icon, size: 25),
             ),
             const SizedBox(height: 12),
+
+            //------------ Title & Message ---------------
             Text(title, textAlign: .center, style: theme.textTheme.titleLarge),
             const SizedBox(height: 5),
             Text(
@@ -33,6 +36,8 @@ class const StatusPanel({
               textAlign: .center,
               style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
             ),
+
+            //------------ Action Button ---------------
             if (action != null && onAction != null) ...[
               const SizedBox(height: 14),
               OutlinedButton(onPressed: onAction, child: Text(action!)),

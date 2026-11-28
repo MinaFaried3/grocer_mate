@@ -21,6 +21,7 @@ class const ProductDetails(final Product product, {super.key})
         child: ListView(
           padding: const .fromLTRB(20, 8, 20, 28),
           children: [
+            //------------ Product Image Gallery ---------------
             SizedBox(
               height: 280,
               child: ListView.separated(
@@ -37,12 +38,16 @@ class const ProductDetails(final Product product, {super.key})
               ),
             ),
             const SizedBox(height: 19),
+
+            //------------ Brand & Title ---------------
             Text(
               product.brand,
               style: TextStyle(color: theme.colorScheme.primary),
             ),
             Text(product.title, style: theme.textTheme.headlineLarge),
             const SizedBox(height: 8),
+
+            //------------ Price, Rating & Stock ---------------
             Wrap(
               spacing: 12,
               crossAxisAlignment: .center,
@@ -66,12 +71,16 @@ class const ProductDetails(final Product product, {super.key})
                     : theme.colorScheme.primary,
               ),
             ),
+
+            //------------ Description ---------------
             if (product.description.isNotEmpty) ...[
               const SizedBox(height: 20),
               Text('About this product', style: theme.textTheme.titleLarge),
               const SizedBox(height: 6),
               Text(product.description),
             ],
+
+            //------------ Nutrition & Allergens ---------------
             if (product.nutrition.isNotEmpty) ...[
               const SizedBox(height: 20),
               Text('Nutrition', style: theme.textTheme.titleLarge),
@@ -90,6 +99,8 @@ class const ProductDetails(final Product product, {super.key})
               Text('Contains ${product.allergens.join(', ')}'),
             ],
             const SizedBox(height: 22),
+
+            //------------ Add to Cart Action ---------------
             BlocSelector<ShoppingBloc, ShopState, bool>(
               selector: (state) => state.data != null,
               builder: (context, ready) => FilledButton.icon(

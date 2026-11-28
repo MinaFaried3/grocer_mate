@@ -19,6 +19,8 @@ class const CartScreen({
     saved: false,
     selectLines: (data) => data.cart,
     onSettings: onSettings,
+
+    //------------ Pending & Receipt Banners ---------------
     headerSlivers: (state, data) => [
       if (data.pending != null)
         SliverPadding(
@@ -31,6 +33,8 @@ class const CartScreen({
           sliver: SliverToBoxAdapter(child: OrderReceiptPanel(data.lastOrder!)),
         ),
     ],
+
+    //------------ Empty Cart Panel ---------------
     emptyState: StatusPanel(
       icon: Icons.shopping_bag_outlined,
       title: 'Your cart is empty',
@@ -38,6 +42,8 @@ class const CartScreen({
       action: 'Browse groceries',
       onAction: onBrowse,
     ),
+
+    //------------ Cart Summary Footer ---------------
     footer: CartSummary.new,
   );
 }
