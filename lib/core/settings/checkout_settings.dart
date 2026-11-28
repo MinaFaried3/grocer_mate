@@ -1,4 +1,4 @@
-import 'package:grocer_mate/core/network/demo/demo_market_client.dart';
+import 'package:grocer_mate/core/mock/mock_market.dart';
 
 enum CheckoutUpdate(final String label) {
   normal('Normal checkout'),
@@ -8,7 +8,7 @@ enum CheckoutUpdate(final String label) {
   partial('Partial fulfillment'),
 }
 
-class CheckoutSettings(final DemoMarketClient market) {
+class CheckoutSettings(final MockMarket market) {
   CheckoutUpdate get nextCheckoutUpdate =>
       CheckoutUpdate.values.byName(market.checkoutScenario);
 

@@ -76,3 +76,16 @@ Map<String, dynamic> encodeProduct(Product product) => {
   'allergens': product.allergens,
   'related': product.related,
 };
+List<Category> decodeCategories(List<dynamic> items) => [
+  for (final item in items) decodeCategory(item),
+];
+
+List<String> decodeBrands(Json json, String? category) => {
+  for (final names in category == null ? json.values : [json[category]])
+    if (names is List) ...names.cast<String>(),
+}.toList()..sort();
+
+({List<Product> products, int total}) decodeProductPage(Json json) => (
+  products: [for (final item in json['data']) decodeApiProduct(item)],
+  total: json['total'] as int,
+);

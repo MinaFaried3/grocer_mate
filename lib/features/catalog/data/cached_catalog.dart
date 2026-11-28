@@ -1,19 +1,18 @@
 import 'dart:math' as math;
 
 import 'package:grocer_mate/core/network/connectivity/offline_exception.dart';
-import 'package:grocer_mate/core/network/market_api.dart';
 import 'package:grocer_mate/core/storage/json_fields.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
 
 import '../domain/entities/catalog.dart';
 import '../domain/repositories/catalog_repository.dart';
 import 'catalog_json.dart';
-import 'catalog_remote_data_source.dart';
+import 'catalog_source.dart';
 
 class CachedCatalog(
   final LocalStorage _store,
   final bool Function() _isOnline,
-  final CatalogRemoteDataSource _remote,
+  final CatalogSource _source,
 ) implements CatalogRepository {
   static const _key = 'catalog_v2';
   Future<_CatalogCache>? _cache;
@@ -44,14 +43,14 @@ class CachedCatalog(
     try {
       final metadata = (
         refresh || cache.categories == null
-            ? _remote.categories()
+            ? _source.categories()
             : Future.value(cache.categories!),
         refresh || !cache.brands.containsKey(brandKey)
-            ? _remote.brands(query.category)
+            ? _source.brands(query.category)
             : Future.value(cache.brands[brandKey]!),
         query.deals
             ? _dealsPage(cache, query, page, pageSize)
-            : _remote.products(query, page: page, pageSize: pageSize),
+            : _source.products(query, page: page, pageSize: pageSize),
       );
       final (categories, brands, result) = await metadata.wait;
       cache.categories = categories;
@@ -84,10 +83,10 @@ class CachedCatalog(
     int page,
     int pageSize,
   ) async {
-    final deals = await _remote.dealsOfDay();
+    final deals = await _source.dealsOfDay();
     final now = DateTime.now().toUtc();
     final offers = <String, _Deal>{
-      for (final JsonObject item in deals['items'] as List)
+      for (final Json item in deals['items'] as List)
         readText(item, 'productId'): (
           price: readCents(item, 'dealPrice'),
           endsAt: DateTime.parse(readText(item, 'endsAt')),
@@ -100,7 +99,7 @@ class CachedCatalog(
       const batchSize = 50;
       var consumed = 0;
       for (var next = 1; ; next++) {
-        final result = await _remote.products(
+        final result = await _source.products(
           query,
           page: next,
           pageSize: batchSize,
@@ -170,7 +169,7 @@ class CachedCatalog(
     final summary = cache.products[id];
     if (_isOnline()) {
       try {
-        final product = await _remote.detail(id, summary: summary);
+        final product = await _source.detail(id, summary: summary);
         cache.details[id] = product;
         if (product.categoryId.isNotEmpty) cache.products[id] = product;
         await _store.write(_key, cache.toJson());
@@ -246,7 +245,7 @@ class _CatalogCache {
       final product = decodeProduct(item, allowMissingCategory: true);
       details[product.id] = product;
     }
-    for (final JsonObject item in json['deals'] as List? ?? []) {
+    for (final Json item in json['deals'] as List? ?? []) {
       deals[readText(item, 'id')] = (
         price: readInt(item, 'price'),
         endsAt: DateTime.parse(readText(item, 'endsAt')),

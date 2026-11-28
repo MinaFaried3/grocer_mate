@@ -1,45 +1,17 @@
-part of 'demo_market_client.dart';
+part of 'mock_market.dart';
 
-extension _DemoCheckout on DemoMarketClient {
-  Future<JsonObject> _post(
-    String endpoint,
-    JsonObject body,
-    String? key,
-  ) async {
-    final stored = await _readMarket();
-    final market = {
-      ...stored,
-      for (final field in [
-        'availability',
-        'receipts',
-        'purchases',
-        'orders',
-        'synced',
-      ])
-        field: JsonObject.from(stored[field] as Map? ?? const {}),
-    };
-    if (endpoint == 'sync') return _sync(market, body);
-    final scenario = checkoutScenario;
-    final existing =
-        key != null &&
-        (market['purchases'][key] != null || market['receipts'][key] != null);
-    final result = await _purchase(market, body, key, scenario: scenario);
-    await _storage.write(DemoMarketClient._marketKey, market);
-    if (!existing && checkoutScenario == scenario) checkoutScenario = 'normal';
-    return result;
-  }
-
-  Future<JsonObject> _purchase(
-    JsonObject market,
-    JsonObject body,
+extension _MockPurchase on MockMarket {
+  Future<Json> _purchase(
+    Json market,
+    Json body,
     String? key, {
     String scenario = 'normal',
   }) async {
     if (key != null) {
-      if (market['purchases'][key] case final JsonObject previous) {
+      if (market['purchases'][key] case final Json previous) {
         return previous;
       }
-      if (market['receipts'][key] case final JsonObject previous) {
+      if (market['receipts'][key] case final Json previous) {
         return {
           'status': 'success',
           'orderId': readText(previous, 'id'),
@@ -48,9 +20,12 @@ extension _DemoCheckout on DemoMarketClient {
       }
     }
 
-    final flags = await _fixture('flags') as JsonObject;
+    final flags = await _fixture('flags') as Json;
     if (flags['maintenanceMode'] == true) {
-      throw const _DemoError(503, 'The market is temporarily unavailable.');
+      throw const MockMarketException(
+        503,
+        'The market is temporarily unavailable.',
+      );
     }
     final currency = body['currency'] ?? flags['currency'];
     if (currency != flags['currency']) {
@@ -62,7 +37,7 @@ extension _DemoCheckout on DemoMarketClient {
     }
     final lines = <String, ({int qty, int? expectedPrice})>{};
     for (final item in items) {
-      if (item is! JsonObject) {
+      if (item is! Json) {
         throw const FormatException('Invalid purchase item.');
       }
       final id = readText(item, 'productId').toLowerCase();
@@ -84,12 +59,12 @@ extension _DemoCheckout on DemoMarketClient {
     final now = DateTime.now().toUtc();
     final dailyPrices = {
       if (flags['showDeals'] == true)
-        for (final item in (deals['items'] as List).cast<JsonObject>())
+        for (final item in (deals['items'] as List).cast<Json>())
           if (DateTime.parse(readText(item, 'endsAt')).isAfter(now))
             readText(item, 'productId'): readCents(item, 'dealPrice'),
     };
-    final purchaseFixture = await _fixture('purchase') as JsonObject;
-    final rules = purchaseFixture['scenarios'][scenario] as JsonObject?;
+    final purchaseFixture = await _fixture('purchase') as Json;
+    final rules = purchaseFixture['scenarios'][scenario] as Json?;
     if (rules == null) {
       throw const FormatException('Unknown checkout scenario.');
     }
@@ -101,12 +76,12 @@ extension _DemoCheckout on DemoMarketClient {
       lines.keys.toList(),
       rules['stockChanges'],
     );
-    final availability = market['availability'] as JsonObject;
-    final changes = <JsonObject>[];
-    final outOfStock = <JsonObject>[];
-    final fulfilled = <JsonObject>[];
-    final missing = <JsonObject>[];
-    final orderLines = <JsonObject>[];
+    final availability = market['availability'] as Json;
+    final changes = <Json>[];
+    final outOfStock = <Json>[];
+    final fulfilled = <Json>[];
+    final missing = <Json>[];
+    final orderLines = <Json>[];
     var subtotal = 0;
     for (final entry in lines.entries) {
       final id = entry.key;
@@ -179,8 +154,8 @@ extension _DemoCheckout on DemoMarketClient {
         stock - readInt(line, 'qty'),
       );
     }
-    final orders = market['orders'] as JsonObject;
-    final receipts = market['receipts'] as JsonObject;
+    final orders = market['orders'] as Json;
+    final receipts = market['receipts'] as Json;
     final orderId =
         'o_${readInt(purchaseFixture, 'orderIdStart') + orders.length + receipts.length}';
     final tax = (subtotal * (flags['taxRate'] as num)).round();
@@ -214,12 +189,12 @@ extension _DemoCheckout on DemoMarketClient {
     return response;
   }
 
-  Map<String, JsonObject> _changesForCart(
+  Map<String, Json> _changesForCart(
     List<String> ids,
     List<dynamic>? changes,
   ) {
-    final rules = changes?.cast<JsonObject>() ?? const <JsonObject>[];
-    final result = <String, JsonObject>{};
+    final rules = changes?.cast<Json>() ?? const <Json>[];
+    final result = <String, Json>{};
     for (final rule in rules) {
       final id = readText(rule, 'productId');
       if (ids.contains(id)) result[id] = rule;
@@ -238,49 +213,52 @@ extension _DemoCheckout on DemoMarketClient {
   }
 
   void _updateAvailability(
-    JsonObject availability,
+    Json availability,
     String id,
     String field,
     int value,
   ) {
-    availability[id] = {...?(availability[id] as JsonObject?), field: value};
+    availability[id] = {...?(availability[id] as Json?), field: value};
   }
 
-  Future<JsonObject> _sync(JsonObject market, JsonObject body) async {
-    final seed = await _fixture('sync') as JsonObject;
+  Future<Json> _sync(Json market, Json body) async {
+    final seed = await _fixture('sync') as Json;
     final version = market['version'] as int? ?? readInt(seed, 'baseVersion');
     final base = readInt(body, 'baseVersion');
     final mutations = body['mutations'];
     if (mutations is! List) {
       throw const FormatException('Expected sync mutations.');
     }
-    final synced = market['synced'] as JsonObject;
-    final pending = <({String key, JsonObject payload})>[];
+    final synced = market['synced'] as Json;
+    final pending = <({String key, Json payload})>[];
     final keys = <String>{};
     for (final mutation in mutations) {
-      if (mutation is! JsonObject ||
+      if (mutation is! Json ||
           mutation['op'] != 'purchase' ||
-          mutation['payload'] is! JsonObject) {
+          mutation['payload'] is! Json) {
         throw const FormatException('Invalid sync mutation.');
       }
       final key = readText(mutation, 'idempotencyKey');
       if (synced[key] != true && keys.add(key)) {
-        pending.add((key: key, payload: mutation['payload'] as JsonObject));
+        pending.add((key: key, payload: mutation['payload'] as Json));
       }
     }
     if (pending.isEmpty) return {'status': 'ok', 'newVersion': version};
     if (base != version) {
-      throw const _DemoError(409, 'Sync version has changed.');
+      throw const MockMarketException(409, 'Sync version has changed.');
     }
     for (final (:key, :payload) in pending) {
       final result = await _purchase(market, payload, key);
       if (result['status'] != 'success') {
-        throw const _DemoError(409, 'A purchase needs review before syncing.');
+        throw const MockMarketException(
+          409,
+          'A purchase needs review before syncing.',
+        );
       }
       synced[key] = true;
     }
     market['version'] = version + 1;
-    await _storage.write(DemoMarketClient._marketKey, market);
+    await _storage.write(MockMarket._marketKey, market);
     return {'status': 'ok', 'newVersion': version + 1};
   }
 }

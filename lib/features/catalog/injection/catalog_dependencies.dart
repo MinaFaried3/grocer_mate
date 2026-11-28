@@ -1,9 +1,11 @@
 import 'package:grocer_mate/core/injection/dependencies.dart';
 import 'package:grocer_mate/core/injection/injector.dart';
+import 'package:grocer_mate/core/mock/mock_dependencies.dart';
 import 'package:grocer_mate/features/app/injection/app_dependencies.dart';
 
 import '../data/cached_catalog.dart';
 import '../data/catalog_remote_data_source.dart';
+import '../data/mock_catalog_repository.dart';
 import '../domain/repositories/catalog_repository.dart';
 import '../presentation/controllers/catalog_bloc.dart';
 import '../presentation/controllers/product_detail_controller.dart';
@@ -19,10 +21,12 @@ extension CatalogDependencies on Injector {
       );
 
   CatalogRepository get _catalogRepository => singleton<CatalogRepository>(
-    () => CachedCatalog(
-      localStorage,
-      isOnline,
-      CatalogRemoteDataSource(marketApi),
-    ),
+    () => usesMockData
+        ? MockCatalogRepository(localStorage, isOnline, mockMarket)
+        : CachedCatalog(
+            localStorage,
+            isOnline,
+            CatalogRemoteDataSource(marketApi),
+          ),
   );
 }

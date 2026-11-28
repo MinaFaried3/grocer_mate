@@ -6,16 +6,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:grocer_mate/core/grocer_mate_app.dart';
 import 'package:grocer_mate/core/network/connectivity/connection_checker.dart';
-import 'package:grocer_mate/core/network/demo/demo_market_client.dart';
-import 'package:grocer_mate/core/network/market_api.dart';
+import 'package:grocer_mate/core/mock/mock_market.dart';
 import 'package:grocer_mate/core/settings/checkout_settings.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
 import 'package:grocer_mate/features/app/presentation/controllers/app_connection_cubit.dart';
-import 'package:grocer_mate/features/catalog/data/cached_catalog.dart';
-import 'package:grocer_mate/features/catalog/data/catalog_remote_data_source.dart';
+import 'package:grocer_mate/features/catalog/data/mock_catalog_repository.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/product_detail_controller.dart';
-import 'package:grocer_mate/features/shopping/data/api_checkout_repository.dart';
+import 'package:grocer_mate/features/shopping/data/mock_checkout_repository.dart';
 import 'package:grocer_mate/features/shopping/data/local_shopping_repository.dart';
 import 'package:grocer_mate/features/shopping/domain/entities/shopping.dart';
 import 'package:grocer_mate/features/shopping/domain/use_cases/submit_pending_purchase.dart';
@@ -40,7 +38,7 @@ void main() {
           'previous': {'id': 'GM-1001', 'total': 235},
         },
       });
-      final demo = DemoMarketClient(
+      final demo = MockMarket(
         store,
         (path) => path.endsWith('/products.json')
             ? Future.value(
@@ -48,9 +46,8 @@ void main() {
               )
             : rootBundle.loadString(path),
       );
-      final api = MarketApi(Uri.parse('https://grocer.demo'), demo);
-      final checkout = ApiCheckoutRepository(api, () => connection.online);
-      final catalog = await api.get('products');
+      final checkout = MockCheckoutRepository(demo, () => connection.online);
+      final catalog = await demo.products();
       expect((catalog['data'] as List).single['stock'], 3);
 
       final next = PendingPurchase('next', [CartLine(.fromProduct(milk), 1)]);
@@ -249,14 +246,9 @@ Future<GoRouter> _startApp(
   connection.setOfflineMode(offline);
   addTearDown(connection.close);
   final store = _MemoryStorage();
-  final demo = DemoMarketClient(store, (path) async => fixtures![path]!);
-  final api = MarketApi(Uri.parse('https://grocer.demo'), demo);
-  final catalog = CachedCatalog(
-    store,
-    () => connection.online,
-    CatalogRemoteDataSource(api),
-  );
-  final checkout = ApiCheckoutRepository(api, () => connection.online);
+  final demo = MockMarket(store, (path) async => fixtures![path]!);
+  final catalog = MockCatalogRepository(store, () => connection.online, demo);
+  final checkout = MockCheckoutRepository(demo, () => connection.online);
   final shopping = LocalShoppingRepository(store);
 
   await tester.pumpWidget(

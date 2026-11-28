@@ -1,3 +1,5 @@
+typedef Json = Map<String, dynamic>;
+
 String readText(Map<String, dynamic> json, String key) {
   if (json[key] case String value when value.trim().isNotEmpty) return value;
   throw FormatException('Expected nonempty text for $key.');

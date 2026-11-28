@@ -4,7 +4,7 @@ A Flutter grocery storefront with a local market. Browse and filter groceries, m
 
 ## Run
 
-Use Flutter 3.50 or later with Dart 3.14 or later. By default, the app runs against the bundled JSON demo API.
+Use Flutter 3.50 or later with Dart 3.14 or later. By default, the catalog and checkout repositories use the bundled JSON fixtures.
 
 ```sh
 flutter pub get
@@ -50,7 +50,7 @@ Each endpoint has a JSON fixture in `assets/mock_api/`. Edit `products.json` to 
 
 ## Implementation
 
-- `lib/core/injection` configures the shared HTTP interface with the demo or live client. The feature repositories and BLoCs use the same request and response formats in both modes.
-- The catalog fetches pages and filters from the API. Offline browsing and details use downloaded products. Cart and Saved continue to use durable local storage.
+- Feature injection selects the bundled mock repositories or the live repositories. The live repositories use a small API interface backed by Dio. The standalone mock server uses the same fixtures and inventory logic as the bundled demo.
+- The catalog caches pages and product details for offline browsing. Cart and Saved use durable local storage.
 - The checkout preview calculates prices in integer cents with the sample 5% tax and $1 delivery fee waived at $25. Completed receipts use the total returned by the server.
-- The bundled demo uses product photography from `assets/photos` where available. The HTTP client also supports image URLs returned by a live backend.
+- The bundled demo uses product photography from `assets/photos` where available. The catalog also supports image URLs returned by a live backend.

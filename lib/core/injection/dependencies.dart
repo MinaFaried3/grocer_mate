@@ -1,7 +1,5 @@
-import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
-
-import 'package:grocer_mate/core/network/demo/demo_market_client.dart';
+import 'package:grocer_mate/core/network/dio_factory.dart';
+import 'package:grocer_mate/core/network/dio_market_api.dart';
 import 'package:grocer_mate/core/network/market_api.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
 import 'package:grocer_mate/core/storage/secure_local_storage.dart';
@@ -24,26 +22,16 @@ Future<Injector> _registerAppDependencies() async {
 }
 
 extension SharedDependencies on Injector {
-  MarketApi get marketApi => singleton<MarketApi>(() {
-    final baseUrl = Uri.parse(
-      _backendUrl.isEmpty ? 'https://grocer.demo' : _backendUrl,
-    );
-    if (!const {'http', 'https'}.contains(baseUrl.scheme) ||
-        baseUrl.host.isEmpty ||
-        baseUrl.hasQuery ||
-        baseUrl.hasFragment) {
-      throw ArgumentError('GROCER_API_BASE_URL must be an HTTP(S) base URL.');
-    }
-    return MarketApi(baseUrl, demoMarketClient ?? http.Client());
-  }, dispose: (api) => api.close());
+  bool get usesMockData => _backendUrl.isEmpty;
 
-  DemoMarketClient? get demoMarketClient => _backendUrl.isEmpty
-      ? singleton(() => DemoMarketClient(localStorage, rootBundle.loadString))
-      : null;
+  MarketApi get marketApi => singleton<MarketApi>(
+    () => DioMarketApi(createDio(_backendUrl)),
+    dispose: (api) => api.close(),
+  );
 
   LocalStorage get localStorage => singleton<LocalStorage>(() {
     final secureStorage = SecureLocalStorage();
-    return _backendUrl.isEmpty
+    return usesMockData
         ? secureStorage
         : _BackendStorage(secureStorage, _backendUrl);
   });

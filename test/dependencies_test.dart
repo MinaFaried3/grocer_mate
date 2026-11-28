@@ -51,6 +51,7 @@ void main() {
     addTearDown(catalog.close);
     expect(dependencies.get<CatalogRepository>(), same(repository));
     expect(dependencies.isRegistered<CheckoutRepository>(), isFalse);
+    expect(dependencies.isRegistered<MarketApi>(), isFalse);
     expect(dependencies.isRegistered<CheckoutSettings>(), isFalse);
 
     final settings = dependencies.getCheckoutSettings();
