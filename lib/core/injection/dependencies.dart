@@ -1,25 +1,11 @@
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:uuid/uuid.dart';
 
-import 'package:grocer_mate/core/network/connectivity/platform_connection_checker.dart';
 import 'package:grocer_mate/core/network/demo/demo_market_client.dart';
 import 'package:grocer_mate/core/network/market_api.dart';
-import 'package:grocer_mate/core/settings/checkout_settings.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
 import 'package:grocer_mate/core/storage/secure_local_storage.dart';
-import 'package:grocer_mate/features/app/presentation/controllers/app_connection_cubit.dart';
-import 'package:grocer_mate/features/catalog/data/cached_catalog.dart';
-import 'package:grocer_mate/features/catalog/data/catalog_remote_data_source.dart';
-import 'package:grocer_mate/features/catalog/domain/repositories/catalog_repository.dart';
-import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
-import 'package:grocer_mate/features/catalog/presentation/controllers/product_detail_controller.dart';
-import 'package:grocer_mate/features/shopping/data/api_checkout_repository.dart';
-import 'package:grocer_mate/features/shopping/data/local_shopping_repository.dart';
-import 'package:grocer_mate/features/shopping/domain/repositories/checkout_repository.dart';
-import 'package:grocer_mate/features/shopping/domain/repositories/shopping_repository.dart';
-import 'package:grocer_mate/features/shopping/domain/use_cases/submit_pending_purchase.dart';
-import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
+import 'package:grocer_mate/features/app/injection/app_dependencies.dart';
 
 import 'get_it_injector.dart';
 import 'injector.dart';
@@ -37,52 +23,8 @@ Future<Injector> _registerAppDependencies() async {
   return dependencies;
 }
 
-extension AppDependencyFactories on Injector {
-  AppConnectionCubit get appConnection => singleton(
-    () => AppConnectionCubit(const PlatformConnectionChecker()),
-    dispose: (connection) => connection.close(),
-  );
-
-  CatalogBloc createCatalogBloc() =>
-      factory(() => CatalogBloc(_catalogRepository));
-
-  ProductDetailController createProductDetailController(String id) =>
-      factoryWithParameter<ProductDetailController, String>(
-        (id) => ProductDetailController(_catalogRepository, id),
-        id,
-      );
-
-  ShoppingBloc createShoppingBloc() => factory(() {
-    final storage = singleton<ShoppingRepository>(
-      () => LocalShoppingRepository(_storage),
-    );
-    return ShoppingBloc(
-      storage,
-      SubmitPendingPurchase(
-        storage,
-        (purchase) => _checkoutRepository.purchase(purchase),
-      ),
-      _isOnline,
-      connectionChanges: appConnection.changes,
-      createPurchaseId: const Uuid().v4,
-    );
-  });
-
-  CheckoutSettings? getCheckoutSettings() =>
-      _backendUrl.isEmpty ? singleton(() => CheckoutSettings(_demoClient)) : null;
-
-  bool _isOnline() => get<AppConnectionCubit>().online;
-
-  CatalogRepository get _catalogRepository => singleton<CatalogRepository>(
-    () =>
-        CachedCatalog(_storage, _isOnline, CatalogRemoteDataSource(_marketApi)),
-  );
-
-  CheckoutRepository get _checkoutRepository => singleton<CheckoutRepository>(
-    () => ApiCheckoutRepository(_marketApi, _isOnline),
-  );
-
-  MarketApi get _marketApi => singleton<MarketApi>(() {
+extension SharedDependencies on Injector {
+  MarketApi get marketApi => singleton<MarketApi>(() {
     final baseUrl = Uri.parse(
       _backendUrl.isEmpty ? 'https://grocer.demo' : _backendUrl,
     );
@@ -92,16 +34,14 @@ extension AppDependencyFactories on Injector {
         baseUrl.hasFragment) {
       throw ArgumentError('GROCER_API_BASE_URL must be an HTTP(S) base URL.');
     }
-    return MarketApi(
-      baseUrl,
-      _backendUrl.isEmpty ? _demoClient : http.Client(),
-    );
+    return MarketApi(baseUrl, demoMarketClient ?? http.Client());
   }, dispose: (api) => api.close());
 
-  DemoMarketClient get _demoClient =>
-      singleton(() => DemoMarketClient(_storage, rootBundle.loadString));
+  DemoMarketClient? get demoMarketClient => _backendUrl.isEmpty
+      ? singleton(() => DemoMarketClient(localStorage, rootBundle.loadString))
+      : null;
 
-  LocalStorage get _storage => singleton<LocalStorage>(() {
+  LocalStorage get localStorage => singleton<LocalStorage>(() {
     final secureStorage = SecureLocalStorage();
     return _backendUrl.isEmpty
         ? secureStorage

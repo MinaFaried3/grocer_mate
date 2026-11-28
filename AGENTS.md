@@ -3,7 +3,7 @@
 When generating or refactoring Dart code, use the [GrocerMate Flutter skill](.agents/skills/grocer-mate-flutter/SKILL.md) and follow these conventions.
 
 - Read the current working tree before editing. Review relevant staged, unstaged, and untracked changes. Build on those edits and preserve unrelated work.
-- Keep composition in `lib/main.dart`, dependency registration in `lib/core/injection`, and routing in `lib/core/routing`. Keep shared platform services under `lib/core` and controllers and widgets in the feature that owns them, including `lib/features/app` for app presentation.
+- Keep composition in `lib/main.dart`, startup and shared dependency wiring in `lib/core/injection`, and routing in `lib/core/routing`. Keep feature and module registrations next to the code they wire. Keep shared platform services under `lib/core` and controllers and widgets in the feature that owns them, including `lib/features/app` for app presentation.
 - Use one idempotent dependency initializer at startup for app-wide needs. Resolve feature dependencies when the destination builds or the operation needs them. Keep tap handlers limited to navigation and put controller providers at the smallest route or shell that shares their state.
 - Keep GetIt behind `Injector`. Use the shared registration helper for lazy singletons and factories, and keep feature factories focused on wiring their dependencies. Give each route controller a fresh instance and pass route parameters at resolution time.
 - Let controllers handle loading, retries, and state. Keep repositories out of widget context and keep the root provider scope for app-wide state.

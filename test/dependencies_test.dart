@@ -4,12 +4,16 @@ import 'package:grocer_mate/core/injection/dependencies.dart';
 import 'package:grocer_mate/core/injection/get_it_injector.dart';
 import 'package:grocer_mate/core/network/market_api.dart';
 import 'package:grocer_mate/core/settings/checkout_settings.dart';
+import 'package:grocer_mate/core/settings/settings_dependencies.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
+import 'package:grocer_mate/features/app/injection/app_dependencies.dart';
 import 'package:grocer_mate/features/app/presentation/controllers/app_connection_cubit.dart';
 import 'package:grocer_mate/features/catalog/domain/repositories/catalog_repository.dart';
+import 'package:grocer_mate/features/catalog/injection/catalog_dependencies.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/product_detail_controller.dart';
 import 'package:grocer_mate/features/shopping/domain/repositories/checkout_repository.dart';
+import 'package:grocer_mate/features/shopping/injection/shopping_dependencies.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
 
 void main() {
