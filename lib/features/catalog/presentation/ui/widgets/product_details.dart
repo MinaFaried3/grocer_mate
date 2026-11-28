@@ -53,7 +53,8 @@ class const ProductDetails(final Product product, {super.key})
                     money(product.originalPrice),
                     style: const TextStyle(decoration: .lineThrough),
                   ),
-                Text('★ ${product.rating.toStringAsFixed(1)}'),
+                if (product.rating > 0)
+                  Text('★ ${product.rating.toStringAsFixed(1)}'),
               ],
             ),
             const SizedBox(height: 7),
@@ -65,10 +66,12 @@ class const ProductDetails(final Product product, {super.key})
                     : theme.colorScheme.primary,
               ),
             ),
-            const SizedBox(height: 20),
-            Text('About this product', style: theme.textTheme.titleLarge),
-            const SizedBox(height: 6),
-            Text(product.description),
+            if (product.description.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Text('About this product', style: theme.textTheme.titleLarge),
+              const SizedBox(height: 6),
+              Text(product.description),
+            ],
             if (product.nutrition.isNotEmpty) ...[
               const SizedBox(height: 20),
               Text('Nutrition', style: theme.textTheme.titleLarge),

@@ -1,0 +1,306 @@
+[
+  {
+    "id": "p_apple_gala",
+    "title": "Apple Gala (1kg)",
+    "brand": "FreshFarm",
+    "price": 2.49,
+    "originalPrice": 2.99,
+    "stock": 37,
+    "badges": [
+      "deal",
+      "fresh"
+    ],
+    "categoryId": "c_fruit",
+    "rating": 4.5,
+    "image": "assets/photos/apple.webp"
+  },
+  {
+    "id": "p_milk_2pct",
+    "title": "Milk 2% 1L",
+    "brand": "DairyPure",
+    "price": 1.29,
+    "originalPrice": 1.49,
+    "stock": 6,
+    "badges": [
+      "deal"
+    ],
+    "categoryId": "c_dairy",
+    "rating": 4.3,
+    "image": "assets/photos/milk.webp"
+  },
+  {
+    "id": "p_bread_sourdough",
+    "title": "Sourdough Bread",
+    "brand": "BakeHouse",
+    "price": 2.79,
+    "originalPrice": 2.99,
+    "stock": 12,
+    "badges": [
+      "fresh"
+    ],
+    "categoryId": "c_bakery",
+    "rating": 4.6,
+    "image": "assets/photos/bread.webp"
+  },
+  {
+    "id": "p_strawberry_box",
+    "title": "Strawberries (250g)",
+    "brand": "SunnyOrchard",
+    "price": 2.99,
+    "originalPrice": 3.49,
+    "stock": 9,
+    "badges": [
+      "limited",
+      "fresh"
+    ],
+    "categoryId": "c_fruit",
+    "rating": 4.7,
+    "image": "assets/photos/strawberry.webp"
+  },
+  {
+    "id": "p_banana_chiquita",
+    "title": "Banana (1kg)",
+    "brand": "SunnyOrchard",
+    "price": 1.79,
+    "originalPrice": 1.79,
+    "stock": 82,
+    "badges": [
+      "fresh"
+    ],
+    "categoryId": "c_fruit",
+    "rating": 4.6,
+    "image": "assets/photos/banana.webp"
+  },
+  {
+    "id": "p_grapes_red",
+    "title": "Red Grapes (500g)",
+    "brand": "FreshFarm",
+    "price": 2.59,
+    "originalPrice": 2.99,
+    "stock": 19,
+    "badges": [
+      "deal"
+    ],
+    "categoryId": "c_fruit",
+    "rating": 4.1,
+    "image": "assets/photos/grape.webp"
+  },
+  {
+    "id": "p_orange_navel",
+    "title": "Orange Navel (1kg)",
+    "brand": "GreenLeaf",
+    "price": 2.19,
+    "originalPrice": 2.49,
+    "stock": 0,
+    "badges": [
+      "oos",
+      "vitaminC"
+    ],
+    "categoryId": "c_fruit",
+    "rating": 4.2,
+    "image": "assets/photos/orange.webp"
+  },
+  {
+    "id": "p_cheddar_block",
+    "title": "Cheddar Cheese (200g)",
+    "brand": "FarmGold",
+    "price": 2.39,
+    "originalPrice": 2.39,
+    "stock": 24,
+    "badges": [],
+    "categoryId": "c_dairy",
+    "rating": 4.0,
+    "image": "assets/photos/cheddar.webp"
+  },
+  {
+    "id": "p_yogurt_plain",
+    "title": "Yogurt Plain (500g)",
+    "brand": "MilkWay",
+    "price": 1.09,
+    "originalPrice": 1.29,
+    "stock": 44,
+    "badges": [
+      "deal",
+      "protein"
+    ],
+    "categoryId": "c_dairy",
+    "rating": 4.4,
+    "image": "assets/photos/yogurt.webp"
+  },
+  {
+    "id": "p_croissant_butter",
+    "title": "Butter Croissant (2pcs)",
+    "brand": "Crust&Co",
+    "price": 1.49,
+    "originalPrice": 1.69,
+    "stock": 35,
+    "badges": [
+      "deal"
+    ],
+    "categoryId": "c_bakery",
+    "rating": 4.5,
+    "image": "assets/photos/croissant.webp"
+  },
+  {
+    "id": "p_carrots",
+    "title": "Carrots (500g)",
+    "brand": "FreshFarm",
+    "price": 1.49,
+    "originalPrice": 1.49,
+    "stock": 28,
+    "badges": [
+      "Fresh"
+    ],
+    "categoryId": "c_produce",
+    "rating": 4.5,
+    "image": "assets/photos/carrot.webp"
+  },
+  {
+    "id": "p_avocado",
+    "title": "Hass Avocado (2pc)",
+    "brand": "GreenLeaf",
+    "price": 2.99,
+    "originalPrice": 3.49,
+    "stock": 7,
+    "badges": [
+      "Fresh"
+    ],
+    "categoryId": "c_produce",
+    "rating": 4.6,
+    "image": "assets/photos/avocado.webp"
+  },
+  {
+    "id": "p_apple_juice",
+    "title": "Cloudy Apple Juice (750ml)",
+    "brand": "SunnyOrchard",
+    "price": 3.49,
+    "originalPrice": 3.49,
+    "stock": 20,
+    "badges": [],
+    "categoryId": "c_beverages",
+    "rating": 4.5,
+    "image": "assets/photos/juice.webp"
+  },
+  {
+    "id": "p_sparkling_water",
+    "title": "Sparkling Water (750ml)",
+    "brand": "ClearSpring",
+    "price": 1.19,
+    "originalPrice": 1.19,
+    "stock": 55,
+    "badges": [],
+    "categoryId": "c_beverages",
+    "rating": 4.3,
+    "image": "assets/photos/water.webp"
+  },
+  {
+    "id": "p_cereal_oats",
+    "title": "Rolled Oats (500g)",
+    "brand": "Grain & Co",
+    "price": 2.89,
+    "originalPrice": 3.29,
+    "stock": 40,
+    "badges": [],
+    "categoryId": "c_pantry",
+    "rating": 4.6,
+    "image": "assets/photos/oats.webp"
+  },
+  {
+    "id": "p_olive_oil",
+    "title": "Extra Virgin Olive Oil (500ml)",
+    "brand": "Olive Grove",
+    "price": 8.49,
+    "originalPrice": 8.99,
+    "stock": 12,
+    "badges": [],
+    "categoryId": "c_pantry",
+    "rating": 4.7,
+    "image": "assets/photos/oil.webp"
+  },
+  {
+    "id": "p_sponge",
+    "title": "Kitchen Sponge (2pc)",
+    "brand": "HomeKind",
+    "price": 1.99,
+    "originalPrice": 1.99,
+    "stock": 26,
+    "badges": [],
+    "categoryId": "c_household",
+    "rating": 4.2,
+    "image": "assets/photos/sponge.webp"
+  },
+  {
+    "id": "p_hand_soap",
+    "title": "Hand Wash (250ml)",
+    "brand": "Kindly",
+    "price": 3.89,
+    "originalPrice": 4.29,
+    "stock": 18,
+    "badges": [],
+    "categoryId": "c_personal",
+    "rating": 4.3,
+    "image": "assets/photos/soap.webp"
+  },
+  {
+    "id": "p_laundry_liquid",
+    "title": "Laundry Liquid (1L)",
+    "brand": "HomeKind",
+    "price": 6.99,
+    "originalPrice": 6.99,
+    "stock": 14,
+    "badges": [],
+    "categoryId": "c_household",
+    "rating": 4.4,
+    "image": "assets/photos/laundry.webp"
+  },
+  {
+    "id": "p_toothpaste",
+    "title": "Mint Toothpaste (75ml)",
+    "brand": "Kindly",
+    "price": 2.59,
+    "originalPrice": 2.59,
+    "stock": 31,
+    "badges": [],
+    "categoryId": "c_personal",
+    "rating": 4.5,
+    "image": "assets/photos/toothpaste.webp"
+  },
+  {
+    "id": "p_milk_skim",
+    "title": "Skim Milk (1L)",
+    "brand": "DairyPure",
+    "price": 1.19,
+    "originalPrice": 1.19,
+    "stock": 17,
+    "badges": [],
+    "categoryId": "c_dairy",
+    "rating": 4.3,
+    "image": "assets/photos/milk.webp"
+  },
+  {
+    "id": "p_butter_salted",
+    "title": "Salted Butter (200g)",
+    "brand": "FarmGold",
+    "price": 2.39,
+    "originalPrice": 2.49,
+    "stock": 14,
+    "badges": [],
+    "categoryId": "c_dairy",
+    "rating": 4.4,
+    "image": "https://picsum.photos/seed/butter/600/400"
+  },
+  {
+    "id": "p_rolls_morning",
+    "title": "Breakfast Rolls (4pcs)",
+    "brand": "MorningOven",
+    "price": 2.09,
+    "originalPrice": 2.09,
+    "stock": 16,
+    "badges": [
+      "fresh"
+    ],
+    "categoryId": "c_bakery",
+    "rating": 4.2,
+    "image": "https://picsum.photos/seed/rolls/600/400"
+  }
+]

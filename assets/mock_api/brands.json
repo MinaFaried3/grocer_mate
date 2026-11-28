@@ -1,0 +1,35 @@
+{
+  "c_fruit": [
+    "FreshFarm",
+    "SunnyOrchard",
+    "GreenLeaf"
+  ],
+  "c_dairy": [
+    "DairyPure",
+    "MilkWay",
+    "FarmGold"
+  ],
+  "c_bakery": [
+    "BakeHouse",
+    "Crust&Co",
+    "MorningOven"
+  ],
+  "c_produce": [
+    "FreshFarm",
+    "GreenLeaf"
+  ],
+  "c_beverages": [
+    "ClearSpring",
+    "SunnyOrchard"
+  ],
+  "c_pantry": [
+    "Grain & Co",
+    "Olive Grove"
+  ],
+  "c_household": [
+    "HomeKind"
+  ],
+  "c_personal": [
+    "Kindly"
+  ]
+}

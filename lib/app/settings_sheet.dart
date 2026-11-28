@@ -7,8 +7,10 @@ import 'package:grocer_mate/core/theme/theme_context.dart';
 
 import 'checkout_settings.dart';
 
-class const SettingsSheet({super.key, required final CheckoutSettings settings})
-    extends StatefulWidget {
+class const SettingsSheet({
+  super.key,
+  required final CheckoutSettings? settings,
+}) extends StatefulWidget {
   @override
   State<SettingsSheet> createState() => _SettingsSheetState();
 }
@@ -29,29 +31,31 @@ class _SettingsSheetState() extends State<SettingsSheet> {
           children: [
             Text('Settings', style: textTheme.headlineSmall),
             const SizedBox(height: 10),
-            Text('Changes for next checkout', style: textTheme.titleSmall),
-            RadioGroup<CheckoutUpdate>(
-              groupValue: settings.nextCheckoutUpdate,
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => settings.nextCheckoutUpdate = value);
-                }
-              },
-              child: Column(
-                mainAxisSize: .min,
-                children: [
-                  for (final update in CheckoutUpdate.values)
-                    RadioListTile<CheckoutUpdate>(
-                      value: update,
-                      title: Text(update.label),
-                      dense: true,
-                      visualDensity: .compact,
-                      contentPadding: .zero,
-                    ),
-                ],
+            if (settings != null) ...[
+              Text('Changes for next checkout', style: textTheme.titleSmall),
+              RadioGroup<CheckoutUpdate>(
+                groupValue: settings.nextCheckoutUpdate,
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() => settings.nextCheckoutUpdate = value);
+                  }
+                },
+                child: Column(
+                  mainAxisSize: .min,
+                  children: [
+                    for (final update in CheckoutUpdate.values)
+                      RadioListTile<CheckoutUpdate>(
+                        value: update,
+                        title: Text(update.label),
+                        dense: true,
+                        visualDensity: .compact,
+                        contentPadding: .zero,
+                      ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
+              const SizedBox(height: 8),
+            ],
             BlocSelector<AppConnection, AppNetworkState, bool>(
               selector: (state) => state.offlineMode,
               builder: (context, offlineMode) => SwitchListTile(

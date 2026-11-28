@@ -143,7 +143,7 @@ class ShoppingBloc(
       cart: data.cart,
       saved: data.saved,
       lastOrder: data.lastOrder,
-      pending: lines.isEmpty ? null : .new(pending.id, lines),
+      pending: lines.isEmpty ? null : .new(createPurchaseId(), lines),
     );
     await _save(
       updated,
@@ -164,7 +164,7 @@ class ShoppingBloc(
     final notice = switch (result.failure) {
       .offline => 'Purchase queued for when you’re online.',
       .retry => 'Checkout couldn’t finish. Your purchase is saved for retry.',
-      null => null,
+      null => result.notice,
     };
     emit(
       state.copyWith(

@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:grocer_mate/core/network/connection.dart';
+import 'package:grocer_mate/core/network/market_api.dart';
+import 'package:grocer_mate/core/storage/json_fields.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
 
 import '../domain/entities/catalog.dart';
@@ -13,36 +15,19 @@ class CachedCatalog(
   final Connection _connection,
   final CatalogRemoteDataSource _remote,
 ) implements CatalogRepository {
-  static const _key = 'catalog_v1';
+  static const _key = 'catalog_v2';
+  Future<_CatalogCache>? _cache;
+  Future<_CatalogCache> get _saved => _cache ??= _load();
 
-  Future<_CatalogSnapshot>? _loading;
-  _CatalogSnapshot? _snapshot;
+  Future<_CatalogCache> _load() async {
+    final json = await _store.read(_key);
+    if (json != null) return _CatalogCache.fromJson(json);
 
-  Future<_CatalogSnapshot> _catalog({bool refresh = false}) async {
-    if (!_connection.online) return _readCache();
-    if (_loading case final loading?) return loading;
-    if (_snapshot case final snapshot? when !refresh) return snapshot;
-    return _loading = _refresh();
-  }
-
-  Future<_CatalogSnapshot> _readCache() async {
-    if (_snapshot case final snapshot?) return snapshot;
-    final data = await _store.read(_key);
-    if (data == null) throw const OfflineException();
-    return _snapshot ??= .fromJson(data);
-  }
-
-  Future<_CatalogSnapshot> _refresh() async {
-    try {
-      final data = await _remote.fetchCatalog();
-      final snapshot = _CatalogSnapshot.fromJson(data);
-      await _store.write(_key, data);
-      return _snapshot = snapshot;
-    } on OfflineException {
-      return await _readCache();
-    } finally {
-      _loading = null;
-    }
+    final legacy = await _store.read('catalog_v1');
+    if (legacy == null) return _CatalogCache();
+    final cache = _CatalogCache.fromJson(legacy);
+    cache.details.addAll(cache.products);
+    return cache;
   }
 
   @override
@@ -52,48 +37,235 @@ class CachedCatalog(
     required int pageSize,
     bool refresh = false,
   }) async {
-    final catalog = await _catalog(refresh: refresh);
-    final words = query.search.trim().toLowerCase().split(RegExp(r'\s+'));
-    final categoryProducts = catalog.products.where(
-      (product) =>
-          query.category == null || product.categoryId == query.category,
-    );
-    final brands = <String>{};
-    final matching = <Product>[];
-    for (final product in categoryProducts) {
-      brands.add(product.brand);
-      if ((query.brand == null || product.brand == query.brand) &&
-          (!query.deals || product.discountPercent > 0) &&
-          words.every(product.title.toLowerCase().contains)) {
-        matching.add(product);
+    final cache = await _saved;
+    if (!_connection.online) return _offlinePage(cache, query, page, pageSize);
+
+    final brandKey = query.category ?? '';
+    try {
+      final metadata = (
+        refresh || cache.categories == null
+            ? _remote.categories()
+            : Future.value(cache.categories!),
+        refresh || !cache.brands.containsKey(brandKey)
+            ? _remote.brands(query.category)
+            : Future.value(cache.brands[brandKey]!),
+        query.deals
+            ? _dealsPage(cache, query, page, pageSize)
+            : _remote.products(query, page: page, pageSize: pageSize),
+      );
+      final (categories, brands, result) = await metadata.wait;
+      cache.categories = categories;
+      cache.brands[brandKey] = brands;
+      if (!query.deals) {
+        for (final product in result.products) {
+          cache.products[product.id] = product;
+        }
+      }
+      await _store.write(_key, cache.toJson());
+      return (
+        products: List<Product>.unmodifiable(result.products),
+        total: result.total,
+        categories: List<Category>.unmodifiable(categories),
+        brands: List<String>.unmodifiable(brands),
+      );
+    } on ParallelWaitError catch (error) {
+      final errors = error.errors;
+      final failure = errors.$1 ?? errors.$2 ?? errors.$3;
+      if (failure?.error is OfflineException) {
+        return _offlinePage(cache, query, page, pageSize);
+      }
+      Error.throwWithStackTrace(failure!.error, failure.stackTrace);
+    }
+  }
+
+  Future<({List<Product> products, int total})> _dealsPage(
+    _CatalogCache cache,
+    CatalogQuery query,
+    int page,
+    int pageSize,
+  ) async {
+    final deals = await _remote.dealsOfDay();
+    final now = DateTime.now().toUtc();
+    final offers = <String, _Deal>{
+      for (final JsonObject item in deals['items'] as List)
+        readText(item, 'productId'): (
+          price: readCents(item, 'dealPrice'),
+          endsAt: DateTime.parse(readText(item, 'endsAt')),
+        ),
+    };
+    final prices = Map.of(offers)
+      ..removeWhere((_, deal) => !deal.endsAt.isAfter(now));
+    final matches = <Product>[];
+    if (prices.isNotEmpty) {
+      const batchSize = 50;
+      var consumed = 0;
+      for (var next = 1; ; next++) {
+        final result = await _remote.products(
+          query,
+          page: next,
+          pageSize: batchSize,
+        );
+        for (final product in result.products) {
+          if (prices[product.id] case final deal?) {
+            matches.add(_withCurrentOffer(product, product, price: deal.price));
+            cache.products[product.id] = product;
+          }
+        }
+        consumed += result.products.length;
+        if (matches.length >= prices.length ||
+            result.products.isEmpty ||
+            consumed >= result.total) {
+          break;
+        }
       }
     }
+    cache.deals = offers;
+    return (products: _page(matches, page, pageSize), total: matches.length);
+  }
 
-    final start = math.min((page - 1) * pageSize, matching.length);
-    final end = math.min(start + pageSize, matching.length);
+  CatalogPage _offlinePage(
+    _CatalogCache cache,
+    CatalogQuery query,
+    int page,
+    int pageSize,
+  ) {
+    final categories = cache.categories;
+    if (categories == null) throw const OfflineException();
+    final words = query.search.trim().toLowerCase().split(RegExp(r'\s+'));
+    final now = DateTime.now().toUtc();
+    final prices = {
+      for (final MapEntry(:key, :value) in cache.deals.entries)
+        if (value.endsAt.isAfter(now)) key: value.price,
+    };
+    final categoryProducts = cache.products.values.where(
+      (product) =>
+          query.category == null ||
+          product.categoryId.toLowerCase() == query.category!.toLowerCase(),
+    );
+    final matching = [
+      for (final product in categoryProducts)
+        if ((query.brand == null ||
+                product.brand.toLowerCase() == query.brand!.toLowerCase()) &&
+            (!query.deals || prices.containsKey(product.id)) &&
+            words.every(product.title.toLowerCase().contains))
+          query.deals
+              ? _withCurrentOffer(product, product, price: prices[product.id])
+              : product,
+    ];
     return (
-      products: List<Product>.unmodifiable(matching.getRange(start, end)),
+      products: _page(matching, page, pageSize),
       total: matching.length,
-      categories: catalog.categories,
-      brands: List<String>.unmodifiable(brands.toList()..sort()),
+      categories: List<Category>.unmodifiable(categories),
+      brands: List.unmodifiable(
+        cache.brands[query.category ?? ''] ??
+            (categoryProducts.map((product) => product.brand).toSet().toList()
+              ..sort()),
+      ),
     );
   }
 
   @override
-  Future<Product> detail(String id) async =>
-      (await _catalog()).products.firstWhere((product) => product.id == id);
+  Future<Product> detail(String id) async {
+    final cache = await _saved;
+    final summary = cache.products[id];
+    if (_connection.online) {
+      try {
+        final product = await _remote.detail(id, summary: summary);
+        cache.details[id] = product;
+        if (product.categoryId.isNotEmpty) cache.products[id] = product;
+        await _store.write(_key, cache.toJson());
+        return _withActiveDeal(product, cache.deals[id]);
+      } on OfflineException {
+        // Use details or the summary already downloaded for this product.
+      }
+    }
+    final detail = cache.details[id];
+    final product = switch ((detail, summary)) {
+      (final detail?, final summary?) => _withCurrentOffer(detail, summary),
+      (final detail?, null) => detail,
+      (null, final summary?) => summary,
+      _ => throw const OfflineException(),
+    };
+    return _withActiveDeal(product, cache.deals[id]);
+  }
 }
 
-class const _CatalogSnapshot(
-  final List<Category> categories,
-  final List<Product> products,
-) {
-  factory fromJson(Map<String, dynamic> data) => .new(
-    .unmodifiable(
-      (data['categories'] as List).map((json) => decodeCategory(json)),
-    ),
-    .unmodifiable(
-      (data['products'] as List).map((json) => decodeProduct(json)),
-    ),
+typedef _Deal = ({int price, DateTime endsAt});
+
+Product _withActiveDeal(Product product, _Deal? deal) =>
+    deal != null && deal.endsAt.isAfter(DateTime.now().toUtc())
+    ? _withCurrentOffer(product, product, price: deal.price)
+    : product;
+
+List<Product> _page(List<Product> products, int page, int pageSize) {
+  final start = math.min((page - 1) * pageSize, products.length);
+  return List.unmodifiable(
+    products.getRange(start, math.min(start + pageSize, products.length)),
   );
+}
+
+Product _withCurrentOffer(Product detail, Product current, {int? price}) =>
+    Product(
+      id: detail.id,
+      title: detail.title,
+      brand: detail.brand,
+      categoryId: current.categoryId,
+      price: price ?? current.price,
+      originalPrice: current.originalPrice,
+      stock: current.stock,
+      rating: current.rating,
+      description: detail.description,
+      images: detail.images,
+      badges: current.badges,
+      nutrition: detail.nutrition,
+      allergens: detail.allergens,
+      related: detail.related,
+    );
+
+class _CatalogCache {
+  List<Category>? categories;
+  final brands = <String, List<String>>{};
+  final products = <String, Product>{};
+  final details = <String, Product>{};
+  Map<String, _Deal> deals = {};
+
+  _CatalogCache();
+
+  _CatalogCache.fromJson(Map<String, dynamic> json) {
+    if (json['categories'] case final List saved) {
+      categories = [for (final item in saved) decodeCategory(item)];
+    }
+    for (final entry in (json['brands'] as Map? ?? {}).entries) {
+      brands[entry.key] = (entry.value as List).cast<String>();
+    }
+    for (final item in json['products'] as List? ?? []) {
+      final product = decodeProduct(item);
+      products[product.id] = product;
+    }
+    for (final item in json['details'] as List? ?? []) {
+      final product = decodeProduct(item, allowMissingCategory: true);
+      details[product.id] = product;
+    }
+    for (final JsonObject item in json['deals'] as List? ?? []) {
+      deals[readText(item, 'id')] = (
+        price: readInt(item, 'price'),
+        endsAt: DateTime.parse(readText(item, 'endsAt')),
+      );
+    }
+  }
+
+  Map<String, dynamic> toJson() => {
+    'categories': categories?.map(encodeCategory).toList(),
+    'brands': brands,
+    'products': products.values.map(encodeProduct).toList(),
+    'details': details.values.map(encodeProduct).toList(),
+    'deals': [
+      for (final MapEntry(:key, :value) in deals.entries)
+        {
+          'id': key,
+          'price': value.price,
+          'endsAt': value.endsAt.toIso8601String(),
+        },
+    ],
+  };
 }

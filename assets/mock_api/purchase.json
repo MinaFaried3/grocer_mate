@@ -1,0 +1,61 @@
+{
+  "orderIdStart": 7102,
+  "scenarios": {
+    "normal": {},
+    "prices": {
+      "priceChanges": [
+        {
+          "productId": "p_milk_2pct",
+          "fallbackIndex": 0,
+          "delta": 0.1
+        },
+        {
+          "productId": "p_bread_sourdough",
+          "fallbackIndex": 1,
+          "delta": -0.2
+        }
+      ]
+    },
+    "stock": {
+      "stockChanges": [
+        {
+          "productId": "p_apple_gala",
+          "fallbackIndex": 0,
+          "available": 0
+        },
+        {
+          "productId": "p_bread_sourdough",
+          "fallbackIndex": 1,
+          "available": 1
+        }
+      ]
+    },
+    "mixed": {
+      "priceChanges": [
+        {
+          "productId": "p_milk_2pct",
+          "fallbackIndex": 0,
+          "delta": 0.1
+        }
+      ],
+      "stockChanges": [
+        {
+          "productId": "p_bread_sourdough",
+          "fallbackIndex": 1,
+          "available": 0
+        }
+      ]
+    },
+    "partial": {
+      "stockChanges": [
+        {
+          "productId": "p_apple_gala",
+          "fallbackIndex": 1,
+          "available": 0
+        }
+      ],
+      "allowPartial": true,
+      "note": "You can place the missing item again later."
+    }
+  }
+}

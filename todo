@@ -9,3 +9,42 @@
 9- read me and md file at docs
 10- notice my current app logic like shared mixin and so on
 11- demo video
+
+
+
+0- endpoints
+1-on click items
+2- optimistic ui
+3- view my orders detail
+4- settings
+5- offline mode and product details
+6- persist	between	sessions
+7- seprate the settings area
+8- bloc concurncy
+9- orders
+10-• Error/Empty/Loading:	Distinct	UIs;	friendly	messaging	and	retry.
+   • Theming:	Light/Dark	themes;	follow	system	setting
+
+11- Outbox	queued	purchase:	user	can	tap	Buy	offline	→ “Queued”;	when	online,	app
+revalidates	and	submits.
+12- idemtoncey
+
+
+
+
+
+
+
+ Short	screen	recording	(≤2	min)	showing:	search,	add	to	cart,	save	for	later,	go	offline,queue
+purchase (Bonus),	reconnect	&	resolve	revalidation.
+
+    Performance: Optimize to reduce unnecessary rebuilds and main thread workload;
+   implement pagination, lazy loading, and efficient image/data caching.
+   • Code Quality: Ensure the code is clean, readable, scalable, testable, and
+   maintainable.
+   • SOLID & Design Patterns: Apply only when they enhance clarity and
+   maintainability—avoid unnecessary complexity.
+   • Documentation: Provide a concise README.md that clearly describes all features and
+   functionalities.
+
+

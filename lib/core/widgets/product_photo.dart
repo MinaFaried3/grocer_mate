@@ -9,17 +9,35 @@ class const ProductPhoto(
   final BoxFit fit = .cover,
 }) extends StatelessWidget {
   @override
-  Widget build(BuildContext context) => Image.asset(
-    path,
-    fit: fit,
-    cacheWidth: cacheWidth,
-    gaplessPlayback: true,
-    width: double.infinity,
-    height: double.infinity,
-    excludeFromSemantics: true,
-    errorBuilder: (context, error, stack) => ColoredBox(
-      color: context.colorScheme.primaryContainer,
-      child: const Center(child: Icon(Icons.shopping_basket_outlined)),
-    ),
-  );
+  Widget build(BuildContext context) {
+    Widget fallback(BuildContext context, Object error, StackTrace? stack) =>
+        ColoredBox(
+          color: context.colorScheme.primaryContainer,
+          child: const Center(child: Icon(Icons.shopping_basket_outlined)),
+        );
+
+    final scheme = Uri.tryParse(path)?.scheme;
+    if (scheme == 'http' || scheme == 'https') {
+      return Image.network(
+        path,
+        fit: fit,
+        cacheWidth: cacheWidth,
+        gaplessPlayback: true,
+        width: double.infinity,
+        height: double.infinity,
+        excludeFromSemantics: true,
+        errorBuilder: fallback,
+      );
+    }
+    return Image.asset(
+      path,
+      fit: fit,
+      cacheWidth: cacheWidth,
+      gaplessPlayback: true,
+      width: double.infinity,
+      height: double.infinity,
+      excludeFromSemantics: true,
+      errorBuilder: fallback,
+    );
+  }
 }

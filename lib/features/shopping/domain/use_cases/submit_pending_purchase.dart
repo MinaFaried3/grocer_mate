@@ -4,6 +4,7 @@ import 'package:grocer_mate/core/use_case.dart';
 import '../entities/shopping.dart';
 import '../repositories/checkout_repository.dart';
 import '../repositories/shopping_repository.dart';
+import 'cart_operations.dart';
 
 enum SubmissionFailure { offline, retry }
 
@@ -11,6 +12,7 @@ typedef SubmissionResult = ({
   ShoppingData data,
   PurchaseReview? review,
   SubmissionFailure? failure,
+  String? notice,
 });
 
 class const SubmitPendingPurchase(
@@ -20,7 +22,9 @@ class const SubmitPendingPurchase(
   @override
   Future<SubmissionResult> call(ShoppingData data) async {
     final pending = data.pending;
-    if (pending == null) return (data: data, review: null, failure: null);
+    if (pending == null) {
+      return (data: data, review: null, failure: null, notice: null);
+    }
     var persisted = data;
     try {
       if (!pending.attempted) {
@@ -37,7 +41,20 @@ class const SubmitPendingPurchase(
       final result = await _checkout.purchase(persisted.pending!);
       switch (result) {
         case PurchaseReview():
-          return (data: persisted, review: result, failure: null);
+          return (data: persisted, review: result, failure: null, notice: null);
+        case PartialPurchase():
+          final completed = ShoppingData(
+            cart: mergePurchaseLines(data.cart, result.missing),
+            saved: data.saved,
+            lastOrder: result.receipt ?? data.lastOrder,
+          );
+          await _storage.write(completed);
+          return (
+            data: completed,
+            review: null,
+            failure: null,
+            notice: result.note ?? 'Available items were ordered. Remaining items are in your cart.',
+          );
         case OrderReceipt():
           final completed = ShoppingData(
             cart: data.cart,
@@ -45,16 +62,22 @@ class const SubmitPendingPurchase(
             lastOrder: result,
           );
           await _storage.write(completed);
-          return (data: completed, review: null, failure: null);
+          return (data: completed, review: null, failure: null, notice: null);
       }
     } on OfflineException {
       return (
         data: persisted,
         review: null,
         failure: SubmissionFailure.offline,
+        notice: null,
       );
     } catch (_) {
-      return (data: persisted, review: null, failure: SubmissionFailure.retry);
+      return (
+        data: persisted,
+        review: null,
+        failure: SubmissionFailure.retry,
+        notice: null,
+      );
     }
   }
 }

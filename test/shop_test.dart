@@ -112,7 +112,7 @@ void main() {
       storage,
       SubmitPendingPurchase(storage, checkout),
       connection,
-      createPurchaseId: _purchaseId,
+      createPurchaseId: () => 'purchase-reviewed',
     );
     addTearDown(restored.close);
     final added = restored.stream.firstWhere(
@@ -144,7 +144,10 @@ void main() {
       finalState.data!.lastOrder!.total,
       OrderTotals.forLines(preview).total,
     );
-    expect(checkout.requests.map((request) => request.id), [id, id]);
+    expect(checkout.requests.map((request) => request.id), [
+      id,
+      'purchase-reviewed',
+    ]);
     expect(checkout.requests.last.lines, hasLength(1));
     expect(checkout.requests.last.lines.single.quantity, 1);
     expect(checkout.requests.last.lines.single.product.price, 139);

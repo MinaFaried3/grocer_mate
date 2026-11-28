@@ -4,10 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'package:grocer_mate/core/network/app_connection.dart';
-import 'package:grocer_mate/core/network/app_network_state.dart';
-import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
-import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_event.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_state.dart';
 import 'package:grocer_mate/features/shopping/presentation/ui/widgets/checkout_sheet.dart';
@@ -19,11 +15,6 @@ class const MarketHome({
   @override
   Widget build(BuildContext context) => MultiBlocListener(
     listeners: [
-      BlocListener<AppConnection, AppNetworkState>(
-        listenWhen: (before, after) => before.online != after.online,
-        listener: (context, _) =>
-            context.read<CatalogBloc>().add(const CatalogRefreshed()),
-      ),
       BlocListener<ShoppingBloc, ShopState>(
         listenWhen: (before, after) =>
             before.notice != after.notice && after.notice != null,
@@ -40,7 +31,6 @@ class const MarketHome({
         listenWhen: (before, after) =>
             before.review != after.review && after.review != null,
         listener: (context, state) {
-          context.read<CatalogBloc>().add(const CatalogRefreshed());
           navigationShell.goBranch(1);
           // Let the Cart route settle before showing the review on top of it.
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -57,7 +47,6 @@ class const MarketHome({
             before.data?.lastOrder != after.data?.lastOrder &&
             after.data?.lastOrder != null,
         listener: (context, state) {
-          context.read<CatalogBloc>().add(const CatalogRefreshed());
           if (navigationShell.currentIndex != 1) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

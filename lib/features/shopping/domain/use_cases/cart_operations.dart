@@ -100,13 +100,16 @@ class const CancelPendingPurchase()
     final (:data, :underReview) = input;
     final purchase = data.pending;
     if (purchase == null || (purchase.attempted && !underReview)) return null;
-    var restored = data.cart;
-    for (final line in purchase.lines) {
-      restored = _merge(restored, line);
-    }
-    return .new(cart: restored, saved: data.saved, lastOrder: data.lastOrder);
+    return .new(
+      cart: mergePurchaseLines(data.cart, purchase.lines),
+      saved: data.saved,
+      lastOrder: data.lastOrder,
+    );
   }
 }
+
+List<CartLine> mergePurchaseLines(List<CartLine> cart, List<CartLine> lines) =>
+    lines.fold(cart, _merge);
 
 List<CartLine> _merge(List<CartLine> lines, CartLine added) {
   final index = lines.indexWhere((line) => line.product.id == added.product.id);

@@ -86,6 +86,12 @@ class const PurchaseReview(final List<CheckoutChange> changes)
 class const OrderReceipt({required final String id, required final int total})
     extends PurchaseResult;
 
+class const PartialPurchase(
+  final List<CartLine> missing, {
+  final OrderReceipt? receipt,
+  final String? note,
+}) extends PurchaseResult;
+
 class const PendingPurchase(
   final String id,
   final List<CartLine> lines, {

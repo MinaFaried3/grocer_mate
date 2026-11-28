@@ -18,6 +18,7 @@ class const Product({
   required final List<String> badges,
   required final Map<String, num> nutrition,
   required final List<String> allergens,
+  final List<String> related = const [],
 }) {
   this
     : assert(price >= 0),

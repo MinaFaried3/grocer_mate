@@ -1,7 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'package:grocer_mate/core/network/app_connection.dart';
+import 'package:grocer_mate/core/network/app_network_state.dart';
 import 'package:grocer_mate/core/widgets/status_panel.dart';
+import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
+import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_state.dart';
 
 import '../../controllers/catalog_bloc.dart';
 import '../../controllers/catalog_event.dart';
@@ -44,6 +48,26 @@ class _CatalogScreenState() extends State<CatalogScreen> {
   @override
   Widget build(BuildContext context) {
     final bloc = context.read<CatalogBloc>();
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<AppConnection, AppNetworkState>(
+          listenWhen: (before, after) => before.online != after.online,
+          listener: (_, _) => bloc.add(const CatalogRefreshed()),
+        ),
+        BlocListener<ShoppingBloc, ShopState>(
+          listenWhen: (before, after) =>
+              (before.review != after.review && after.review != null) ||
+              (before.data != null &&
+                  before.data?.lastOrder != after.data?.lastOrder &&
+                  after.data?.lastOrder != null),
+          listener: (_, _) => bloc.add(const CatalogRefreshed()),
+        ),
+      ],
+      child: _buildCatalog(bloc),
+    );
+  }
+
+  Widget _buildCatalog(CatalogBloc bloc) {
     return RefreshIndicator(
       onRefresh: () async {
         final finished = bloc.stream.firstWhere((state) => !state.loading);

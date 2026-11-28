@@ -1,0 +1,10 @@
+{
+  "default": {
+    "backorderable": false,
+    "etaDays": 0
+  },
+  "p_bread_sourdough": {
+    "backorderable": false,
+    "etaDays": 0
+  }
+}

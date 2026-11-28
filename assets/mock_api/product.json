@@ -1,0 +1,254 @@
+{
+  "p_apple_gala": {
+    "images": [
+      "assets/photos/apple.webp"
+    ],
+    "description": "Crisp and sweet Gala apples.",
+    "nutrition": {
+      "calories": 52,
+      "fiber": 2.4,
+      "vitaminC": 7
+    },
+    "allergens": [],
+    "related": [
+      "p_banana_chiquita"
+    ]
+  },
+  "p_milk_2pct": {
+    "images": [
+      "assets/photos/milk.webp",
+      "assets/photos/milk-detail.webp"
+    ],
+    "description": "Pasteurized cow milk.",
+    "nutrition": {
+      "calories": 120,
+      "protein": 8,
+      "fat": 5,
+      "carbs": 11
+    },
+    "allergens": [
+      "milk"
+    ],
+    "related": [
+      "p_milk_skim",
+      "p_cereal_oats",
+      "p_bread_sourdough"
+    ]
+  },
+  "p_bread_sourdough": {
+    "images": [
+      "assets/photos/bread.webp"
+    ],
+    "description": "Artisan sourdough with natural starter.",
+    "nutrition": {
+      "calories": 180,
+      "protein": 6,
+      "fat": 1,
+      "carbs": 36
+    },
+    "allergens": [
+      "gluten"
+    ],
+    "related": [
+      "p_cheddar_block",
+      "p_butter_salted",
+      "p_croissant_butter"
+    ]
+  },
+  "p_strawberry_box": {
+    "images": [
+      "assets/photos/strawberry.webp"
+    ],
+    "description": "Sweet, ripe strawberries picked for their deep red color. Rinse before eating.",
+    "nutrition": {},
+    "allergens": [],
+    "related": []
+  },
+  "p_banana_chiquita": {
+    "images": [
+      "assets/photos/banana.webp"
+    ],
+    "description": "A bunch of bananas for an easy snack, breakfast, or baking.",
+    "nutrition": {},
+    "allergens": [],
+    "related": []
+  },
+  "p_grapes_red": {
+    "images": [
+      "assets/photos/grape.webp"
+    ],
+    "description": "Seedless red grapes with a crisp skin and a sweet finish.",
+    "nutrition": {},
+    "allergens": [],
+    "related": []
+  },
+  "p_orange_navel": {
+    "images": [
+      "assets/photos/orange.webp"
+    ],
+    "description": "Bright, easy-peel oranges with juicy, seedless segments.",
+    "nutrition": {},
+    "allergens": [],
+    "related": []
+  },
+  "p_cheddar_block": {
+    "images": [
+      "assets/photos/cheddar.webp"
+    ],
+    "description": "A block of mature cheddar for sandwiches, cheese boards, and melting.",
+    "nutrition": {},
+    "allergens": [
+      "Milk"
+    ],
+    "related": []
+  },
+  "p_yogurt_plain": {
+    "images": [
+      "assets/photos/yogurt.webp"
+    ],
+    "description": "Creamy, unsweetened yogurt with live cultures.",
+    "nutrition": {},
+    "allergens": [
+      "Milk"
+    ],
+    "related": []
+  },
+  "p_croissant_butter": {
+    "images": [
+      "assets/photos/croissant.webp"
+    ],
+    "description": "Two flaky, golden butter croissants. Warm briefly before serving.",
+    "nutrition": {},
+    "allergens": [
+      "Wheat",
+      "Milk"
+    ],
+    "related": []
+  },
+  "p_carrots": {
+    "images": [
+      "assets/photos/carrot.webp"
+    ],
+    "description": "Sweet, crisp carrots with their green tops.",
+    "nutrition": {},
+    "allergens": [],
+    "related": []
+  },
+  "p_avocado": {
+    "images": [
+      "assets/photos/avocado.webp"
+    ],
+    "description": "Two Hass avocados with a creamy texture when ripe.",
+    "nutrition": {},
+    "allergens": [],
+    "related": []
+  },
+  "p_apple_juice": {
+    "images": [
+      "assets/photos/juice.webp"
+    ],
+    "description": "Pressed apple juice with no added sugar. Shake before opening.",
+    "nutrition": {},
+    "allergens": [],
+    "related": []
+  },
+  "p_sparkling_water": {
+    "images": [
+      "assets/photos/water.webp"
+    ],
+    "description": "Chilled sparkling mineral water in a glass bottle.",
+    "nutrition": {},
+    "allergens": [],
+    "related": []
+  },
+  "p_cereal_oats": {
+    "images": [
+      "assets/photos/oats.webp"
+    ],
+    "description": "Wholegrain rolled oats for porridge, overnight oats, and baking.",
+    "nutrition": {},
+    "allergens": [
+      "Oats"
+    ],
+    "related": []
+  },
+  "p_olive_oil": {
+    "images": [
+      "assets/photos/oil.webp"
+    ],
+    "description": "Cold-extracted olive oil for dressings and finishing dishes.",
+    "nutrition": {},
+    "allergens": [],
+    "related": []
+  },
+  "p_sponge": {
+    "images": [
+      "assets/photos/sponge.webp"
+    ],
+    "description": "Two absorbent cellulose sponges for everyday washing up.",
+    "nutrition": {},
+    "allergens": [],
+    "related": []
+  },
+  "p_hand_soap": {
+    "images": [
+      "assets/photos/soap.webp"
+    ],
+    "description": "Everyday hand wash with a light sage fragrance.",
+    "nutrition": {},
+    "allergens": [],
+    "related": []
+  },
+  "p_laundry_liquid": {
+    "images": [
+      "assets/photos/laundry.webp"
+    ],
+    "description": "Concentrated laundry detergent for everyday loads.",
+    "nutrition": {},
+    "allergens": [],
+    "related": []
+  },
+  "p_toothpaste": {
+    "images": [
+      "assets/photos/toothpaste.webp"
+    ],
+    "description": "Fluoride toothpaste with a fresh mint flavor.",
+    "nutrition": {},
+    "allergens": [],
+    "related": []
+  },
+  "p_milk_skim": {
+    "images": [
+      "assets/photos/milk.webp",
+      "assets/photos/milk-detail.webp"
+    ],
+    "description": "Pasteurized skimmed cow’s milk. Keep refrigerated.",
+    "nutrition": {},
+    "allergens": [
+      "Milk"
+    ],
+    "related": []
+  },
+  "p_butter_salted": {
+    "images": [
+      "https://picsum.photos/seed/butter/600/400"
+    ],
+    "description": "Churned butter with a pinch of salt.",
+    "nutrition": {},
+    "allergens": [
+      "milk"
+    ],
+    "related": []
+  },
+  "p_rolls_morning": {
+    "images": [
+      "https://picsum.photos/seed/rolls/600/400"
+    ],
+    "description": "Soft rolls for breakfast or sandwiches.",
+    "nutrition": {},
+    "allergens": [
+      "gluten"
+    ],
+    "related": []
+  }
+}

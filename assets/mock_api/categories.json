@@ -1,0 +1,42 @@
+[
+  {
+    "id": "c_fruit",
+    "name": "Fruits",
+    "icon": "🍎"
+  },
+  {
+    "id": "c_dairy",
+    "name": "Dairy",
+    "icon": "🥛"
+  },
+  {
+    "id": "c_bakery",
+    "name": "Bakery",
+    "icon": "🥖"
+  },
+  {
+    "id": "c_beverages",
+    "name": "Beverages",
+    "icon": "🥤"
+  },
+  {
+    "id": "c_pantry",
+    "name": "Pantry",
+    "icon": "🧂"
+  },
+  {
+    "id": "c_household",
+    "name": "Household",
+    "icon": "🧽"
+  },
+  {
+    "id": "c_personal",
+    "name": "Personal Care",
+    "icon": "🧴"
+  },
+  {
+    "id": "c_produce",
+    "name": "Vegetables",
+    "icon": "🥕"
+  }
+]

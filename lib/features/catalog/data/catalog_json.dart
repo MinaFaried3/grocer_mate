@@ -8,7 +8,10 @@ Category decodeCategory(Map<String, dynamic> json) => Category(
   icon: readText(json, 'icon'),
 );
 
-Product decodeProduct(Map<String, dynamic> json) {
+Product decodeProduct(
+  Map<String, dynamic> json, {
+  bool allowMissingCategory = false,
+}) {
   final images = json['images'];
   if (images is! List ||
       images.isEmpty ||
@@ -23,7 +26,9 @@ Product decodeProduct(Map<String, dynamic> json) {
     id: readText(json, 'id'),
     title: readText(json, 'title'),
     brand: readText(json, 'brand'),
-    categoryId: readText(json, 'categoryId'),
+    categoryId: allowMissingCategory && json['categoryId'] == ''
+        ? ''
+        : readText(json, 'categoryId'),
     price: readInt(json, 'price'),
     originalPrice: readInt(json, 'originalPrice'),
     stock: readInt(json, 'stock'),
@@ -33,5 +38,41 @@ Product decodeProduct(Map<String, dynamic> json) {
     badges: .unmodifiable(json['badges']),
     nutrition: .unmodifiable(json['nutrition'] ?? {}),
     allergens: .unmodifiable(json['allergens'] ?? []),
+    related: .unmodifiable(json['related'] ?? []),
   );
 }
+
+Product decodeApiProduct(Map<String, dynamic> json, {Product? summary}) =>
+    decodeProduct({
+      ...json,
+      'price': readCents(json, 'price'),
+      'originalPrice': readCents(json, 'originalPrice'),
+      'images': json['images'] ?? [json['image']],
+      'rating': json['rating'] ?? summary?.rating ?? 0.0,
+      'badges': json['badges'] ?? summary?.badges ?? const <String>[],
+      'categoryId': json['categoryId'] ?? summary?.categoryId ?? '',
+      'description': json['description'] ?? '',
+    }, allowMissingCategory: true);
+
+Map<String, dynamic> encodeCategory(Category category) => {
+  'id': category.id,
+  'name': category.name,
+  'icon': category.icon,
+};
+
+Map<String, dynamic> encodeProduct(Product product) => {
+  'id': product.id,
+  'title': product.title,
+  'brand': product.brand,
+  'categoryId': product.categoryId,
+  'price': product.price,
+  'originalPrice': product.originalPrice,
+  'stock': product.stock,
+  'rating': product.rating,
+  'description': product.description,
+  'images': product.images,
+  'badges': product.badges,
+  'nutrition': product.nutrition,
+  'allergens': product.allergens,
+  'related': product.related,
+};
