@@ -1,9 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'package:grocer_mate/core/network/app_connection.dart';
-import 'package:grocer_mate/core/network/app_network_state.dart';
 import 'package:grocer_mate/core/widgets/status_panel.dart';
+import 'package:grocer_mate/features/app/presentation/controllers/app_connection_cubit.dart';
+import 'package:grocer_mate/features/app/presentation/controllers/app_connection_state.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_state.dart';
 
@@ -55,7 +55,7 @@ class _CatalogScreenState() extends State<CatalogScreen> {
     final bloc = context.read<CatalogBloc>();
     return MultiBlocListener(
       listeners: [
-        BlocListener<AppConnection, AppNetworkState>(
+        BlocListener<AppConnectionCubit, AppConnectionState>(
           listenWhen: (before, after) => before.online != after.online,
           listener: (_, _) => bloc.add(const CatalogRefreshed()),
         ),

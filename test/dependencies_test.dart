@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:grocer_mate/core/injection/dependencies.dart';
-import 'package:grocer_mate/core/network/app_connection.dart';
 import 'package:grocer_mate/core/network/market_api.dart';
 import 'package:grocer_mate/core/settings/checkout_settings.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
+import 'package:grocer_mate/features/app/presentation/controllers/app_connection_cubit.dart';
 import 'package:grocer_mate/features/catalog/domain/repositories/catalog_repository.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/product_detail_controller.dart';
@@ -22,7 +22,8 @@ void main() {
 
     expect(concurrentStartup, same(startup));
     expect(await initializeDependencies(), same(dependencies));
-    expect(dependencies.isRegistered<AppConnection>(), isTrue);
+    expect(dependencies.isRegistered<AppConnectionCubit>(), isTrue);
+    expect(dependencies<AppConnectionCubit>().state.connected, isNotNull);
     expect(dependencies.isRegistered<LocalStorage>(), isFalse);
     expect(dependencies.isRegistered<MarketApi>(), isFalse);
     expect(dependencies.isRegistered<ShoppingBloc>(), isFalse);

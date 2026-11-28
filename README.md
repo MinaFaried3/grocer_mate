@@ -50,7 +50,7 @@ Each endpoint has a JSON fixture in `assets/mock_api/`. Edit `products.json` to 
 
 ## Implementation
 
-- `lib/app` configures the shared HTTP interface with the demo or live client. The feature repositories and BLoCs use the same request and response formats in both modes.
+- `lib/core/injection` configures the shared HTTP interface with the demo or live client. The feature repositories and BLoCs use the same request and response formats in both modes.
 - The catalog fetches pages and filters from the API. Offline browsing and details use downloaded products. Cart and Saved continue to use durable local storage.
 - The checkout preview calculates prices in integer cents with the sample 5% tax and $1 delivery fee waived at $25. Completed receipts use the total returned by the server.
 - The bundled demo uses product photography from `assets/photos` where available. The HTTP client also supports image URLs returned by a live backend.

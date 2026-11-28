@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import 'connection.dart';
+import 'connectivity/offline_exception.dart';
 
 typedef JsonObject = Map<String, dynamic>;
 

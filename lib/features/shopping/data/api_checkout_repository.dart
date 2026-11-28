@@ -1,12 +1,14 @@
-import 'package:grocer_mate/core/network/connection.dart';
+import 'package:grocer_mate/core/network/connectivity/offline_exception.dart';
 import 'package:grocer_mate/core/network/market_api.dart';
 import 'package:grocer_mate/core/storage/json_fields.dart';
 
 import '../domain/entities/shopping.dart';
 import '../domain/repositories/checkout_repository.dart';
 
-class ApiCheckoutRepository(final MarketApi _api, final Connection _connection)
-    implements CheckoutRepository {
+class ApiCheckoutRepository(
+  final MarketApi _api,
+  final bool Function() _isOnline,
+) implements CheckoutRepository {
   Future<String>? _currency;
 
   Future<JsonObject> flags() async => await _api.get('flags') as JsonObject;
@@ -22,9 +24,9 @@ class ApiCheckoutRepository(final MarketApi _api, final Connection _connection)
 
   @override
   Future<PurchaseResult> purchase(PendingPurchase purchase) async {
-    if (!_connection.online) throw const OfflineException();
+    if (!_isOnline()) throw const OfflineException();
     final currency = await (_currency ??= _loadCurrency());
-    if (!_connection.online) throw const OfflineException();
+    if (!_isOnline()) throw const OfflineException();
     final response = await _api.post(
       'purchase',
       {

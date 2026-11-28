@@ -1,9 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'package:grocer_mate/core/network/app_connection.dart';
-import 'package:grocer_mate/core/network/app_network_state.dart';
 import 'package:grocer_mate/core/theme/theme_context.dart';
+import 'package:grocer_mate/features/app/presentation/controllers/app_connection_cubit.dart';
+import 'package:grocer_mate/features/app/presentation/controllers/app_connection_state.dart';
 
 import 'checkout_settings.dart';
 
@@ -18,7 +18,7 @@ class const SettingsSheet({
 class _SettingsSheetState() extends State<SettingsSheet> {
   @override
   Widget build(BuildContext context) {
-    final connection = context.read<AppConnection>();
+    final connection = context.read<AppConnectionCubit>();
     final settings = widget.settings;
     final textTheme = context.textTheme;
     return SafeArea(
@@ -56,7 +56,7 @@ class _SettingsSheetState() extends State<SettingsSheet> {
               ),
               const SizedBox(height: 8),
             ],
-            BlocSelector<AppConnection, AppNetworkState, bool>(
+            BlocSelector<AppConnectionCubit, AppConnectionState, bool>(
               selector: (state) => state.offlineMode,
               builder: (context, offlineMode) => SwitchListTile(
                 contentPadding: .zero,

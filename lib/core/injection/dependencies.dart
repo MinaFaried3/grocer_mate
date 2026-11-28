@@ -5,13 +5,13 @@ import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 
-import 'package:grocer_mate/core/network/app_connection.dart';
+import 'package:grocer_mate/core/network/connectivity/platform_connection_checker.dart';
 import 'package:grocer_mate/core/network/demo/demo_market_client.dart';
 import 'package:grocer_mate/core/network/market_api.dart';
-import 'package:grocer_mate/core/network/platform_connectivity_monitor.dart';
 import 'package:grocer_mate/core/settings/checkout_settings.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
 import 'package:grocer_mate/core/storage/secure_local_storage.dart';
+import 'package:grocer_mate/features/app/presentation/controllers/app_connection_cubit.dart';
 import 'package:grocer_mate/features/catalog/data/cached_catalog.dart';
 import 'package:grocer_mate/features/catalog/data/catalog_remote_data_source.dart';
 import 'package:grocer_mate/features/catalog/domain/repositories/catalog_repository.dart';
@@ -25,16 +25,17 @@ import 'package:grocer_mate/features/shopping/domain/use_cases/submit_pending_pu
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
 
 const _backendUrl = String.fromEnvironment('GROCER_API_BASE_URL');
-final Future<GetIt> _dependencyInitialization = _registerAppDependencies();
+final _dependencies = _registerAppDependencies();
 
-/// Starts the app-wide connection monitor once. Features resolve on demand.
-Future<GetIt> initializeDependencies() => _dependencyInitialization;
+/// Shares app startup across calls. Feature instances resolve on demand.
+Future<GetIt> initializeDependencies() => _dependencies;
 
 Future<GetIt> _registerAppDependencies() async {
   final dependencies = GetIt.asNewInstance();
-  final connection = AppConnection(PlatformConnectivityMonitor());
-  await connection.start();
-  dependencies.registerSingleton<AppConnection>(
+  final connection = AppConnectionCubit(const PlatformConnectionChecker());
+  // A cold deep link needs the initial status before reading the catalog.
+  await connection.stream.first;
+  dependencies.registerSingleton<AppConnectionCubit>(
     connection,
     dispose: (connection) => connection.close(),
   );
@@ -61,6 +62,7 @@ extension AppDependencyFactories on GetIt {
   ShoppingBloc createShoppingBloc() {
     if (!isRegistered<ShoppingBloc>()) {
       registerFactory<ShoppingBloc>(() {
+        final connection = get<AppConnectionCubit>();
         final storage = _shared<ShoppingRepository>(
           () => LocalShoppingRepository(_storage),
         );
@@ -70,7 +72,8 @@ extension AppDependencyFactories on GetIt {
             storage,
             (purchase) => _checkoutRepository.purchase(purchase),
           ),
-          get<AppConnection>(),
+          () => connection.online,
+          connectionChanges: connection.changes,
           createPurchaseId: const Uuid().v4,
         );
       });
@@ -84,13 +87,16 @@ extension AppDependencyFactories on GetIt {
   CatalogRepository get _catalogRepository => _shared<CatalogRepository>(
     () => CachedCatalog(
       _storage,
-      get<AppConnection>(),
+      () => get<AppConnectionCubit>().online,
       CatalogRemoteDataSource(_marketApi),
     ),
   );
 
   CheckoutRepository get _checkoutRepository => _shared<CheckoutRepository>(
-    () => ApiCheckoutRepository(_marketApi, get<AppConnection>()),
+    () => ApiCheckoutRepository(
+      _marketApi,
+      () => get<AppConnectionCubit>().online,
+    ),
   );
 
   MarketApi get _marketApi => _shared<MarketApi>(() {

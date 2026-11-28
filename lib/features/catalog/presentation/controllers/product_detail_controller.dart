@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:grocer_mate/core/network/connection.dart';
+import 'package:grocer_mate/core/network/connectivity/offline_exception.dart';
 
 import '../../domain/entities/catalog.dart';
 import '../../domain/repositories/catalog_repository.dart';

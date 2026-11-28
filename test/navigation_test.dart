@@ -3,12 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:grocer_mate/core/grocer_mate_app.dart';
+import 'package:grocer_mate/core/network/connectivity/connection_checker.dart';
 import 'package:grocer_mate/core/network/demo/demo_market_client.dart';
 import 'package:grocer_mate/core/network/market_api.dart';
-import 'package:grocer_mate/core/network/app_connection.dart';
-import 'package:grocer_mate/core/network/connectivity_monitor.dart';
 import 'package:grocer_mate/core/settings/checkout_settings.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
+import 'package:grocer_mate/features/app/presentation/controllers/app_connection_cubit.dart';
 import 'package:grocer_mate/features/catalog/data/cached_catalog.dart';
 import 'package:grocer_mate/features/catalog/data/catalog_remote_data_source.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
@@ -27,7 +27,7 @@ void main() {
   test(
     'preserves local inventory and receipts across the storage rename',
     () async {
-      final connection = AppConnection(_OnlineMonitor());
+      final connection = AppConnectionCubit(_OnlineChecker());
       addTearDown(connection.close);
       final store = _MemoryStorage();
       await store.write('mock_market_v1', {
@@ -47,7 +47,7 @@ void main() {
             : rootBundle.loadString(path),
       );
       final api = MarketApi(Uri.parse('https://grocer.demo'), demo);
-      final checkout = ApiCheckoutRepository(api, connection);
+      final checkout = ApiCheckoutRepository(api, () => connection.online);
       final catalog = await api.get('products');
       expect((catalog['data'] as List).single['stock'], 3);
 
@@ -134,7 +134,7 @@ void main() {
     expect(find.text('Connect to download product details.'), findsOneWidget);
     tester
         .element(find.byType(AppBar))
-        .read<AppConnection>()
+        .read<AppConnectionCubit>()
         .setOfflineMode(false);
     await tester.tap(find.text('Try again'));
     await tester.pumpAndSettle();
@@ -177,6 +177,10 @@ void main() {
     await tester.tap(find.text('Offline mode'));
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
+    expect(
+      find.text('Offline mode · browsing the cached catalog'),
+      findsNothing,
+    );
     await tester.tap(find.text('Queue purchase'));
     await tester.pumpAndSettle();
 
@@ -186,7 +190,7 @@ void main() {
     await tester.pumpAndSettle();
     tester
         .element(find.byType(AppBar))
-        .read<AppConnection>()
+        .read<AppConnectionCubit>()
         .setOfflineMode(false);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
@@ -222,8 +226,7 @@ Future<GoRouter> _startApp(
         ),
     },
   );
-  final connection = AppConnection(_OnlineMonitor());
-  await connection.start();
+  final connection = AppConnectionCubit(_OnlineChecker());
   connection.setOfflineMode(offline);
   addTearDown(connection.close);
   final store = _MemoryStorage();
@@ -231,14 +234,14 @@ Future<GoRouter> _startApp(
   final api = MarketApi(Uri.parse('https://grocer.demo'), demo);
   final catalog = CachedCatalog(
     store,
-    connection,
+    () => connection.online,
     CatalogRemoteDataSource(api),
   );
-  final checkout = ApiCheckoutRepository(api, connection);
+  final checkout = ApiCheckoutRepository(api, () => connection.online);
   final shopping = LocalShoppingRepository(store);
 
   await tester.pumpWidget(
-    BlocProvider<AppConnection>.value(
+    BlocProvider<AppConnectionCubit>.value(
       value: connection,
       child: GrocerMateApp(
         getCheckoutSettings: () {
@@ -256,7 +259,8 @@ Future<GoRouter> _startApp(
         createShoppingBloc: () => ShoppingBloc(
           shopping,
           SubmitPendingPurchase(shopping, checkout.purchase),
-          connection,
+          () => connection.online,
+          connectionChanges: connection.changes,
           createPurchaseId: () => 'purchase-1',
         ),
       ),
@@ -267,12 +271,12 @@ Future<GoRouter> _startApp(
       as GoRouter;
 }
 
-class _OnlineMonitor implements ConnectivityMonitor {
+class _OnlineChecker implements ConnectionChecker {
   @override
-  Future<bool> checkOnline() async => true;
+  Future<bool> get isConnected async => true;
 
   @override
-  Stream<bool> get changes => const Stream.empty();
+  Stream<bool> get status => Stream.value(true);
 }
 
 class _MemoryStorage implements LocalStorage {

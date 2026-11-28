@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:grocer_mate/core/network/connection.dart';
 import 'package:grocer_mate/core/network/demo/demo_market_client.dart';
 import 'package:grocer_mate/core/network/market_api.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
@@ -21,7 +20,7 @@ void main() {
   const breadId = 'p_bread_sourdough';
   const appleId = 'p_apple_gala';
   late _Storage storage;
-  late _Connection connection;
+  late bool online;
   late DemoMarketClient demo;
   late MarketApi api;
   late CatalogRemoteDataSource remote;
@@ -29,11 +28,11 @@ void main() {
 
   setUp(() {
     storage = _Storage();
-    connection = _Connection();
+    online = true;
     demo = DemoMarketClient(storage, (path) => File(path).readAsString());
     api = MarketApi(Uri.parse('https://grocer.demo'), demo);
     remote = CatalogRemoteDataSource(api);
-    checkout = ApiCheckoutRepository(api, connection);
+    checkout = ApiCheckoutRepository(api, () => online);
     addTearDown(api.close);
   });
 
@@ -117,7 +116,7 @@ void main() {
       final live = MarketApi(Uri.parse('https://market.example/v1/'), client);
       addTearDown(live.close);
       final source = CatalogRemoteDataSource(live);
-      final catalog = CachedCatalog(storage, connection, source);
+      final catalog = CachedCatalog(storage, () => online, source);
 
       final query = (
         category: 'c_dairy',
@@ -150,8 +149,8 @@ void main() {
         },
       );
 
-      connection.online = false;
-      final restarted = CachedCatalog(storage, connection, source);
+      online = false;
+      final restarted = CachedCatalog(storage, () => online, source);
       final cached = await restarted.detail(milkId);
       expect(cached.description, 'Pasteurized cow milk.');
       expect(cached.rating, 4.3);
@@ -248,14 +247,6 @@ void main() {
       expect((await remote.inventory(milkId))['stock'], 4);
     },
   );
-}
-
-class _Connection implements Connection {
-  @override
-  bool online = true;
-
-  @override
-  Stream<bool> get changes => const Stream.empty();
 }
 
 class _Storage implements LocalStorage {

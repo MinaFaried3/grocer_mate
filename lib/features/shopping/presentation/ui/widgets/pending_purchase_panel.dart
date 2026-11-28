@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'package:grocer_mate/core/network/app_connection.dart';
+import 'package:grocer_mate/features/app/presentation/controllers/app_connection_cubit.dart';
 import 'package:grocer_mate/core/theme/theme_context.dart';
 import 'package:grocer_mate/core/widgets/market_panel.dart';
 
@@ -16,7 +16,7 @@ class const PendingPurchasePanel(final ShopState state, {super.key})
   Widget build(BuildContext context) {
     final theme = context.theme;
     final online = context.select(
-      (AppConnection connection) => connection.online,
+      (AppConnectionCubit connection) => connection.online,
     );
     final bloc = context.read<ShoppingBloc>();
     final pending = state.data!.pending!;

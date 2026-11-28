@@ -2,8 +2,6 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:grocer_mate/core/network/connection.dart';
-
 import '../../domain/entities/shopping.dart';
 import '../../domain/repositories/shopping_repository.dart';
 import '../../domain/use_cases/cart_operations.dart';
@@ -14,7 +12,8 @@ import 'shopping_state.dart';
 class ShoppingBloc(
   final ShoppingRepository _storage,
   final SubmitPendingPurchase _submitPendingPurchase,
-  final Connection _connection, {
+  final bool Function() _isOnline, {
+  required Stream<bool> connectionChanges,
   required final String Function() createPurchaseId,
 }) extends Bloc<ShopEvent, ShopState> {
   this : super(const .new()) {
@@ -22,7 +21,7 @@ class ShoppingBloc(
       _handle,
       transformer: (events, mapper) => events.asyncExpand(mapper),
     );
-    _subscription = _connection.changes.listen((online) {
+    _subscription = connectionChanges.listen((online) {
       if (online) add(const PendingRetried());
     });
   }
@@ -99,7 +98,7 @@ class ShoppingBloc(
           await _save(
             updated,
             emit,
-            notice: _connection.online
+            notice: _isOnline()
                 ? null
                 : 'Purchase queued for when you’re online.',
           );
@@ -158,7 +157,7 @@ class ShoppingBloc(
 
   Future<void> _submit(ShoppingData data, Emitter<ShopState> emit) async {
     final pending = data.pending;
-    if (pending == null || !_connection.online) return;
+    if (pending == null || !_isOnline()) return;
     emit(state.copyWith(busy: true, clearReview: true, clearNotice: true));
     final result = await _submitPendingPurchase(data);
     final notice = switch (result.failure) {

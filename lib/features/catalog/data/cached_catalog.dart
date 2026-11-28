@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:grocer_mate/core/network/connection.dart';
+import 'package:grocer_mate/core/network/connectivity/offline_exception.dart';
 import 'package:grocer_mate/core/network/market_api.dart';
 import 'package:grocer_mate/core/storage/json_fields.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
@@ -12,7 +12,7 @@ import 'catalog_remote_data_source.dart';
 
 class CachedCatalog(
   final LocalStorage _store,
-  final Connection _connection,
+  final bool Function() _isOnline,
   final CatalogRemoteDataSource _remote,
 ) implements CatalogRepository {
   static const _key = 'catalog_v2';
@@ -38,7 +38,7 @@ class CachedCatalog(
     bool refresh = false,
   }) async {
     final cache = await _saved;
-    if (!_connection.online) return _offlinePage(cache, query, page, pageSize);
+    if (!_isOnline()) return _offlinePage(cache, query, page, pageSize);
 
     final brandKey = query.category ?? '';
     try {
@@ -168,7 +168,7 @@ class CachedCatalog(
   Future<Product> detail(String id) async {
     final cache = await _saved;
     final summary = cache.products[id];
-    if (_connection.online) {
+    if (_isOnline()) {
       try {
         final product = await _remote.detail(id, summary: summary);
         cache.details[id] = product;

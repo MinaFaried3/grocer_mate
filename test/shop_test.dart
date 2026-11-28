@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:grocer_mate/core/network/connection.dart';
 import 'package:grocer_mate/features/shopping/data/shopping_json.dart';
 import 'package:grocer_mate/features/shopping/domain/entities/shopping.dart';
 import 'package:grocer_mate/features/shopping/domain/repositories/checkout_repository.dart';
@@ -46,7 +45,8 @@ void main() {
       final bloc = ShoppingBloc(
         storage,
         SubmitPendingPurchase(storage, _Checkout().purchase),
-        connection,
+        () => connection.online,
+        connectionChanges: connection.changes,
         createPurchaseId: _purchaseId,
       );
       addTearDown(connection.close);
@@ -92,7 +92,8 @@ void main() {
     final first = ShoppingBloc(
       storage,
       SubmitPendingPurchase(storage, checkout.purchase),
-      connection,
+      () => connection.online,
+      connectionChanges: connection.changes,
       createPurchaseId: _purchaseId,
     );
     addTearDown(connection.close);
@@ -111,7 +112,8 @@ void main() {
     final restored = ShoppingBloc(
       storage,
       SubmitPendingPurchase(storage, checkout.purchase),
-      connection,
+      () => connection.online,
+      connectionChanges: connection.changes,
       createPurchaseId: () => 'purchase-reviewed',
     );
     addTearDown(restored.close);
@@ -166,7 +168,8 @@ void main() {
       final bloc = ShoppingBloc(
         storage,
         SubmitPendingPurchase(storage, checkout.purchase),
-        connection,
+        () => connection.online,
+        connectionChanges: connection.changes,
         createPurchaseId: _purchaseId,
       );
       addTearDown(connection.close);
@@ -215,13 +218,11 @@ class _Storage([var ShoppingData data = const .new()])
   }
 }
 
-class _Connection(this.online) implements Connection {
-  @override
+class _Connection(this.online) {
   bool online;
 
   final _events = StreamController<bool>.broadcast();
 
-  @override
   Stream<bool> get changes => _events.stream;
 
   void setOnline(bool value) {
