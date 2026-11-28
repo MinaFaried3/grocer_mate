@@ -3,31 +3,32 @@ import 'package:grocer_mate/core/network/market_api.dart';
 import 'package:grocer_mate/core/storage/json_fields.dart';
 
 import '../domain/entities/catalog.dart';
-import 'catalog_json.dart';
 import 'catalog_models.dart';
 import 'catalog_source.dart';
 
 class const CatalogRemoteDataSource(final MarketApi _api)
     implements CatalogSource {
   @override
-  Future<List<Category>> categories() async =>
-      decodeCategories(await _api.get<List<dynamic>>(Endpoints.categories));
+  Future<List<Category>> categories() async => CatalogSource.parseCategories(
+    await _api.get<List<dynamic>>(Endpoints.categories),
+  );
 
   @override
-  Future<List<String>> brands(String? category) async => decodeBrands(
-    await _api.get<Json>(
-      Endpoints.brands,
-      query: category == null ? null : {'categoryId': category},
-    ),
-    category,
-  );
+  Future<List<String>> brands(String? category) async =>
+      CatalogSource.parseBrands(
+        await _api.get<Json>(
+          Endpoints.brands,
+          query: category == null ? null : {'categoryId': category},
+        ),
+        category,
+      );
 
   @override
   Future<({List<Product> products, int total})> products(
     CatalogQuery query, {
     required int page,
     required int pageSize,
-  }) async => decodeProductPage(
+  }) async => CatalogSource.parseProductPage(
     await _api.get<Json>(
       Endpoints.products,
       query: {
@@ -42,10 +43,8 @@ class const CatalogRemoteDataSource(final MarketApi _api)
 
   @override
   Future<Product> detail(String id, {Product? summary}) async =>
-      decodeApiProduct(
-        await _api.get<Json>(Endpoints.product, id: id),
-        summary: summary,
-      );
+      ProductResponse.fromJson(await _api.get<Json>(Endpoints.product, id: id))
+          .toProduct(summary: summary);
 
   Future<PriceHistoryResponse> priceHistory(String id) async =>
       PriceHistoryResponse.fromJson(

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:grocer_mate/features/shopping/data/shopping_json.dart';
 import 'package:grocer_mate/features/shopping/domain/entities/shopping.dart';
 import 'package:grocer_mate/features/shopping/domain/repositories/checkout_repository.dart';
 import 'package:grocer_mate/features/shopping/domain/repositories/shopping_repository.dart';
@@ -206,7 +205,7 @@ class _Storage([var ShoppingData data = const .new()])
   bool failReceiptWrite = false;
 
   @override
-  Future<ShoppingData> read() async => decodeShopping(encodeShopping(data));
+  Future<ShoppingData> read() async => ShoppingData.fromJson(data.toJson());
 
   @override
   Future<void> write(ShoppingData value) async {
@@ -214,7 +213,7 @@ class _Storage([var ShoppingData data = const .new()])
       failReceiptWrite = false;
       throw StateError('Storage temporarily unavailable');
     }
-    data = decodeShopping(encodeShopping(value));
+    data = ShoppingData.fromJson(value.toJson());
   }
 }
 

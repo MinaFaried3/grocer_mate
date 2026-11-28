@@ -6,7 +6,6 @@ import 'package:grocer_mate/core/storage/local_storage.dart';
 
 import '../domain/entities/catalog.dart';
 import '../domain/repositories/catalog_repository.dart';
-import 'catalog_json.dart';
 import 'catalog_source.dart';
 
 class CachedCatalog(
@@ -230,19 +229,19 @@ class _CatalogCache {
 
   _CatalogCache();
 
-  _CatalogCache.fromJson(Map<String, dynamic> json) {
+  _CatalogCache.fromJson(Json json) {
     if (json['categories'] case final List saved) {
-      categories = [for (final item in saved) decodeCategory(item)];
+      categories = [for (final item in saved) Category.fromJson(item as Json)];
     }
     for (final entry in (json['brands'] as Map? ?? {}).entries) {
       brands[entry.key] = (entry.value as List).cast<String>();
     }
     for (final item in json['products'] as List? ?? []) {
-      final product = decodeProduct(item);
+      final product = Product.fromJson(item as Json);
       products[product.id] = product;
     }
     for (final item in json['details'] as List? ?? []) {
-      final product = decodeProduct(item, allowMissingCategory: true);
+      final product = Product.fromJson(item as Json);
       details[product.id] = product;
     }
     for (final Json item in json['deals'] as List? ?? []) {
@@ -253,11 +252,11 @@ class _CatalogCache {
     }
   }
 
-  Map<String, dynamic> toJson() => {
-    'categories': categories?.map(encodeCategory).toList(),
+  Json toJson() => {
+    'categories': categories?.map((item) => item.toJson()).toList(),
     'brands': brands,
-    'products': products.values.map(encodeProduct).toList(),
-    'details': details.values.map(encodeProduct).toList(),
+    'products': [for (final item in products.values) item.toJson()],
+    'details': [for (final item in details.values) item.toJson()],
     'deals': [
       for (final MapEntry(:key, :value) in deals.entries)
         {

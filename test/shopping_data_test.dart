@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:grocer_mate/features/catalog/data/catalog_json.dart';
-import 'package:grocer_mate/features/shopping/data/shopping_json.dart';
+import 'package:grocer_mate/features/catalog/domain/entities/catalog.dart';
+import 'package:grocer_mate/features/shopping/domain/entities/shopping.dart';
 import 'package:grocer_mate/features/shopping/domain/use_cases/cart_operations.dart';
 
 void main() {
@@ -25,7 +25,7 @@ void main() {
   };
 
   test('old cart, saved and attempted purchases survive compact storage', () {
-    final old = decodeShopping({
+    final old = ShoppingData.fromJson({
       'cart': [line(1)],
       'saved': [line(3)],
       'pending': {
@@ -35,7 +35,7 @@ void main() {
       },
       'lastOrder': {'id': 'order-1', 'total': 235},
     });
-    final encoded = encodeShopping(old);
+    final encoded = old.toJson();
     final compact = (encoded['cart'] as List).single['product'] as Map;
     expect(
       compact.keys,
@@ -48,7 +48,7 @@ void main() {
         'stock',
       ]),
     );
-    final restored = decodeShopping(encoded);
+    final restored = ShoppingData.fromJson(encoded);
     expect(restored.cart.single.product.image, 'milk.webp');
     expect(restored.lastOrder!.total, 235);
     expect(restored.pending!.id, 'retry-1');
@@ -72,19 +72,19 @@ void main() {
         {'images': []},
       ]) {
         expect(
-          () => decodeProduct({...product, ...fields}),
+          () => Product.fromJson({...product, ...fields}),
           throwsFormatException,
         );
       }
       expect(
-        () => decodeShopping({
+        () => ShoppingData.fromJson({
           'cart': [line(0)],
           'saved': [],
         }),
         throwsFormatException,
       );
       expect(
-        () => decodeShopping({
+        () => ShoppingData.fromJson({
           'cart': [line(-1)],
           'saved': [],
         }),

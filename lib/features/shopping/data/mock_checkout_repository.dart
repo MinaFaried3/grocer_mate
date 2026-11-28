@@ -3,7 +3,6 @@ import 'package:grocer_mate/core/network/connectivity/offline_exception.dart';
 
 import '../domain/entities/shopping.dart';
 import '../domain/repositories/checkout_repository.dart';
-import 'checkout_json.dart';
 import 'checkout_models.dart';
 
 class const MockCheckoutRepository(
@@ -14,9 +13,9 @@ class const MockCheckoutRepository(
   Future<PurchaseResult> purchase(PendingPurchase purchase) async {
     if (!_isOnline()) throw const OfflineException();
     final result = await _market.purchase(
-      purchaseRequest(purchase).toJson(),
+      PurchaseRequest.fromPurchase(purchase).toJson(),
       key: purchase.id,
     );
-    return decodePurchase(purchase, PurchaseResponse.fromJson(result));
+    return PurchaseResponse.fromJson(result).toResult(purchase);
   }
 }

@@ -5,7 +5,6 @@ import 'package:grocer_mate/core/storage/json_fields.dart';
 
 import '../domain/entities/shopping.dart';
 import '../domain/repositories/checkout_repository.dart';
-import 'checkout_json.dart';
 import 'checkout_models.dart';
 
 class ApiCheckoutRepository(
@@ -33,11 +32,11 @@ class ApiCheckoutRepository(
     if (!_isOnline()) throw const OfflineException();
     final response = await _api.post(
       Endpoints.purchase,
-      purchaseRequest(purchase, currency: currency).toJson(),
+      PurchaseRequest.fromPurchase(purchase, currency: currency).toJson(),
       idempotencyKey: purchase.id,
       acceptedStatuses: const {409, 422},
     );
-    return decodePurchase(purchase, PurchaseResponse.fromJson(response));
+    return PurchaseResponse.fromJson(response).toResult(purchase);
   }
 
   Future<OrderResponse> order(String id) async =>

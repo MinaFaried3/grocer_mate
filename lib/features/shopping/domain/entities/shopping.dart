@@ -1,9 +1,22 @@
 import 'dart:math' as math;
 
+import 'package:grocer_mate/core/storage/json_fields.dart';
+import 'package:json_annotation/json_annotation.dart';
+
 import 'cart_product.dart';
 
+part 'shopping.g.dart';
+
+@JsonSerializable(explicitToJson: true)
 class const CartLine(final CartProduct product, final int quantity) {
   this : assert(quantity > 0);
+
+  factory fromJson(Json json) {
+    readInt(json, 'quantity', minimum: 1);
+    return _$CartLineFromJson(json);
+  }
+
+  Json toJson() => _$CartLineToJson(this);
 
   CartLine withQuantity(int next) => .new(product, next);
 }
@@ -83,8 +96,19 @@ class const PurchaseReview(final List<CheckoutChange> changes)
   }
 }
 
+@JsonSerializable()
 class const OrderReceipt({required final String id, required final int total})
-    extends PurchaseResult;
+    extends PurchaseResult {
+  factory fromJson(Json json) {
+    final receipt = _$OrderReceiptFromJson(json);
+    if (receipt.id.trim().isEmpty || receipt.total < 0) {
+      throw const FormatException('Invalid order receipt.');
+    }
+    return receipt;
+  }
+
+  Json toJson() => _$OrderReceiptToJson(this);
+}
 
 class const PartialPurchase(
   final List<CartLine> missing, {
@@ -92,18 +116,34 @@ class const PartialPurchase(
   final String? note,
 }) extends PurchaseResult;
 
+@JsonSerializable(explicitToJson: true)
 class const PendingPurchase(
   final String id,
   final List<CartLine> lines, {
   final bool attempted = false,
-});
+}) {
+  factory fromJson(Json json) {
+    final pending = _$PendingPurchaseFromJson(json);
+    if (pending.id.trim().isEmpty) {
+      throw const FormatException('Invalid pending purchase.');
+    }
+    return pending;
+  }
 
+  Json toJson() => _$PendingPurchaseToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
 class const ShoppingData({
   final List<CartLine> cart = const [],
   final List<CartLine> saved = const [],
   final PendingPurchase? pending,
   final OrderReceipt? lastOrder,
 }) {
+  factory fromJson(Json json) => _$ShoppingDataFromJson(json);
+
+  Json toJson() => _$ShoppingDataToJson(this);
+
   ShoppingData withLists({List<CartLine>? cart, List<CartLine>? saved}) => .new(
     cart: cart ?? this.cart,
     saved: saved ?? this.saved,

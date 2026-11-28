@@ -29,6 +29,6 @@ extension SharedDependencies on Injector {
     dispose: (api) => api.close(),
   );
 
-  LocalStorage get localStorage => singleton<LocalStorage>(SecureLocalStorage.new);
+  LocalStorage get localStorage =>
+      singleton<LocalStorage>(SecureLocalStorage.new);
 }
-

@@ -3,7 +3,6 @@ import 'package:grocer_mate/core/storage/local_storage.dart';
 
 import '../domain/entities/catalog.dart';
 import 'cached_catalog.dart';
-import 'catalog_json.dart';
 import 'catalog_models.dart';
 import 'catalog_source.dart';
 
@@ -19,18 +18,18 @@ class const _MockCatalogSource(final MockMarket _market)
     implements CatalogSource {
   @override
   Future<List<Category>> categories() async =>
-      decodeCategories(await _market.categories());
+      CatalogSource.parseCategories(await _market.categories());
 
   @override
   Future<List<String>> brands(String? category) async =>
-      decodeBrands(await _market.brands(category), category);
+      CatalogSource.parseBrands(await _market.brands(category), category);
 
   @override
   Future<({List<Product> products, int total})> products(
     CatalogQuery query, {
     required int page,
     required int pageSize,
-  }) async => decodeProductPage(
+  }) async => CatalogSource.parseProductPage(
     await _market.products(
       category: query.category,
       brand: query.brand,
@@ -42,7 +41,8 @@ class const _MockCatalogSource(final MockMarket _market)
 
   @override
   Future<Product> detail(String id, {Product? summary}) async =>
-      decodeApiProduct(await _market.product(id), summary: summary);
+      ProductResponse.fromJson(await _market.product(id))
+          .toProduct(summary: summary);
 
   @override
   Future<DealsResponse> dealsOfDay() async =>

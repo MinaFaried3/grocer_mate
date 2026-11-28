@@ -1,9 +1,28 @@
+import 'package:grocer_mate/core/storage/json_fields.dart';
+import 'package:json_annotation/json_annotation.dart';
+
+part 'catalog.g.dart';
+
+@JsonSerializable()
 class const Category({
   required final String id,
   required final String name,
   required final String icon,
-});
+}) {
+  factory fromJson(Json json) {
+    final category = _$CategoryFromJson(json);
+    if (category.id.trim().isEmpty ||
+        category.name.trim().isEmpty ||
+        category.icon.trim().isEmpty) {
+      throw const FormatException('Invalid category data.');
+    }
+    return category;
+  }
 
+  Json toJson() => _$CategoryToJson(this);
+}
+
+@JsonSerializable()
 class const Product({
   required final String id,
   required final String title,
@@ -25,6 +44,29 @@ class const Product({
       assert(originalPrice >= 0),
       assert(stock >= 0),
       assert(rating >= 0 && rating <= 5);
+
+  factory fromJson(Json json) {
+    final images = json['images'];
+    final rating = json['rating'];
+    if (images is! List ||
+        images.isEmpty ||
+        images.any((image) => image is! String || image.trim().isEmpty) ||
+        rating is! num ||
+        !rating.isFinite ||
+        rating < 0 ||
+        rating > 5) {
+      throw const FormatException('Invalid product data.');
+    }
+    readText(json, 'id');
+    readText(json, 'title');
+    readText(json, 'brand');
+    readInt(json, 'price');
+    readInt(json, 'originalPrice');
+    readInt(json, 'stock');
+    return _$ProductFromJson(json);
+  }
+
+  Json toJson() => _$ProductToJson(this);
 
   int get discountPercent => originalPrice > price
       ? ((originalPrice - price) * 100 / originalPrice).round()
