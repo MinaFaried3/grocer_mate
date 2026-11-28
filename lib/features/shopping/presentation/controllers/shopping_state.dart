@@ -9,6 +9,10 @@ class const ShopState({
   final CheckoutReviewMemento? review,
   final String? notice,
 }) extends Equatable {
+  int get cartQty => data?.cartQty ?? 0;
+
+  int get savedQty => data?.savedQty ?? 0;
+
   ShopState copyWith({
     ShoppingData? data,
     bool? busy,

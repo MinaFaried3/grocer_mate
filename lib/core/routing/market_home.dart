@@ -94,16 +94,13 @@ class const MarketHome({
 
         //------------ Bottom Navigation Bar ---------------
         bottomNavigationBar:
-            BlocSelector<ShoppingBloc, ShopState, ({int cart, int saved})>(
-              selector: (state) => (
-                cart:
-                    state.data?.cart.fold<int>(
-                      0,
-                      (total, line) => total + line.quantity,
-                    ) ??
-                    0,
-                saved: state.data?.saved.length ?? 0,
-              ),
+            BlocSelector<
+              ShoppingBloc,
+              ShopState,
+              ({int cartQty, int savedQty})
+            >(
+              selector: (state) =>
+                  (cartQty: state.cartQty, savedQty: state.savedQty),
               builder: (context, count) => NavigationBar(
                 selectedIndex: currentIndex,
                 onDestinationSelected: (index) => context.go(_tabs[index]),
@@ -118,8 +115,8 @@ class const MarketHome({
                   //------------ Cart Tab ---------------
                   NavigationDestination(
                     icon: Badge.count(
-                      count: count.cart,
-                      isLabelVisible: count.cart > 0,
+                      count: count.cartQty,
+                      isLabelVisible: count.cartQty > 0,
                       child: const Icon(Icons.shopping_cart_outlined),
                     ),
                     label: 'Cart',
@@ -128,8 +125,8 @@ class const MarketHome({
                   //------------ Saved Tab ---------------
                   NavigationDestination(
                     icon: Badge.count(
-                      count: count.saved,
-                      isLabelVisible: count.saved > 0,
+                      count: count.savedQty,
+                      isLabelVisible: count.savedQty > 0,
                       child: const Icon(Icons.bookmark_border_rounded),
                     ),
                     label: 'Saved',

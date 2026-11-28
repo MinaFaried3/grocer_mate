@@ -17,6 +17,10 @@ class const ShoppingData({
 
   Json toJson() => _$ShoppingDataToJson(this);
 
+  int get cartQty => cart.fold<int>(0, (total, line) => total + line.quantity);
+
+  int get savedQty => saved.length;
+
   ShoppingData withLists({List<CartLine>? cart, List<CartLine>? saved}) => .new(
     cart: cart ?? this.cart,
     saved: saved ?? this.saved,
