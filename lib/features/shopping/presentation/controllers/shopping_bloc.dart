@@ -10,7 +10,7 @@ import 'shopping_event.dart';
 import 'shopping_state.dart';
 
 class ShoppingBloc(
-  final ShoppingRepository _storage,
+  final ShoppingRepository _repo,
   final SubmitPendingPurchase _submitPendingPurchase,
   final bool Function() _isOnline, {
   required Stream<bool> connectionChanges,
@@ -39,7 +39,7 @@ class ShoppingBloc(
       if (state.data != null) return;
       emit(const .new());
       try {
-        final data = await _storage.read();
+        final data = await _repo.read();
         emit(state.copyWith(data: data));
         if (data.pending != null) await _submit(data, emit);
       } catch (_) {
@@ -181,7 +181,7 @@ class ShoppingBloc(
     bool clearReview = false,
     String? notice,
   }) async {
-    await _storage.write(data);
+    await _repo.write(data);
     emit(
       state.copyWith(
         data: data,

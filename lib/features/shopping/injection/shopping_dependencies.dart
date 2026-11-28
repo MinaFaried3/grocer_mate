@@ -14,13 +14,13 @@ import '../presentation/controllers/shopping_bloc.dart';
 
 extension ShoppingDependencies on Injector {
   ShoppingBloc createShoppingBloc() => factory(() {
-    final storage = singleton<ShoppingRepository>(
+    final repo = singleton<ShoppingRepository>(
       () => LocalShoppingRepository(localStorage),
     );
     return ShoppingBloc(
-      storage,
+      repo,
       SubmitPendingPurchase(
-        storage,
+        repo,
         (purchase) => _checkoutRepository.purchase(purchase),
       ),
       isOnline,
