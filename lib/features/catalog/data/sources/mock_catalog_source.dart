@@ -1,9 +1,9 @@
 import 'package:grocer_mate/core/mock/mock_market.dart';
 
-import '../domain/entities/catalog.dart';
+import '../../domain/entities/catalog.dart';
+import '../models/deals_response.dart';
+import '../models/product_response.dart';
 import 'catalog_source.dart';
-import 'models/deals_response.dart';
-import 'models/product_response.dart';
 
 class const MockCatalogSource(final MockMarket _market)
     implements CatalogSource {

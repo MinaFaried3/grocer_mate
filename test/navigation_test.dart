@@ -11,12 +11,16 @@ import 'package:grocer_mate/core/mock/mock_market.dart';
 import 'package:grocer_mate/core/settings/checkout_settings.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
 import 'package:grocer_mate/features/app/presentation/controllers/app_connection_cubit.dart';
-import 'package:grocer_mate/features/catalog/data/mock_catalog_repository.dart';
+import 'package:grocer_mate/features/catalog/data/repositories/mock_catalog_repository.dart';
+import 'package:grocer_mate/features/catalog/data/sources/catalog_cache_source.dart';
+import 'package:grocer_mate/features/catalog/data/sources/mock_catalog_source.dart';
 import 'package:grocer_mate/features/catalog/domain/repositories/catalog_repository.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/product_detail_controller.dart';
-import 'package:grocer_mate/features/shopping/data/mock_checkout_repository.dart';
-import 'package:grocer_mate/features/shopping/data/local_shopping_repository.dart';
+import 'package:grocer_mate/features/shopping/data/repositories/local_shopping_repository.dart';
+import 'package:grocer_mate/features/shopping/data/repositories/mock_checkout_repository.dart';
+import 'package:grocer_mate/features/shopping/data/sources/local_shopping_source.dart';
+import 'package:grocer_mate/features/shopping/data/sources/mock_checkout_source.dart';
 import 'package:grocer_mate/features/shopping/domain/entities/shopping.dart';
 import 'package:grocer_mate/features/shopping/domain/repositories/checkout_repository.dart';
 import 'package:grocer_mate/features/shopping/domain/repositories/shopping_repository.dart';
@@ -50,7 +54,10 @@ void main() {
               )
             : rootBundle.loadString(path),
       );
-      final checkout = MockCheckoutRepository(demo, () => connection.online);
+      final checkout = MockCheckoutRepository(
+        MockCheckoutSource(demo),
+        () => connection.online,
+      );
       final catalog = await demo.products();
       expect((catalog['data'] as List).single['stock'], 3);
 
@@ -246,9 +253,16 @@ Future<GoRouter> _startApp(
   addTearDown(connection.close);
   final store = _MemoryStorage();
   final demo = MockMarket(store, (path) async => fixtures![path]!);
-  final catalog = MockCatalogRepository(store, () => connection.online, demo);
-  final checkout = MockCheckoutRepository(demo, () => connection.online);
-  final shopping = LocalShoppingRepository(store);
+  final catalog = MockCatalogRepository(
+    CatalogCacheSource(store),
+    () => connection.online,
+    MockCatalogSource(demo),
+  );
+  final checkout = MockCheckoutRepository(
+    MockCheckoutSource(demo),
+    () => connection.online,
+  );
+  final shopping = LocalShoppingRepository(LocalShoppingSource(store));
   final injector = GetItInjector();
   await injector.reset();
   addTearDown(injector.reset);

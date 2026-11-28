@@ -1,9 +1,9 @@
 import 'package:grocer_mate/core/network/page_response.dart';
 import 'package:grocer_mate/core/storage/json_fields.dart';
 
-import '../domain/entities/catalog.dart';
-import 'models/deals_response.dart';
-import 'models/product_response.dart';
+import '../../domain/entities/catalog.dart';
+import '../models/deals_response.dart';
+import '../models/product_response.dart';
 
 abstract interface class CatalogSource {
   Future<List<Category>> categories();

@@ -1,32 +1,27 @@
 import 'dart:math' as math;
 
-import 'package:grocer_mate/core/mock/mock_market.dart';
 import 'package:grocer_mate/core/network/connectivity/offline_exception.dart';
 import 'package:grocer_mate/core/storage/json_fields.dart';
-import 'package:grocer_mate/core/storage/local_storage.dart';
 
-import '../domain/entities/catalog.dart';
-import '../domain/repositories/catalog_repository.dart';
-import 'catalog_source.dart';
-import 'mock_catalog_source.dart';
-import 'models/catalog_cache.dart';
+import '../../domain/entities/catalog.dart';
+import '../../domain/repositories/catalog_repository.dart';
+import '../models/catalog_cache.dart';
+import '../sources/catalog_cache_source.dart';
+import '../sources/catalog_source.dart';
 
 class MockCatalogRepository implements CatalogRepository {
-  MockCatalogRepository(this._store, this._isOnline, MockMarket market)
-    : _source = MockCatalogSource(market);
+  MockCatalogRepository(this._cacheSource, this._isOnline, this._source);
 
-  final LocalStorage _store;
+  final CatalogCacheSource _cacheSource;
   final bool Function() _isOnline;
   final CatalogSource _source;
 
-  static const _key = 'catalog_v2';
   Future<CatalogCache>? _cache;
   Future<CatalogCache> get _saved => _cache ??= _load();
 
   Future<CatalogCache> _load() async {
     try {
-      final json = await _store.read(_key);
-      return json == null ? CatalogCache() : CatalogCache.fromJson(json);
+      return await _cacheSource.read() ?? CatalogCache();
     } catch (_) {
       _cache = null;
       rethrow;
@@ -64,7 +59,7 @@ class MockCatalogRepository implements CatalogRepository {
           cache.products[product.id] = product;
         }
       }
-      await _store.write(_key, cache.toJson());
+      await _cacheSource.write(cache);
       return (
         products: List<Product>.unmodifiable(result.products),
         total: result.total,
@@ -187,7 +182,7 @@ class MockCatalogRepository implements CatalogRepository {
         final product = await _source.detail(id, summary: summary);
         cache.details[id] = product;
         if (product.categoryId.isNotEmpty) cache.products[id] = product;
-        await _store.write(_key, cache.toJson());
+        await _cacheSource.write(cache);
         return _withActiveDeal(product, cache.deals[id]);
       } on OfflineException {
         // Use details or the summary already downloaded for this product.

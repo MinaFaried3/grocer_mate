@@ -3,8 +3,11 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:grocer_mate/core/mock/mock_market.dart';
 import 'package:grocer_mate/core/storage/hive_local_storage.dart';
-import 'package:grocer_mate/features/catalog/data/mock_catalog_repository.dart';
-import 'package:grocer_mate/features/shopping/data/local_shopping_repository.dart';
+import 'package:grocer_mate/features/catalog/data/repositories/mock_catalog_repository.dart';
+import 'package:grocer_mate/features/catalog/data/sources/catalog_cache_source.dart';
+import 'package:grocer_mate/features/catalog/data/sources/mock_catalog_source.dart';
+import 'package:grocer_mate/features/shopping/data/repositories/local_shopping_repository.dart';
+import 'package:grocer_mate/features/shopping/data/sources/local_shopping_source.dart';
 import 'package:grocer_mate/features/shopping/domain/entities/shopping.dart';
 
 import 'fixtures.dart';
@@ -35,13 +38,13 @@ void main() {
           milkLine,
         ], attempted: true),
       );
-      final shopping = LocalShoppingRepository(storage);
+      final shopping = LocalShoppingRepository(LocalShoppingSource(storage));
       expect((await shopping.read()).cart, isEmpty);
       await shopping.write(data);
       await storage.close();
 
       storage = HiveLocalStorage(directory: directory.path);
-      final restarted = LocalShoppingRepository(storage);
+      final restarted = LocalShoppingRepository(LocalShoppingSource(storage));
       expect((await restarted.read()).toJson(), data.toJson());
     },
   );
@@ -59,9 +62,9 @@ void main() {
       Future<String> loadAsset(String path) => File(path).readAsString();
 
       final online = MockCatalogRepository(
-        storage,
+        CatalogCacheSource(storage),
         () => true,
-        MockMarket(storage, loadAsset),
+        MockCatalogSource(MockMarket(storage, loadAsset)),
       );
       final page = await online.browse(query, page: 1, pageSize: 3);
       final detail = await online.detail(productId);
@@ -69,9 +72,9 @@ void main() {
 
       storage = HiveLocalStorage(directory: directory.path);
       final offline = MockCatalogRepository(
-        storage,
+        CatalogCacheSource(storage),
         () => false,
-        MockMarket(storage, loadAsset),
+        MockCatalogSource(MockMarket(storage, loadAsset)),
       );
       final cached = await offline.browse(query, page: 1, pageSize: 3);
       expect(
@@ -104,9 +107,11 @@ void main() {
       ],
     });
     final offline = MockCatalogRepository(
-      storage,
+      CatalogCacheSource(storage),
       () => false,
-      MockMarket(storage, (path) => File(path).readAsString()),
+      MockCatalogSource(
+        MockMarket(storage, (path) => File(path).readAsString()),
+      ),
     );
 
     final page = await offline.browse(query, page: 1, pageSize: 3);

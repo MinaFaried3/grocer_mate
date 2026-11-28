@@ -6,10 +6,14 @@ import 'package:grocer_mate/core/mock/mock_market.dart';
 import 'package:grocer_mate/core/network/page_response.dart';
 import 'package:grocer_mate/core/storage/json_fields.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
-import 'package:grocer_mate/features/catalog/data/mock_catalog_repository.dart';
 import 'package:grocer_mate/features/catalog/data/models/product_response.dart';
-import 'package:grocer_mate/features/shopping/data/local_shopping_repository.dart';
-import 'package:grocer_mate/features/shopping/data/mock_checkout_repository.dart';
+import 'package:grocer_mate/features/catalog/data/repositories/mock_catalog_repository.dart';
+import 'package:grocer_mate/features/catalog/data/sources/catalog_cache_source.dart';
+import 'package:grocer_mate/features/catalog/data/sources/mock_catalog_source.dart';
+import 'package:grocer_mate/features/shopping/data/repositories/local_shopping_repository.dart';
+import 'package:grocer_mate/features/shopping/data/repositories/mock_checkout_repository.dart';
+import 'package:grocer_mate/features/shopping/data/sources/local_shopping_source.dart';
+import 'package:grocer_mate/features/shopping/data/sources/mock_checkout_source.dart';
 import 'package:grocer_mate/features/shopping/domain/entities/shopping.dart';
 import 'package:grocer_mate/features/shopping/domain/use_cases/submit_pending_purchase.dart';
 
@@ -28,8 +32,12 @@ void main() {
     storage = _Storage();
     online = true;
     demo = MockMarket(storage, (path) => File(path).readAsString());
-    catalog = MockCatalogRepository(storage, () => online, demo);
-    checkout = MockCheckoutRepository(demo, () => online);
+    catalog = MockCatalogRepository(
+      CatalogCacheSource(storage),
+      () => online,
+      MockCatalogSource(demo),
+    );
+    checkout = MockCheckoutRepository(MockCheckoutSource(demo), () => online);
   });
 
   test('filters the entire catalog before splitting it into pages', () async {
@@ -83,7 +91,11 @@ void main() {
       expect((await catalog.detail(milkId)).description, isNotEmpty);
 
       online = false;
-      final restarted = MockCatalogRepository(storage, () => online, demo);
+      final restarted = MockCatalogRepository(
+        CatalogCacheSource(storage),
+        () => online,
+        MockCatalogSource(demo),
+      );
       final cached = await restarted.detail(milkId);
       expect(cached.description, isNotEmpty);
       expect(
@@ -126,7 +138,7 @@ void main() {
     ]);
     expect((await demo.order(partial.receipt!.id))['total'], 3.92);
 
-    final localShopping = LocalShoppingRepository(storage);
+    final localShopping = LocalShoppingRepository(LocalShoppingSource(storage));
     final saved = ShoppingData(pending: pending);
     await localShopping.write(saved);
     final submitted = await SubmitPendingPurchase(
