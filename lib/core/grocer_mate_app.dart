@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:grocer_mate/core/routing/app_router.dart';
 import 'package:grocer_mate/core/settings/checkout_settings.dart';
 import 'package:grocer_mate/core/theme/market_theme.dart';
+import 'package:grocer_mate/features/app/presentation/ui/widgets/offline_banner.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/product_detail_controller.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
@@ -41,5 +42,11 @@ class _GrocerMateAppState() extends State<GrocerMateApp> {
     title: 'GrocerMate',
     theme: MarketThemeFactory.light.build(),
     darkTheme: MarketThemeFactory.dark.build(),
+    builder: (context, child) => Column(
+      children: [
+        const OfflineBanner(),
+        Expanded(child: child!),
+      ],
+    ),
   );
 }

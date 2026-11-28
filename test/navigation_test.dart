@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -142,6 +144,22 @@ void main() {
     expect(find.widgetWithText(AppBar, 'Milk 2% 1L'), findsOneWidget);
   });
 
+  testWidgets('shows and clears the offline banner as connectivity changes', (
+    tester,
+  ) async {
+    final connectionChanges = StreamController<bool>()..add(true);
+    addTearDown(connectionChanges.close);
+    await _startApp(tester, connectionChanges: connectionChanges.stream);
+
+    final banner = find.text('Offline mode · browsing the cached catalog');
+    expect(banner, findsNothing);
+    for (final connected in [false, true, false, true]) {
+      connectionChanges.add(connected);
+      await tester.pumpAndSettle();
+      expect(banner, connected ? findsNothing : findsOneWidget);
+    }
+  });
+
   testWidgets('preserves Browse search and opens checkout review over Cart', (
     tester,
   ) async {
@@ -179,7 +197,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       find.text('Offline mode · browsing the cached catalog'),
-      findsNothing,
+      findsOneWidget,
     );
     await tester.tap(find.text('Queue purchase'));
     await tester.pumpAndSettle();
@@ -203,6 +221,7 @@ void main() {
 Future<GoRouter> _startApp(
   WidgetTester tester, {
   bool offline = false,
+  Stream<bool>? connectionChanges,
   VoidCallback? onCreateCatalog,
   VoidCallback? onCreateProduct,
   VoidCallback? onGetCheckoutSettings,
@@ -226,7 +245,7 @@ Future<GoRouter> _startApp(
         ),
     },
   );
-  final connection = AppConnectionCubit(_OnlineChecker());
+  final connection = AppConnectionCubit(_OnlineChecker(connectionChanges));
   connection.setOfflineMode(offline);
   addTearDown(connection.close);
   final store = _MemoryStorage();
@@ -271,12 +290,13 @@ Future<GoRouter> _startApp(
       as GoRouter;
 }
 
-class _OnlineChecker implements ConnectionChecker {
+class _OnlineChecker([final Stream<bool>? _status])
+    implements ConnectionChecker {
   @override
   Future<bool> get isConnected async => true;
 
   @override
-  Stream<bool> get status => Stream.value(true);
+  Stream<bool> get status => _status ?? Stream.value(true);
 }
 
 class _MemoryStorage implements LocalStorage {
