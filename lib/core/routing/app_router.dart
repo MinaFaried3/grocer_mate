@@ -60,7 +60,6 @@ GoRouter createAppRouter() {
           GoRoute(
             path: RoutesConstants.browse,
             builder: (context, state) => CatalogScreen(
-              isVisible: state.uri.path == RoutesConstants.browse,
               onSettings: () => showSettings(context),
               onProductSelected: (id) => context.goNamed(
                 RoutesConstants.productName,

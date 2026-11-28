@@ -68,7 +68,7 @@ void main() {
     },
   );
 
-  testWidgets('opens a product deep link and returns to the Browse tab', (
+  testWidgets('opens a product route and returns to the Browse tab', (
     tester,
   ) async {
     tester.binding.platformDispatcher.defaultRouteNameTestValue =
@@ -84,7 +84,7 @@ void main() {
 
     expect(find.widgetWithText(AppBar, 'Milk 2% 1L'), findsOneWidget);
     expect(find.byType(NavigationBar), findsNothing);
-    expect(catalogCreations, 0);
+    expect(catalogCreations, 1);
 
     router.go('/products/p_bread_sourdough');
     await tester.pumpAndSettle();
