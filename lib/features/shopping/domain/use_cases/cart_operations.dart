@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:grocer_mate/core/use_case.dart';
+import 'package:grocer_mate/core/helpers/use_case.dart';
 import 'package:grocer_mate/features/catalog/domain/entities/catalog.dart';
 
 import '../entities/shopping.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'package:grocer_mate/core/money.dart';
+import 'package:grocer_mate/core/helpers/money.dart';
 import 'package:grocer_mate/core/theme/theme_context.dart';
 
 import '../../../domain/entities/shopping.dart';

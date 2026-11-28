@@ -1,5 +1,5 @@
 import 'package:grocer_mate/core/network/connectivity/offline_exception.dart';
-import 'package:grocer_mate/core/use_case.dart';
+import 'package:grocer_mate/core/helpers/use_case.dart';
 
 import '../entities/shopping.dart';
 import '../repositories/shopping_repository.dart';

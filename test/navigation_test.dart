@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:grocer_mate/core/grocer_mate_app.dart';
+import 'package:grocer_mate/features/app/presentation/ui/screen/grocer_mate_app.dart';
 import 'package:grocer_mate/core/injection/get_it_injector.dart';
 import 'package:grocer_mate/core/network/connectivity/connection_checker.dart';
 import 'package:grocer_mate/core/storage/mock_json_reader.dart';
