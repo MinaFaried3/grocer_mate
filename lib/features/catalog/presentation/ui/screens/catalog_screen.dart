@@ -25,11 +25,11 @@ class const CatalogScreen({
 class _CatalogScreenState() extends State<CatalogScreen> {
   final _search = TextEditingController();
   final _scroll = ScrollController();
-  bool _opened = false;
 
   @override
   void initState() {
     super.initState();
+    _search.text = context.read<CatalogBloc>().state.query.search;
     _scroll.addListener(_maybeLoadNext);
   }
 
@@ -49,11 +49,6 @@ class _CatalogScreenState() extends State<CatalogScreen> {
   @override
   Widget build(BuildContext context) {
     final bloc = context.read<CatalogBloc>();
-    if (!_opened) {
-      _opened = true;
-      _search.text = bloc.state.query.search;
-    }
-
     return MultiBlocListener(
       listeners: [
         //------------ Connection Status Listener ---------------
