@@ -85,11 +85,7 @@ class _CatalogScreenState() extends State<CatalogScreen> {
 
   Widget _buildCatalog(CatalogBloc bloc) {
     return RefreshIndicator(
-      onRefresh: () async {
-        final finished = bloc.stream.firstWhere((state) => !state.loading);
-        bloc.add(const CatalogRefreshed());
-        await finished;
-      },
+      onRefresh: () async => bloc.add(const CatalogRefreshed()),
       child: BlocBuilder<CatalogBloc, CatalogState>(
         builder: (context, state) {
           return CustomScrollView(
