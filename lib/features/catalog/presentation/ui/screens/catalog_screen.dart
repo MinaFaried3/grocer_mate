@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'package:grocer_mate/core/widgets/status_panel.dart';
+import 'package:grocer_mate/core/widgets/conditional_builder.dart';
 import 'package:grocer_mate/features/app/presentation/controllers/app_connection_cubit.dart';
 import 'package:grocer_mate/features/app/presentation/controllers/app_connection_state.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
@@ -10,8 +10,9 @@ import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_
 import '../../controllers/catalog_bloc.dart';
 import '../../controllers/catalog_event.dart';
 import '../../controllers/catalog_state.dart';
+import '../widgets/catalog_empty_state.dart';
 import '../widgets/catalog_header.dart';
-import '../widgets/product_tile.dart';
+import '../widgets/catalog_products_section.dart';
 
 class const CatalogScreen({
   super.key,
@@ -100,86 +101,15 @@ class _CatalogScreenState() extends State<CatalogScreen> {
                 onSettings: widget.onSettings,
               ),
 
-              //------------ Empty or Error State ---------------
-              if (state.products.isEmpty)
-                SliverToBoxAdapter(
-                  child: state.loading
-                      ? const Padding(
-                          padding: .all(45),
-                          child: Center(child: CircularProgressIndicator()),
-                        )
-                      : state.error != null
-                      ? StatusPanel(
-                          icon: Icons.cloud_off_rounded,
-                          title: 'Catalog unavailable',
-                          message: state.error!,
-                          action: 'Try again',
-                          onAction: () => bloc.add(const CatalogRefreshed()),
-                        )
-                      : const StatusPanel(
-                          icon: Icons.search_off_rounded,
-                          title: 'No groceries found',
-                          message:
-                              'Try a different search or change your filters.',
-                        ),
-                )
-              else ...[
-                //------------ Products Grid ---------------
-                SliverPadding(
-                  padding: const .symmetric(horizontal: 20),
-                  sliver: SliverGrid(
-                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 260,
-                      mainAxisExtent:
-                          248 +
-                          (MediaQuery.textScalerOf(context).scale(14) - 14)
-                                  .clamp(0, 40) *
-                              5,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                    ),
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final product = state.products[index];
-                      return ProductTile(
-                        product: product,
-                        onOpen: () => widget.onProductSelected(product.id),
-                      );
-                    }, childCount: state.products.length),
-                  ),
+              //------------ Products or Empty State ---------------
+              ConditionalBuilder(
+                condition: state.products.isEmpty,
+                onTrue: (_) => CatalogEmptyState(state),
+                onFalse: (_) => CatalogProductsSection(
+                  state: state,
+                  onProductSelected: widget.onProductSelected,
                 ),
-
-                //------------ Pagination Footer ---------------
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const .fromLTRB(20, 14, 20, 24),
-                    child: Center(
-                      child: state.loading
-                          ? const Padding(
-                              padding: .all(10),
-                              child: CircularProgressIndicator(),
-                            )
-                          : state.error != null
-                          ? Column(
-                              children: [
-                                Text(state.error!),
-                                OutlinedButton(
-                                  onPressed: () =>
-                                      bloc.add(const NextPageRequested()),
-                                  child: const Text('Retry page'),
-                                ),
-                              ],
-                            )
-                          : state.hasMore
-                          ? OutlinedButton(
-                              onPressed: () =>
-                                  bloc.add(const NextPageRequested()),
-                              child: const Text('Load more'),
-                            )
-                          : const SizedBox.shrink(),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ],
           );
         },
