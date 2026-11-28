@@ -3,10 +3,10 @@ import 'package:grocer_mate/core/network/connectivity/offline_exception.dart';
 import '../../domain/entities/shopping.dart';
 import '../../domain/repositories/checkout_repository.dart';
 import '../models/purchase_request.dart';
-import '../sources/mock_checkout_source.dart';
+import '../sources/checkout_remote_source.dart';
 
-class const MockCheckoutRepository(
-  final MockCheckoutSource _source,
+class const CheckoutRepositoryImpl(
+  final CheckoutRemoteSource _source,
   final bool Function() _isOnline,
 ) implements CheckoutRepository {
   @override

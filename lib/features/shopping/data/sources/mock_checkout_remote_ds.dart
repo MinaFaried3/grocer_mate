@@ -1,7 +1,146 @@
-part of 'mock_market.dart';
+import 'package:grocer_mate/core/network/endpoint_exception.dart';
+import 'package:grocer_mate/core/network/endpoints.dart';
+import 'package:grocer_mate/core/storage/json_fields.dart';
+import 'package:grocer_mate/core/storage/market_store.dart';
+import 'package:grocer_mate/core/storage/mock_json_reader.dart';
+import 'package:grocer_mate/features/catalog/data/sources/mock_catalog_remote_ds.dart';
 
-extension _MockPurchase on MockMarket {
-  Future<Json> _purchase(
+import '../../domain/entities/checkout_settings.dart';
+import '../models/purchase_request.dart';
+import '../models/purchase_response.dart';
+import 'checkout_remote_source.dart';
+
+class MockCheckoutRemoteDS with MockJsonReader implements CheckoutRemoteSource {
+  MockCheckoutRemoteDS(
+    this.loadMockAsset,
+    this._store,
+    this._catalog, {
+    required this.settings,
+  });
+
+  @override
+  final Future<String> Function(String) loadMockAsset;
+  final MarketStore _store;
+  final CheckoutSettings settings;
+  final MockCatalogRemoteDS _catalog;
+  Future<void> _writes = Future.value();
+
+  //------------ Checkout Remote Source ---------------
+  @override
+  Future<PurchaseResponse> purchase(
+    PurchaseRequest request, {
+    required String idempotencyKey,
+  }) async => PurchaseResponse.fromJson(
+    await purchasePayload(request.toJson(), key: idempotencyKey),
+  );
+
+  //------------ Mock API Payloads ---------------
+  Future<Json> flags() => readMockJson<Json>(Endpoints.flags);
+
+  Future<Json> order(String id) async {
+    final market = await _store.read();
+    final orders = await readMockJson<Json>(Endpoints.orders);
+    final key = id.toLowerCase();
+    return market['orders']?[key] ??
+        orders[key] ??
+        (throw const EndpointException(404, 'Order not found.'));
+  }
+
+  Future<Json> purchasePayload(Json body, {String? key}) => _write(() async {
+    final market = await _readForWrite();
+    final scenario = settings.scenario;
+    // Check if this idempotency key already has a saved purchase or receipt.
+    final hasSavedAttempt =
+        key != null &&
+        (market['purchases'][key] != null || market['receipts'][key] != null);
+    final result = await _applyPurchase(market, body, key, scenario: scenario);
+    await _store.write(market);
+    // Reset one-shot checkout scenario after a fresh purchase attempt completes.
+    final shouldResetScenario =
+        !hasSavedAttempt && settings.scenario == scenario;
+    if (shouldResetScenario) settings.scenario = 'normal';
+    return result;
+  });
+
+  Future<Json> sync(Json body) =>
+      _write(() async => _sync(await _readForWrite(), body));
+
+  //------------ Serialized Market Writes ---------------
+  Future<Json> _write(Future<Json> Function() update) {
+    final operation = _writes.then((_) => update());
+    _writes = operation.then<void>(
+      (_) {},
+      onError: (Object _, StackTrace _) {},
+    );
+    return operation;
+  }
+
+  Future<Json> _readForWrite() async {
+    final stored = await _store.read();
+    return {
+      ...stored,
+      for (final field in [
+        'availability',
+        'receipts',
+        'purchases',
+        'orders',
+        'synced',
+      ])
+        field: Json.from(stored[field] as Map? ?? const {}),
+    };
+  }
+
+  //------------ Batch Sync ---------------
+  Future<Json> _sync(Json market, Json body) async {
+    //------------ Read the Sync Request and Current Version ---------------
+    final seed = await readMockJson<Json>(Endpoints.sync);
+    final version = market['version'] as int? ?? readInt(seed, 'baseVersion');
+    final base = readInt(body, 'baseVersion');
+    final mutations = body['mutations'];
+    if (mutations is! List) {
+      throw const FormatException('Expected sync mutations.');
+    }
+
+    //------------ Collect Unprocessed Purchases ---------------
+    final synced = market['synced'] as Json;
+    final pending = <({String key, Json payload})>[];
+    final keys = <String>{};
+    for (final mutation in mutations) {
+      if (mutation is! Json ||
+          mutation['op'] != 'purchase' ||
+          mutation['payload'] is! Json) {
+        throw const FormatException('Invalid sync mutation.');
+      }
+      final key = readText(mutation, 'idempotencyKey');
+      if (synced[key] != true && keys.add(key)) {
+        pending.add((key: key, payload: mutation['payload'] as Json));
+      }
+    }
+
+    //------------ Validate the Batch Version ---------------
+    if (pending.isEmpty) return {'status': 'ok', 'newVersion': version};
+    if (base != version) {
+      throw const EndpointException(409, 'Sync version has changed.');
+    }
+
+    //------------ Apply and Save the Batch ---------------
+    for (final (:key, :payload) in pending) {
+      final result = await _applyPurchase(market, payload, key);
+      if (result['status'] != 'success') {
+        throw const EndpointException(
+          409,
+          'A purchase needs review before syncing.',
+        );
+      }
+      synced[key] = true;
+    }
+    market['version'] = version + 1;
+    await _store.write(market);
+    return {'status': 'ok', 'newVersion': version + 1};
+  }
+
+  //------------ Purchase Processing ---------------
+  Future<Json> _applyPurchase(
     Json market,
     Json body,
     String? key, {
@@ -22,9 +161,9 @@ extension _MockPurchase on MockMarket {
     }
 
     //------------ Validate the Request ---------------
-    final flags = await _fixture(Endpoints.flags) as Json;
+    final flags = await readMockJson<Json>(Endpoints.flags);
     if (flags['maintenanceMode'] == true) {
-      throw const MockMarketException(
+      throw const EndpointException(
         503,
         'The market is temporarily unavailable.',
       );
@@ -55,10 +194,12 @@ extension _MockPurchase on MockMarket {
     }
 
     //------------ Load Prices, Stock, and Scenario Rules ---------------
+    final availability = market['availability'] as Json;
     final productById = {
-      for (final item in await _products(market)) item['id']: item,
+      for (final item in await _catalog.productsWithAvailability(availability))
+        item['id']: item,
     };
-    final deals = await _dealsToday(market);
+    final deals = await _catalog.dealsWithAvailability(availability);
     final now = DateTime.now().toUtc();
     final dailyPrices = {
       if (flags['showDeals'] == true)
@@ -66,8 +207,8 @@ extension _MockPurchase on MockMarket {
           if (DateTime.parse(readText(item, 'endsAt')).isAfter(now))
             readText(item, 'productId'): readCents(item, 'dealPrice'),
     };
-    final purchaseFixture = await _fixture(Endpoints.purchase) as Json;
-    final rules = purchaseFixture['scenarios'][scenario] as Json?;
+    final purchaseMock = await readMockJson<Json>(Endpoints.purchase);
+    final rules = purchaseMock['scenarios'][scenario] as Json?;
     if (rules == null) {
       throw const FormatException('Unknown checkout scenario.');
     }
@@ -79,7 +220,6 @@ extension _MockPurchase on MockMarket {
       lines.keys.toList(),
       rules['stockChanges'],
     );
-    final availability = market['availability'] as Json;
 
     //------------ Calculate Line Changes and Fulfillment ---------------
     final changes = <Json>[];
@@ -171,7 +311,7 @@ extension _MockPurchase on MockMarket {
     final orders = market['orders'] as Json;
     final receipts = market['receipts'] as Json;
     final orderId =
-        'o_${readInt(purchaseFixture, 'orderIdStart') + orders.length + receipts.length}';
+        'o_${readInt(purchaseMock, 'orderIdStart') + orders.length + receipts.length}';
     final tax = (subtotal * (flags['taxRate'] as num)).round();
     final delivery =
         subtotal == 0 || subtotal >= readCents(flags, 'freeDeliveryThreshold')
@@ -234,53 +374,5 @@ extension _MockPurchase on MockMarket {
     int value,
   ) {
     availability[id] = {...?(availability[id] as Json?), field: value};
-  }
-
-  Future<Json> _sync(Json market, Json body) async {
-    //------------ Read the Sync Request and Current Version ---------------
-    final seed = await _fixture(Endpoints.sync) as Json;
-    final version = market['version'] as int? ?? readInt(seed, 'baseVersion');
-    final base = readInt(body, 'baseVersion');
-    final mutations = body['mutations'];
-    if (mutations is! List) {
-      throw const FormatException('Expected sync mutations.');
-    }
-
-    //------------ Collect Unprocessed Purchases ---------------
-    final synced = market['synced'] as Json;
-    final pending = <({String key, Json payload})>[];
-    final keys = <String>{};
-    for (final mutation in mutations) {
-      if (mutation is! Json ||
-          mutation['op'] != 'purchase' ||
-          mutation['payload'] is! Json) {
-        throw const FormatException('Invalid sync mutation.');
-      }
-      final key = readText(mutation, 'idempotencyKey');
-      if (synced[key] != true && keys.add(key)) {
-        pending.add((key: key, payload: mutation['payload'] as Json));
-      }
-    }
-
-    //------------ Validate the Batch Version ---------------
-    if (pending.isEmpty) return {'status': 'ok', 'newVersion': version};
-    if (base != version) {
-      throw const MockMarketException(409, 'Sync version has changed.');
-    }
-
-    //------------ Apply and Save the Batch ---------------
-    for (final (:key, :payload) in pending) {
-      final result = await _purchase(market, payload, key);
-      if (result['status'] != 'success') {
-        throw const MockMarketException(
-          409,
-          'A purchase needs review before syncing.',
-        );
-      }
-      synced[key] = true;
-    }
-    market['version'] = version + 1;
-    await _storage.write(MockMarket._marketKey, market);
-    return {'status': 'ok', 'newVersion': version + 1};
   }
 }

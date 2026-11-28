@@ -1,5 +1,6 @@
 import 'package:grocer_mate/core/storage/hive_local_storage.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
+import 'package:grocer_mate/core/storage/market_store.dart';
 import 'package:grocer_mate/features/app/injection/app_dependencies.dart';
 
 import 'get_it_injector.dart';
@@ -14,6 +15,8 @@ Future<void> initializeDependencies() async {
 }
 
 extension SharedDependencies on Injector {
+  MarketStore get marketStore => singleton(() => MarketStore(localStorage));
+
   LocalStorage get localStorage => singleton<LocalStorage>(
     () => singleton<HiveLocalStorage>(
       HiveLocalStorage.new,

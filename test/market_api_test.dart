@@ -2,18 +2,19 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:grocer_mate/core/mock/mock_market.dart';
 import 'package:grocer_mate/core/network/page_response.dart';
 import 'package:grocer_mate/core/storage/json_fields.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
+import 'package:grocer_mate/core/storage/market_store.dart';
 import 'package:grocer_mate/features/catalog/data/models/product_response.dart';
-import 'package:grocer_mate/features/catalog/data/repositories/mock_catalog_repository.dart';
+import 'package:grocer_mate/features/catalog/data/repositories/catalog_repository_impl.dart';
 import 'package:grocer_mate/features/catalog/data/sources/catalog_cache_source.dart';
-import 'package:grocer_mate/features/catalog/data/sources/mock_catalog_source.dart';
-import 'package:grocer_mate/features/shopping/data/repositories/local_shopping_repository.dart';
-import 'package:grocer_mate/features/shopping/data/repositories/mock_checkout_repository.dart';
+import 'package:grocer_mate/features/catalog/data/sources/mock_catalog_remote_ds.dart';
+import 'package:grocer_mate/features/shopping/data/repositories/shopping_repository_impl.dart';
+import 'package:grocer_mate/features/shopping/data/repositories/checkout_repository_impl.dart';
 import 'package:grocer_mate/features/shopping/data/sources/local_shopping_source.dart';
-import 'package:grocer_mate/features/shopping/data/sources/mock_checkout_source.dart';
+import 'package:grocer_mate/features/shopping/data/sources/mock_checkout_remote_ds.dart';
+import 'package:grocer_mate/features/shopping/domain/entities/checkout_settings.dart';
 import 'package:grocer_mate/features/shopping/domain/entities/shopping.dart';
 import 'package:grocer_mate/features/shopping/domain/use_cases/submit_pending_purchase.dart';
 
@@ -24,20 +25,29 @@ void main() {
   const appleId = 'p_apple_gala';
   late _Storage storage;
   late bool online;
-  late MockMarket demo;
-  late MockCatalogRepository catalog;
-  late MockCheckoutRepository checkout;
+  late MockCatalogRemoteDS catalogSource;
+  late MockCheckoutRemoteDS checkoutSource;
+  late CatalogRepositoryImpl catalog;
+  late CheckoutRepositoryImpl checkout;
 
   setUp(() {
     storage = _Storage();
     online = true;
-    demo = MockMarket(storage, (path) => File(path).readAsString());
-    catalog = MockCatalogRepository(
+    final market = MarketStore(storage);
+    Future<String> loadMockAsset(String path) => File(path).readAsString();
+    catalogSource = MockCatalogRemoteDS(loadMockAsset, market.readAvailability);
+    checkoutSource = MockCheckoutRemoteDS(
+      loadMockAsset,
+      market,
+      catalogSource,
+      settings: CheckoutSettings(),
+    );
+    catalog = CatalogRepositoryImpl(
       CatalogCacheSource(storage),
       () => online,
-      MockCatalogSource(demo),
+      catalogSource,
     );
-    checkout = MockCheckoutRepository(MockCheckoutSource(demo), () => online);
+    checkout = CheckoutRepositoryImpl(checkoutSource, () => online);
   });
 
   test('filters the entire catalog before splitting it into pages', () async {
@@ -52,7 +62,7 @@ void main() {
     );
     expect(first.brands, ['DairyPure', 'FarmGold', 'MilkWay']);
 
-    final result = await demo.products(
+    final result = await catalogSource.productsPayload(
       category: 'C_DAIRY',
       page: 1,
       pageSize: 10,
@@ -91,10 +101,10 @@ void main() {
       expect((await catalog.detail(milkId)).description, isNotEmpty);
 
       online = false;
-      final restarted = MockCatalogRepository(
+      final restarted = CatalogRepositoryImpl(
         CatalogCacheSource(storage),
         () => online,
-        MockCatalogSource(demo),
+        catalogSource,
       );
       final cached = await restarted.detail(milkId);
       expect(cached.description, isNotEmpty);
@@ -113,7 +123,7 @@ void main() {
     ];
 
     //------------ Verify Price and Stock Review ---------------
-    demo.checkoutScenario = 'mixed';
+    checkoutSource.settings.scenario = 'mixed';
     final result = await checkout.purchase(
       PendingPurchase('mixed', lines),
     ) as PurchaseReview;
@@ -123,12 +133,12 @@ void main() {
       ),
       [(milkId, 139, 6), (breadId, 279, 0)],
     );
-    expect((await demo.inventory(milkId))['stock'], 6);
+    expect((await catalogSource.inventory(milkId))['stock'], 6);
 
     //------------ Retry Partial Fulfillment with the Same Purchase ID ---------------
     final revisedMilk = result.applyTo(lines, {}).first;
     final pending = PendingPurchase('partial', [revisedMilk, lines[1]]);
-    demo.checkoutScenario = 'partial';
+    checkoutSource.settings.scenario = 'partial';
     final results = await Future.wait([
       checkout.purchase(pending),
       checkout.purchase(pending),
@@ -136,13 +146,13 @@ void main() {
     final partial = results.first as PartialPurchase;
     expect((results.last as PartialPurchase).receipt?.id, partial.receipt?.id);
     expect(partial.missing.single.product.id, appleId);
-    expect((await demo.checkStock(milkId))['stocks'], [
+    expect((await catalogSource.checkStock(milkId))['stocks'], [
       {'productId': milkId, 'stock': 4},
     ]);
-    expect((await demo.order(partial.receipt!.id))['total'], 3.92);
+    expect((await checkoutSource.order(partial.receipt!.id))['total'], 3.92);
 
     //------------ Replay the Queued Purchase and Restore Missing Items ---------------
-    final localShopping = LocalShoppingRepository(LocalShoppingSource(storage));
+    final localShopping = ShoppingRepositoryImpl(LocalShoppingSource(storage));
     final saved = ShoppingData(pending: pending);
     await localShopping.write(saved);
     final submitted = await SubmitPendingPurchase(
@@ -155,22 +165,22 @@ void main() {
   });
 
   test(
-    'suggests, returns fixture history and syncs the same mutation once',
+    'suggests, returns mock price history and syncs the same mutation once',
     () async {
-      expect((await demo.suggestions('AP'))['suggestions'], [
+      expect((await catalogSource.suggestions('AP'))['suggestions'], [
         'apple',
         'apple gala',
         'apple juice',
         'apricot',
       ]);
-      expect((await demo.priceHistory(milkId))['history'], [
+      expect((await catalogSource.priceHistory(milkId))['history'], [
         1.49,
         1.39,
         1.39,
         1.29,
       ]);
-      expect((await demo.dealsOfDay())['items'], hasLength(2));
-      expect((await demo.order('o_7101'))['total'], 6.32);
+      expect((await catalogSource.dealsOfDayPayload())['items'], hasLength(2));
+      expect((await checkoutSource.order('o_7101'))['total'], 6.32);
       final request = {
         'baseVersion': 42,
         'mutations': [
@@ -185,9 +195,15 @@ void main() {
           },
         ],
       };
-      expect(await demo.sync(request), {'status': 'ok', 'newVersion': 43});
-      expect(await demo.sync(request), {'status': 'ok', 'newVersion': 43});
-      expect((await demo.inventory(milkId))['stock'], 4);
+      expect(await checkoutSource.sync(request), {
+        'status': 'ok',
+        'newVersion': 43,
+      });
+      expect(await checkoutSource.sync(request), {
+        'status': 'ok',
+        'newVersion': 43,
+      });
+      expect((await catalogSource.inventory(milkId))['stock'], 4);
     },
   );
 }

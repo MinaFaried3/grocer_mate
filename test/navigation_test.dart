@@ -7,20 +7,21 @@ import 'package:go_router/go_router.dart';
 import 'package:grocer_mate/core/grocer_mate_app.dart';
 import 'package:grocer_mate/core/injection/get_it_injector.dart';
 import 'package:grocer_mate/core/network/connectivity/connection_checker.dart';
-import 'package:grocer_mate/core/mock/mock_market.dart';
-import 'package:grocer_mate/core/settings/checkout_settings.dart';
+import 'package:grocer_mate/core/storage/mock_json_reader.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
+import 'package:grocer_mate/core/storage/market_store.dart';
 import 'package:grocer_mate/features/app/presentation/controllers/app_connection_cubit.dart';
-import 'package:grocer_mate/features/catalog/data/repositories/mock_catalog_repository.dart';
+import 'package:grocer_mate/features/catalog/data/repositories/catalog_repository_impl.dart';
 import 'package:grocer_mate/features/catalog/data/sources/catalog_cache_source.dart';
-import 'package:grocer_mate/features/catalog/data/sources/mock_catalog_source.dart';
+import 'package:grocer_mate/features/catalog/data/sources/mock_catalog_remote_ds.dart';
 import 'package:grocer_mate/features/catalog/domain/repositories/catalog_repository.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/product_detail_controller.dart';
-import 'package:grocer_mate/features/shopping/data/repositories/local_shopping_repository.dart';
-import 'package:grocer_mate/features/shopping/data/repositories/mock_checkout_repository.dart';
+import 'package:grocer_mate/features/shopping/data/repositories/shopping_repository_impl.dart';
+import 'package:grocer_mate/features/shopping/data/repositories/checkout_repository_impl.dart';
 import 'package:grocer_mate/features/shopping/data/sources/local_shopping_source.dart';
-import 'package:grocer_mate/features/shopping/data/sources/mock_checkout_source.dart';
+import 'package:grocer_mate/features/shopping/data/sources/mock_checkout_remote_ds.dart';
+import 'package:grocer_mate/features/shopping/domain/entities/checkout_settings.dart';
 import 'package:grocer_mate/features/shopping/domain/entities/shopping.dart';
 import 'package:grocer_mate/features/shopping/domain/repositories/checkout_repository.dart';
 import 'package:grocer_mate/features/shopping/domain/repositories/shopping_repository.dart';
@@ -46,19 +47,27 @@ void main() {
           'previous': {'id': 'GM-1001', 'total': 235},
         },
       });
-      final demo = MockMarket(
-        store,
-        (path) => path.endsWith('/products.json')
-            ? Future.value(
-                '[{"id":"milk","title":"Milk","price":1.29,"stock":6}]',
-              )
-            : rootBundle.loadString(path),
+      Future<String> loadMockAsset(String path) =>
+          path.endsWith('/products.json')
+          ? Future.value(
+              '[{"id":"milk","title":"Milk","price":1.29,"stock":6}]',
+            )
+          : rootBundle.loadString(path);
+      final market = MarketStore(store);
+      final catalogSource = MockCatalogRemoteDS(
+        loadMockAsset,
+        market.readAvailability,
       );
-      final checkout = MockCheckoutRepository(
-        MockCheckoutSource(demo),
+      final checkout = CheckoutRepositoryImpl(
+        MockCheckoutRemoteDS(
+          loadMockAsset,
+          market,
+          catalogSource,
+          settings: CheckoutSettings(),
+        ),
         () => connection.online,
       );
-      final catalog = await demo.products();
+      final catalog = await catalogSource.productsPayload();
       expect((catalog['data'] as List).single['stock'], 3);
 
       final next = PendingPurchase('next', [CartLine(.fromProduct(milk), 1)]);
@@ -236,8 +245,8 @@ Future<GoRouter> _startApp(
   await tester.binding.setSurfaceSize(const Size(900, 1000));
   addTearDown(() => tester.binding.setSurfaceSize(null));
 
-  //------------ Load Bundled Market Fixtures ---------------
-  final fixtures = await tester.runAsync(
+  //------------ Load Bundled Mock Data ---------------
+  final mockAssets = await tester.runAsync(
     () async => {
       for (final name in [
         'categories',
@@ -249,8 +258,8 @@ Future<GoRouter> _startApp(
         'deals-of-day',
         'inventory',
       ])
-        '$demoAssetDirectory/$name.json': await rootBundle.loadString(
-          '$demoAssetDirectory/$name.json',
+        '$mockAssetDirectory/$name.json': await rootBundle.loadString(
+          '$mockAssetDirectory/$name.json',
         ),
     },
   );
@@ -260,17 +269,28 @@ Future<GoRouter> _startApp(
   connection.setOfflineMode(offline);
   addTearDown(connection.close);
   final store = _MemoryStorage();
-  final demo = MockMarket(store, (path) async => fixtures![path]!);
-  final catalog = MockCatalogRepository(
+  final market = MarketStore(store);
+  Future<String> loadMockAsset(String path) async => mockAssets![path]!;
+  final catalogSource = MockCatalogRemoteDS(
+    loadMockAsset,
+    market.readAvailability,
+  );
+  final checkoutSource = MockCheckoutRemoteDS(
+    loadMockAsset,
+    market,
+    catalogSource,
+    settings: CheckoutSettings(),
+  );
+  final catalog = CatalogRepositoryImpl(
     CatalogCacheSource(store),
     () => connection.online,
-    MockCatalogSource(demo),
+    catalogSource,
   );
-  final checkout = MockCheckoutRepository(
-    MockCheckoutSource(demo),
+  final checkout = CheckoutRepositoryImpl(
+    checkoutSource,
     () => connection.online,
   );
-  final shopping = LocalShoppingRepository(LocalShoppingSource(store));
+  final shopping = ShoppingRepositoryImpl(LocalShoppingSource(store));
 
   //------------ Register the Test Dependencies ---------------
   final injector = GetItInjector();
@@ -280,7 +300,7 @@ Future<GoRouter> _startApp(
   injector
     ..singleton<AppConnectionCubit>(() => connection)
     ..singleton<LocalStorage>(() => store)
-    ..singleton<MockMarket>(() => demo)
+    ..singleton<MockCheckoutRemoteDS>(() => checkoutSource)
     ..singleton<CatalogRepository>(() => catalog)
     ..singleton<CheckoutRepository>(() => checkout)
     ..singleton<ShoppingRepository>(() => shopping)

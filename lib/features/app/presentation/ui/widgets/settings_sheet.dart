@@ -4,8 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:grocer_mate/core/theme/theme_context.dart';
 import 'package:grocer_mate/features/app/presentation/controllers/app_connection_cubit.dart';
 import 'package:grocer_mate/features/app/presentation/controllers/app_connection_state.dart';
-
-import 'checkout_settings.dart';
+import 'package:grocer_mate/features/shopping/domain/entities/checkout_settings.dart';
 
 class const SettingsSheet({
   super.key,

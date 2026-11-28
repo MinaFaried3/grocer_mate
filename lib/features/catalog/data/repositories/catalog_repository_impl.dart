@@ -7,14 +7,14 @@ import '../../domain/entities/catalog.dart';
 import '../../domain/repositories/catalog_repository.dart';
 import '../models/catalog_cache.dart';
 import '../sources/catalog_cache_source.dart';
-import '../sources/catalog_source.dart';
+import '../sources/catalog_remote_source.dart';
 
-class MockCatalogRepository implements CatalogRepository {
-  MockCatalogRepository(this._cacheSource, this._isOnline, this._source);
+class CatalogRepositoryImpl implements CatalogRepository {
+  CatalogRepositoryImpl(this._cacheSource, this._isOnline, this._source);
 
   final CatalogCacheSource _cacheSource;
   final bool Function() _isOnline;
-  final CatalogSource _source;
+  final CatalogRemoteSource _source;
 
   Future<CatalogCache>? _cache;
   Future<CatalogCache> get _saved => _cache ??= _load();

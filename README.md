@@ -4,7 +4,7 @@ A Flutter grocery storefront with a local market. Browse and filter groceries, m
 
 ## Run
 
-Use Flutter 3.50 or later with Dart 3.14 or later. By default, the catalog and checkout repositories use the bundled JSON fixtures.
+Use Flutter 3.50 or later with Dart 3.14 or later. The catalog and checkout repositories use bundled mock JSON data by default.
 
 ```sh
 flutter pub get
@@ -42,7 +42,7 @@ The HTTP demo server resets inventory and orders on restart. Set `MOCK_CHECKOUT_
 
 ## Endpoint data
 
-Each endpoint has a JSON fixture in `assets/mock_api/`. Edit `products.json` to change the searchable catalog, `product.json` for details, `brands.json` for brand choices, and `purchase.json` for checkout scenarios. The demo calculates product counts, totals and stock changes from the request and the dataset. It keeps the supplied example receipt at `/orders/o_7101`, and generates new receipts for completed purchases.
+Each endpoint has a mock JSON file in `assets/mock_api/`. Edit `products.json` to change the searchable catalog, `product.json` for details, `brands.json` for brand choices, and `purchase.json` for checkout scenarios. The demo calculates product counts, totals and stock changes from the request and the dataset. It keeps the supplied example receipt at `/orders/o_7101`, and generates new receipts for completed purchases.
 
 - Catalog reads use `GET /categories`, `/brands?categoryId=...`, `/products?category=...&page=...&pageSize=...&search=...&brand=...`, `/product/{id}` and `/deals-of-day`.
 - Checkout uses `GET /flags` for the request currency and `POST /purchase` with integer quantities, decimal API prices and an `Idempotency-Key` header. Retries use the same key. Accepting a revised order generates a new key.
@@ -51,7 +51,7 @@ Each endpoint has a JSON fixture in `assets/mock_api/`. Edit `products.json` to 
 ## Implementation
 
 - API paths are defined in `Endpoints`. After editing the JSON models, run `dart run build_runner build` to regenerate their serializers.
-- Feature injection selects the bundled mock repositories or the live repositories. The live repositories use a small API interface backed by Dio. The standalone mock server uses the same fixtures and inventory logic as the bundled demo.
+- Feature injection supplies `MockCatalogRemoteDS` and `MockCheckoutRemoteDS` to the repositories. The standalone mock server uses the same sources.
 - Hive CE stores the offline catalog cache, cart, saved items, queued purchases, and bundled demo market state.
 - The checkout preview calculates prices in integer cents with the sample 5% tax and $1 delivery fee waived at $25. Completed receipts use the total returned by the server.
 - The bundled demo uses product photography from `assets/photos` where available. The catalog also supports image URLs returned by a live backend.

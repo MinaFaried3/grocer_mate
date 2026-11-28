@@ -3,8 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'package:grocer_mate/core/injection/dependencies.dart';
-import 'package:grocer_mate/core/settings/settings_dependencies.dart';
-import 'package:grocer_mate/core/settings/settings_sheet.dart';
+import 'package:grocer_mate/features/app/presentation/ui/widgets/settings_sheet.dart';
 import 'package:grocer_mate/features/catalog/injection/catalog_dependencies.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_event.dart';
