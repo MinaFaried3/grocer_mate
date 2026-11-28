@@ -7,16 +7,17 @@ import 'package:grocer_mate/features/app/presentation/controllers/app_connection
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final getIt = await initializeDependencies();
+  final dependencies = await initializeDependencies();
 
   runApp(
     BlocProvider<AppConnectionCubit>.value(
-      value: getIt<AppConnectionCubit>(),
+      value: dependencies.appConnection,
       child: GrocerMateApp(
-        getCheckoutSettings: getIt.getCheckoutSettings,
-        createCatalogBloc: getIt.createCatalogBloc,
-        createProductDetailController: getIt.createProductDetailController,
-        createShoppingBloc: getIt.createShoppingBloc,
+        getCheckoutSettings: dependencies.getCheckoutSettings,
+        createCatalogBloc: dependencies.createCatalogBloc,
+        createProductDetailController:
+            dependencies.createProductDetailController,
+        createShoppingBloc: dependencies.createShoppingBloc,
       ),
     ),
   );

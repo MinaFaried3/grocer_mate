@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:grocer_mate/core/injection/dependencies.dart';
+import 'package:grocer_mate/core/injection/get_it_injector.dart';
 import 'package:grocer_mate/core/network/market_api.dart';
 import 'package:grocer_mate/core/settings/checkout_settings.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
@@ -22,8 +23,9 @@ void main() {
 
     expect(concurrentStartup, same(startup));
     expect(await initializeDependencies(), same(dependencies));
+    expect(GetItInjector(), same(dependencies));
     expect(dependencies.isRegistered<AppConnectionCubit>(), isTrue);
-    expect(dependencies<AppConnectionCubit>().state.connected, isNotNull);
+    expect(dependencies.appConnection.state.connected, isNotNull);
     expect(dependencies.isRegistered<LocalStorage>(), isFalse);
     expect(dependencies.isRegistered<MarketApi>(), isFalse);
     expect(dependencies.isRegistered<ShoppingBloc>(), isFalse);
@@ -38,17 +40,27 @@ void main() {
     final detail = dependencies.createProductDetailController('milk');
     addTearDown(detail.close);
     expect(dependencies.isRegistered<ProductDetailController>(), isTrue);
-    final repository = dependencies<CatalogRepository>();
+    final repository = dependencies.get<CatalogRepository>();
     expect(dependencies.isRegistered<CatalogBloc>(), isFalse);
 
     final catalog = dependencies.createCatalogBloc();
     addTearDown(catalog.close);
-    expect(dependencies<CatalogRepository>(), same(repository));
+    expect(dependencies.get<CatalogRepository>(), same(repository));
     expect(dependencies.isRegistered<CheckoutRepository>(), isFalse);
     expect(dependencies.isRegistered<CheckoutSettings>(), isFalse);
 
     final settings = dependencies.getCheckoutSettings();
     expect(settings, isNotNull);
     expect(dependencies.getCheckoutSettings(), same(settings));
+  });
+
+  test('resolves each factory request with its own parameter', () {
+    final injector = GetItInjector();
+    addTearDown(injector.reset);
+
+    String productId(int id) => 'product-$id';
+
+    expect(injector.factoryWithParameter(productId, 1), 'product-1');
+    expect(injector.factoryWithParameter(productId, 2), 'product-2');
   });
 }
