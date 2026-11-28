@@ -8,22 +8,25 @@ import '../../../domain/entities/shopping.dart';
 import '../../controllers/shopping_bloc.dart';
 import '../../controllers/shopping_event.dart';
 import '../../controllers/shopping_state.dart';
-import '../widgets/cart_summary.dart';
-import '../widgets/order_receipt_panel.dart';
-import '../widgets/pending_purchase_panel.dart';
-import '../widgets/shopping_line_tile.dart';
+import 'shopping_line_tile.dart';
 
-class const ShoppingScreen({
+class const ShoppingItemsList({
   super.key,
+  required final String storageKey,
+  required final String title,
   required final bool saved,
-  required final VoidCallback onBrowse,
+  required final List<CartLine> Function(ShoppingData data) selectLines,
+  required final StatusPanel emptyState,
   required final VoidCallback onSettings,
+  final List<Widget> Function(ShopState state, ShoppingData data)?
+  headerSlivers,
+  final Widget Function(ShoppingData data)? footer,
 }) extends StatefulWidget {
   @override
-  State<ShoppingScreen> createState() => _ShoppingScreenState();
+  State<ShoppingItemsList> createState() => _ShoppingItemsListState();
 }
 
-class _ShoppingScreenState() extends State<ShoppingScreen> {
+class _ShoppingItemsListState() extends State<ShoppingItemsList> {
   final _selection = <String>{};
   bool _selecting = false;
 
@@ -39,12 +42,14 @@ class _ShoppingScreenState() extends State<ShoppingScreen> {
     return BlocBuilder<ShoppingBloc, ShopState>(
       builder: (context, state) {
         final data = state.data;
-        final lines = (saved ? data?.saved : data?.cart) ?? const <CartLine>[];
+        final lines = data == null
+            ? const <CartLine>[]
+            : widget.selectLines(data);
         final selected = _selection.intersection(
           lines.map((line) => line.product.id).toSet(),
         );
         return CustomScrollView(
-          key: PageStorageKey(saved ? 'saved' : 'cart'),
+          key: PageStorageKey(widget.storageKey),
           slivers: [
             SliverPadding(
               padding: const .fromLTRB(20, 16, 20, 10),
@@ -53,7 +58,7 @@ class _ShoppingScreenState() extends State<ShoppingScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        saved ? 'Saved for later' : 'Your cart',
+                        widget.title,
                         style: context.textTheme.headlineLarge,
                       ),
                     ),
@@ -84,34 +89,9 @@ class _ShoppingScreenState() extends State<ShoppingScreen> {
                       ),
               )
             else ...[
-              if (!saved && data.pending != null)
-                SliverPadding(
-                  padding: const .fromLTRB(20, 0, 20, 12),
-                  sliver: SliverToBoxAdapter(
-                    child: PendingPurchasePanel(state),
-                  ),
-                ),
-              if (!saved && data.lastOrder != null && data.pending == null)
-                SliverPadding(
-                  padding: const .fromLTRB(20, 0, 20, 12),
-                  sliver: SliverToBoxAdapter(
-                    child: OrderReceiptPanel(data.lastOrder!),
-                  ),
-                ),
+              ...?widget.headerSlivers?.call(state, data),
               if (lines.isEmpty && (saved || data.pending == null))
-                SliverToBoxAdapter(
-                  child: StatusPanel(
-                    icon: saved
-                        ? Icons.bookmark_border_rounded
-                        : Icons.shopping_bag_outlined,
-                    title: saved ? 'Nothing saved yet' : 'Your cart is empty',
-                    message: saved
-                        ? 'Move items here from your cart to keep them handy.'
-                        : 'Pick a few groceries to get started.',
-                    action: 'Browse groceries',
-                    onAction: widget.onBrowse,
-                  ),
-                ),
+                SliverToBoxAdapter(child: widget.emptyState),
               if (lines.isNotEmpty) ...[
                 SliverPadding(
                   padding: const .fromLTRB(20, 0, 20, 8),
@@ -201,10 +181,10 @@ class _ShoppingScreenState() extends State<ShoppingScreen> {
                     },
                   ),
                 ),
-                if (!saved)
+                if (widget.footer != null)
                   SliverPadding(
                     padding: const .fromLTRB(20, 16, 20, 24),
-                    sliver: SliverToBoxAdapter(child: CartSummary(data)),
+                    sliver: SliverToBoxAdapter(child: widget.footer!(data)),
                   ),
               ],
               const SliverToBoxAdapter(child: SizedBox(height: 16)),

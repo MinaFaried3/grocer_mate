@@ -2,28 +2,25 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
-import 'package:grocer_mate/core/settings/checkout_settings.dart';
+import 'package:grocer_mate/core/injection/dependencies.dart';
+import 'package:grocer_mate/core/settings/settings_dependencies.dart';
 import 'package:grocer_mate/core/settings/settings_sheet.dart';
+import 'package:grocer_mate/features/catalog/injection/catalog_dependencies.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_event.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/product_detail_controller.dart';
 import 'package:grocer_mate/features/catalog/presentation/ui/screens/catalog_screen.dart';
 import 'package:grocer_mate/features/catalog/presentation/ui/screens/product_screen.dart';
+import 'package:grocer_mate/features/shopping/injection/shopping_dependencies.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_event.dart';
-import 'package:grocer_mate/features/shopping/presentation/ui/screens/shopping_screen.dart';
+import 'package:grocer_mate/features/shopping/presentation/ui/screens/cart_screen.dart';
+import 'package:grocer_mate/features/shopping/presentation/ui/screens/saved_screen.dart';
 
 import 'market_home.dart';
+import 'routes_constants.dart';
 
-GoRouter createAppRouter({
-  required CheckoutSettings? Function() getCheckoutSettings,
-  required CatalogBloc Function() createCatalogBloc,
-  required ProductDetailController Function(String id)
-  createProductDetailController,
-  required ShoppingBloc Function() createShoppingBloc,
-}) {
-  final marketNavigatorKey = GlobalKey<NavigatorState>();
-
+GoRouter createAppRouter() {
   void showSettings(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
@@ -31,81 +28,86 @@ GoRouter createAppRouter({
       showDragHandle: true,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) => SettingsSheet(settings: getCheckoutSettings()),
+      builder: (_) => SettingsSheet(settings: injector.getCheckoutSettings()),
     );
   }
 
   return .new(
+    navigatorKey: RoutesConstants.rootNavigatorKey,
     routes: [
+      //------------ Market Shell Route ---------------
       ShellRoute(
-        navigatorKey: marketNavigatorKey,
-        builder: (context, state, child) => BlocProvider<ShoppingBloc>(
-          create: (_) => createShoppingBloc()..add(const ShopStarted()),
+        navigatorKey: RoutesConstants.marketNavigatorKey,
+        builder: (context, state, child) => MultiBlocProvider(
+          providers: [
+            //------------ Shopping Bloc Provider ---------------
+            BlocProvider<ShoppingBloc>(
+              create: (_) =>
+                  injector.createShoppingBloc()..add(const ShopStarted()),
+            ),
+
+            //------------ Catalog Bloc Provider ---------------
+            BlocProvider<CatalogBloc>(
+              lazy: true,
+              create: (_) =>
+                  injector.createCatalogBloc()..add(const CatalogRefreshed()),
+            ),
+          ],
           child: child,
         ),
         routes: [
-          StatefulShellRoute.indexedStack(
-            builder: (context, state, navigationShell) =>
-                MarketHome(navigationShell: navigationShell),
-            branches: [
-              .new(
+          //------------ Navigation Bar Shell Route ---------------
+          ShellRoute(
+            navigatorKey: RoutesConstants.shellNavigatorKey,
+            builder: (context, state, child) =>
+                MarketHome(location: state.uri.path, child: child),
+            routes: [
+              //------------ Browse Route ---------------
+              GoRoute(
+                path: RoutesConstants.browse,
+                builder: (context, state) => CatalogScreen(
+                  isVisible: state.uri.path == RoutesConstants.browse,
+                  onSettings: () => showSettings(context),
+                  onProductSelected: (id) => context.goNamed(
+                    RoutesConstants.productName,
+                    pathParameters: {'id': id},
+                  ),
+                ),
                 routes: [
+                  //------------ Product Route ---------------
                   GoRoute(
-                    path: '/',
-                    builder: (context, state) => BlocProvider<CatalogBloc>(
-                      create: (_) =>
-                          createCatalogBloc()..add(const CatalogRefreshed()),
-                      child: CatalogScreen(
-                        isVisible: state.uri.path == '/',
-                        onSettings: () => showSettings(context),
-                        onProductSelected: (id) => context.goNamed(
-                          'product',
-                          pathParameters: {'id': id},
-                        ),
-                      ),
-                    ),
-                    routes: [
-                      GoRoute(
-                        path: 'products/:id',
-                        name: 'product',
-                        parentNavigatorKey: marketNavigatorKey,
-                        builder: (context, state) {
-                          final id = state.pathParameters['id']!;
-                          return BlocProvider<ProductDetailController>(
-                            key: ValueKey(id),
-                            create: (_) =>
-                                createProductDetailController(id)..load(),
-                            child: const ProductScreen(),
-                          );
-                        },
-                      ),
-                    ],
+                    path: RoutesConstants.product,
+                    name: RoutesConstants.productName,
+                    parentNavigatorKey: RoutesConstants.marketNavigatorKey,
+                    builder: (context, state) {
+                      final id = state.pathParameters['id']!;
+                      return BlocProvider<ProductDetailController>(
+                        key: ValueKey(id),
+                        create: (_) =>
+                            injector.createProductDetailController(id)..load(),
+                        child: const ProductScreen(),
+                      );
+                    },
                   ),
                 ],
               ),
-              .new(
-                routes: [
-                  GoRoute(
-                    path: '/cart',
-                    builder: (context, state) => ShoppingScreen(
-                      saved: false,
-                      onBrowse: () => context.go('/'),
-                      onSettings: () => showSettings(context),
-                    ),
-                  ),
-                ],
+
+              //------------ Cart Route ---------------
+              GoRoute(
+                path: RoutesConstants.cart,
+                builder: (context, state) => CartScreen(
+                  onBrowse: () => context.go(RoutesConstants.browse),
+                  onSettings: () => showSettings(context),
+                ),
               ),
-              .new(
-                routes: [
-                  GoRoute(
-                    path: '/saved',
-                    builder: (context, state) => ShoppingScreen(
-                      saved: true,
-                      onBrowse: () => context.go('/'),
-                      onSettings: () => showSettings(context),
-                    ),
-                  ),
-                ],
+
+              //------------ Saved Route ---------------
+              GoRoute(
+                path: RoutesConstants.saved,
+                builder: (context, state) => SavedScreen(
+                  onBrowse: () => context.go(RoutesConstants.browse),
+                  onSettings: () => showSettings(context),
+                ),
               ),
             ],
           ),

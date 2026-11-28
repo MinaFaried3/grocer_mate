@@ -5,17 +5,21 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:grocer_mate/core/grocer_mate_app.dart';
+import 'package:grocer_mate/core/injection/get_it_injector.dart';
 import 'package:grocer_mate/core/network/connectivity/connection_checker.dart';
 import 'package:grocer_mate/core/mock/mock_market.dart';
 import 'package:grocer_mate/core/settings/checkout_settings.dart';
 import 'package:grocer_mate/core/storage/local_storage.dart';
 import 'package:grocer_mate/features/app/presentation/controllers/app_connection_cubit.dart';
 import 'package:grocer_mate/features/catalog/data/mock_catalog_repository.dart';
+import 'package:grocer_mate/features/catalog/domain/repositories/catalog_repository.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/catalog_bloc.dart';
 import 'package:grocer_mate/features/catalog/presentation/controllers/product_detail_controller.dart';
 import 'package:grocer_mate/features/shopping/data/mock_checkout_repository.dart';
 import 'package:grocer_mate/features/shopping/data/local_shopping_repository.dart';
 import 'package:grocer_mate/features/shopping/domain/entities/shopping.dart';
+import 'package:grocer_mate/features/shopping/domain/repositories/checkout_repository.dart';
+import 'package:grocer_mate/features/shopping/domain/repositories/shopping_repository.dart';
 import 'package:grocer_mate/features/shopping/domain/use_cases/submit_pending_purchase.dart';
 import 'package:grocer_mate/features/shopping/presentation/controllers/shopping_bloc.dart';
 import 'package:material_ui/material_ui.dart';
@@ -100,19 +104,15 @@ void main() {
     tester,
   ) async {
     var productCreations = 0;
-    var settingsLookups = 0;
-    await _startApp(
-      tester,
-      onCreateProduct: () => productCreations++,
-      onGetCheckoutSettings: () => settingsLookups++,
-    );
+    await _startApp(tester, onCreateProduct: () => productCreations++);
+    final injector = GetItInjector();
     expect(productCreations, 0);
-    expect(settingsLookups, 0);
+    expect(injector.isRegistered<CheckoutSettings>(), isFalse);
 
     await tester.tap(find.byTooltip('Settings'));
-    expect(settingsLookups, 0);
+    expect(injector.isRegistered<CheckoutSettings>(), isFalse);
     await tester.pumpAndSettle();
-    expect(settingsLookups, greaterThan(0));
+    expect(injector.isRegistered<CheckoutSettings>(), isTrue);
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
 
@@ -221,7 +221,6 @@ Future<GoRouter> _startApp(
   Stream<bool>? connectionChanges,
   VoidCallback? onCreateCatalog,
   VoidCallback? onCreateProduct,
-  VoidCallback? onGetCheckoutSettings,
 }) async {
   await tester.binding.setSurfaceSize(const Size(900, 1000));
   addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -250,31 +249,40 @@ Future<GoRouter> _startApp(
   final catalog = MockCatalogRepository(store, () => connection.online, demo);
   final checkout = MockCheckoutRepository(demo, () => connection.online);
   final shopping = LocalShoppingRepository(store);
+  final injector = GetItInjector();
+  await injector.reset();
+  addTearDown(injector.reset);
+  var tracking = false;
+  injector
+    ..singleton<AppConnectionCubit>(() => connection)
+    ..singleton<LocalStorage>(() => store)
+    ..singleton<MockMarket>(() => demo)
+    ..singleton<CatalogRepository>(() => catalog)
+    ..singleton<CheckoutRepository>(() => checkout)
+    ..singleton<ShoppingRepository>(() => shopping)
+    ..factory<CatalogBloc>(() {
+      if (tracking) onCreateCatalog?.call();
+      return CatalogBloc(catalog);
+    })
+    ..factoryWithParameter<ProductDetailController, String>((id) {
+      if (tracking) onCreateProduct?.call();
+      return ProductDetailController(catalog, id);
+    }, 'seed')
+    ..factory<ShoppingBloc>(
+      () => ShoppingBloc(
+        shopping,
+        SubmitPendingPurchase(shopping, checkout.purchase),
+        () => connection.online,
+        connectionChanges: connection.changes,
+        createPurchaseId: () => 'purchase-1',
+      ),
+    );
+  tracking = true;
 
   await tester.pumpWidget(
     BlocProvider<AppConnectionCubit>.value(
       value: connection,
-      child: GrocerMateApp(
-        getCheckoutSettings: () {
-          onGetCheckoutSettings?.call();
-          return CheckoutSettings(demo);
-        },
-        createCatalogBloc: () {
-          onCreateCatalog?.call();
-          return CatalogBloc(catalog);
-        },
-        createProductDetailController: (id) {
-          onCreateProduct?.call();
-          return ProductDetailController(catalog, id);
-        },
-        createShoppingBloc: () => ShoppingBloc(
-          shopping,
-          SubmitPendingPurchase(shopping, checkout.purchase),
-          () => connection.online,
-          connectionChanges: connection.changes,
-          createPurchaseId: () => 'purchase-1',
-        ),
-      ),
+      child: const GrocerMateApp(),
     ),
   );
   await tester.pumpAndSettle();

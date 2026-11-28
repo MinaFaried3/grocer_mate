@@ -51,8 +51,11 @@ class _CatalogScreenState() extends State<CatalogScreen> {
   Widget build(BuildContext context) {
     // A product deep link can place Browse underneath the product page.
     if (!_opened && !widget.isVisible) return const SizedBox.shrink();
-    _opened = true;
     final bloc = context.read<CatalogBloc>();
+    if (!_opened) {
+      _opened = true;
+      _search.text = bloc.state.query.search;
+    }
     return MultiBlocListener(
       listeners: [
         BlocListener<AppConnectionCubit, AppConnectionState>(
