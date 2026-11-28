@@ -22,7 +22,6 @@ class MockMarket {
   Future<void> _writes = Future.value();
 
   static const _marketKey = 'local_market_v1';
-  static const _legacyKey = 'mock_market_v1';
 
   Future<dynamic> _fixture(String endpoint) =>
       _fixtures.putIfAbsent(endpoint, () async {
@@ -36,8 +35,7 @@ class MockMarket {
         }
       });
 
-  Future<Json> _readMarket() async =>
-      await _storage.read(_marketKey) ?? await _storage.read(_legacyKey) ?? {};
+  Future<Json> _readMarket() async => await _storage.read(_marketKey) ?? {};
 
   Future<List<Json>> _products(Json market) async {
     final seed = (await _fixture(Endpoints.products) as List).cast<Json>();

@@ -24,14 +24,13 @@ class MockCatalogRepository implements CatalogRepository {
   Future<_CatalogCache> get _saved => _cache ??= _load();
 
   Future<_CatalogCache> _load() async {
-    final json = await _store.read(_key);
-    if (json != null) return _CatalogCache.fromJson(json);
-
-    final legacy = await _store.read('catalog_v1');
-    if (legacy == null) return _CatalogCache();
-    final cache = _CatalogCache.fromJson(legacy);
-    cache.details.addAll(cache.products);
-    return cache;
+    try {
+      final json = await _store.read(_key);
+      return json == null ? _CatalogCache() : _CatalogCache.fromJson(json);
+    } catch (_) {
+      _cache = null;
+      rethrow;
+    }
   }
 
   @override

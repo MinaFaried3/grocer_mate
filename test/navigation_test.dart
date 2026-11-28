@@ -29,12 +29,12 @@ import 'fixtures.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   test(
-    'preserves local inventory and receipts across the storage rename',
+    'uses saved inventory and receipts when processing a purchase',
     () async {
       final connection = AppConnectionCubit(_OnlineChecker());
       addTearDown(connection.close);
       final store = _MemoryStorage();
-      await store.write('mock_market_v1', {
+      await store.write('local_market_v1', {
         'availability': {
           'milk': {'price': 129, 'stock': 3},
         },
