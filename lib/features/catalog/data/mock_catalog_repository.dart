@@ -3,8 +3,9 @@ import 'package:grocer_mate/core/storage/local_storage.dart';
 
 import '../domain/entities/catalog.dart';
 import 'cached_catalog.dart';
-import 'catalog_models.dart';
 import 'catalog_source.dart';
+import 'models/deals_response.dart';
+import 'models/product_response.dart';
 
 class MockCatalogRepository extends CachedCatalog {
   MockCatalogRepository(

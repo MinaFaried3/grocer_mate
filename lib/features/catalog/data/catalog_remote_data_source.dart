@@ -3,8 +3,13 @@ import 'package:grocer_mate/core/network/market_api.dart';
 import 'package:grocer_mate/core/storage/json_fields.dart';
 
 import '../domain/entities/catalog.dart';
-import 'catalog_models.dart';
 import 'catalog_source.dart';
+import 'models/deals_response.dart';
+import 'models/inventory_response.dart';
+import 'models/price_history_response.dart';
+import 'models/product_response.dart';
+import 'models/stock_response.dart';
+import 'models/suggestions_response.dart';
 
 class const CatalogRemoteDataSource(final MarketApi _api)
     implements CatalogSource {

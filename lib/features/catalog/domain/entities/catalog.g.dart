@@ -6,18 +6,6 @@ part of 'catalog.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Category _$CategoryFromJson(Map<String, dynamic> json) => Category(
-  id: json['id'] as String,
-  name: json['name'] as String,
-  icon: json['icon'] as String,
-);
-
-Map<String, dynamic> _$CategoryToJson(Category instance) => <String, dynamic>{
-  'id': instance.id,
-  'name': instance.name,
-  'icon': instance.icon,
-};
-
 Product _$ProductFromJson(Map<String, dynamic> json) => Product(
   id: json['id'] as String,
   title: json['title'] as String,

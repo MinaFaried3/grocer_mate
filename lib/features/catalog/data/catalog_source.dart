@@ -2,7 +2,8 @@ import 'package:grocer_mate/core/network/page_response.dart';
 import 'package:grocer_mate/core/storage/json_fields.dart';
 
 import '../domain/entities/catalog.dart';
-import 'catalog_models.dart';
+import 'models/deals_response.dart';
+import 'models/product_response.dart';
 
 abstract interface class CatalogSource {
   Future<List<Category>> categories();
@@ -16,8 +17,7 @@ abstract interface class CatalogSource {
   Future<DealsResponse> dealsOfDay();
 
   static List<Category> parseCategories(List<dynamic> items) => [
-    for (final item in items)
-      CategoryResponse.fromJson(item as Json).toCategory(),
+    for (final item in items) Category.fromJson(item as Json),
   ];
 
   static List<String> parseBrands(Json json, String? category) => {

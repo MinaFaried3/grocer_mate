@@ -3,7 +3,8 @@ import 'package:grocer_mate/core/network/connectivity/offline_exception.dart';
 
 import '../domain/entities/shopping.dart';
 import '../domain/repositories/checkout_repository.dart';
-import 'checkout_models.dart';
+import 'models/purchase_request.dart';
+import 'models/purchase_response.dart';
 
 class const MockCheckoutRepository(
   final MockMarket _market,

@@ -5,7 +5,12 @@ import 'package:grocer_mate/core/storage/json_fields.dart';
 
 import '../domain/entities/shopping.dart';
 import '../domain/repositories/checkout_repository.dart';
-import 'checkout_models.dart';
+import 'models/flags_response.dart';
+import 'models/order_response.dart';
+import 'models/purchase_request.dart';
+import 'models/purchase_response.dart';
+import 'models/sync_request.dart';
+import 'models/sync_response.dart';
 
 class ApiCheckoutRepository(
   final MarketApi _api,

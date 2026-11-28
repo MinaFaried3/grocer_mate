@@ -1,26 +1,11 @@
 import 'package:grocer_mate/core/storage/json_fields.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '../../data/models/category.dart';
+
+export '../../data/models/category.dart';
+
 part 'catalog.g.dart';
-
-@JsonSerializable()
-class const Category({
-  required final String id,
-  required final String name,
-  required final String icon,
-}) {
-  factory fromJson(Json json) {
-    final category = _$CategoryFromJson(json);
-    if (category.id.trim().isEmpty ||
-        category.name.trim().isEmpty ||
-        category.icon.trim().isEmpty) {
-      throw const FormatException('Invalid category data.');
-    }
-    return category;
-  }
-
-  Json toJson() => _$CategoryToJson(this);
-}
 
 @JsonSerializable()
 class const Product({
