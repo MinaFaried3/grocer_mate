@@ -3,7 +3,6 @@ import 'package:flutter/widgets.dart';
 abstract final class RoutesConstants {
   //------------ Navigator Keys ---------------
   static final rootNavigatorKey = GlobalKey<NavigatorState>();
-  static final marketNavigatorKey = GlobalKey<NavigatorState>();
   static final shellNavigatorKey = GlobalKey<NavigatorState>();
 
   //------------ Route Paths & Names ---------------

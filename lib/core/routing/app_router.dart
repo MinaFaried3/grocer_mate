@@ -35,9 +35,9 @@ GoRouter createAppRouter() {
   return .new(
     navigatorKey: RoutesConstants.rootNavigatorKey,
     routes: [
-      //------------ Market Shell Route ---------------
+      //------------ Navigation Bar Shell Route ---------------
       ShellRoute(
-        navigatorKey: RoutesConstants.marketNavigatorKey,
+        navigatorKey: RoutesConstants.shellNavigatorKey,
         builder: (context, state, child) => MultiBlocProvider(
           providers: [
             //------------ Shopping Bloc Provider ---------------
@@ -53,63 +53,68 @@ GoRouter createAppRouter() {
                   injector.createCatalogBloc()..add(const CatalogRefreshed()),
             ),
           ],
-          child: child,
+          child: MarketHome(location: state.uri.path, child: child),
         ),
         routes: [
-          //------------ Navigation Bar Shell Route ---------------
-          ShellRoute(
-            navigatorKey: RoutesConstants.shellNavigatorKey,
-            builder: (context, state, child) =>
-                MarketHome(location: state.uri.path, child: child),
+          //------------ Browse Route ---------------
+          GoRoute(
+            path: RoutesConstants.browse,
+            builder: (context, state) => CatalogScreen(
+              isVisible: state.uri.path == RoutesConstants.browse,
+              onSettings: () => showSettings(context),
+              onProductSelected: (id) => context.goNamed(
+                RoutesConstants.productName,
+                pathParameters: {'id': id},
+                extra: context.read<ShoppingBloc>(),
+              ),
+            ),
             routes: [
-              //------------ Browse Route ---------------
+              //------------ Product Route ---------------
               GoRoute(
-                path: RoutesConstants.browse,
-                builder: (context, state) => CatalogScreen(
-                  isVisible: state.uri.path == RoutesConstants.browse,
-                  onSettings: () => showSettings(context),
-                  onProductSelected: (id) => context.goNamed(
-                    RoutesConstants.productName,
-                    pathParameters: {'id': id},
-                  ),
-                ),
-                routes: [
-                  //------------ Product Route ---------------
-                  GoRoute(
-                    path: RoutesConstants.product,
-                    name: RoutesConstants.productName,
-                    parentNavigatorKey: RoutesConstants.marketNavigatorKey,
-                    builder: (context, state) {
-                      final id = state.pathParameters['id']!;
-                      return BlocProvider<ProductDetailController>(
-                        key: ValueKey(id),
+                path: RoutesConstants.product,
+                name: RoutesConstants.productName,
+                parentNavigatorKey: RoutesConstants.rootNavigatorKey,
+                builder: (context, state) {
+                  final id = state.pathParameters['id']!;
+                  final shoppingBloc =
+                      state.extra as ShoppingBloc? ??
+                      RoutesConstants.shellNavigatorKey.currentContext!
+                          .read<ShoppingBloc>();
+                  return MultiBlocProvider(
+                    key: ValueKey(id),
+                    providers: [
+                      //------------ Shopping Bloc Value Provider ---------------
+                      BlocProvider<ShoppingBloc>.value(value: shoppingBloc),
+
+                      //------------ Product Detail Controller Provider ---------------
+                      BlocProvider<ProductDetailController>(
                         create: (_) =>
                             injector.createProductDetailController(id)..load(),
-                        child: const ProductScreen(),
-                      );
-                    },
-                  ),
-                ],
-              ),
-
-              //------------ Cart Route ---------------
-              GoRoute(
-                path: RoutesConstants.cart,
-                builder: (context, state) => CartScreen(
-                  onBrowse: () => context.go(RoutesConstants.browse),
-                  onSettings: () => showSettings(context),
-                ),
-              ),
-
-              //------------ Saved Route ---------------
-              GoRoute(
-                path: RoutesConstants.saved,
-                builder: (context, state) => SavedScreen(
-                  onBrowse: () => context.go(RoutesConstants.browse),
-                  onSettings: () => showSettings(context),
-                ),
+                      ),
+                    ],
+                    child: const ProductScreen(),
+                  );
+                },
               ),
             ],
+          ),
+
+          //------------ Cart Route ---------------
+          GoRoute(
+            path: RoutesConstants.cart,
+            builder: (context, state) => CartScreen(
+              onBrowse: () => context.go(RoutesConstants.browse),
+              onSettings: () => showSettings(context),
+            ),
+          ),
+
+          //------------ Saved Route ---------------
+          GoRoute(
+            path: RoutesConstants.saved,
+            builder: (context, state) => SavedScreen(
+              onBrowse: () => context.go(RoutesConstants.browse),
+              onSettings: () => showSettings(context),
+            ),
           ),
         ],
       ),
