@@ -43,6 +43,7 @@ class _CatalogScreenState() extends State<CatalogScreen> {
   @override
   void dispose() {
     _search.dispose();
+    _scroll.removeListener(_maybeLoadNext);
     _scroll.dispose();
     super.dispose();
   }
