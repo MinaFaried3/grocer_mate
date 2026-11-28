@@ -2,17 +2,12 @@
 2- ios - android - web
 3- secuirty
 4- local data source and secure
-5- not make the ui is done it make read the full task
 6- dev tools
 7- caching
-8- localization
-9- read me and md file at docs
-10- notice my current app logic like shared mixin and so on
 11- demo video
 
 
 
-0- endpoints
 1-on click items
 2- optimistic ui
 3- view my orders detail
